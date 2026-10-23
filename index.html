@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plot Twist Party! — Multiplayer AI Scenario Game</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/screens.css" />
+  <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+  <!-- Compact Top Navigation Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="btn-global-back" type="button" class="btn-small hidden" onclick="handleGlobalBack()">
+        ⬅️ Back
+      </button>
+      <div class="brand">
+        <span>🎭 PLOT TWIST PARTY</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div id="top-room-badge" class="room-badge hidden">ROOM: ----</div>
+      <span id="api-key-status-badge" class="badge badge-warn" onclick="openApiKeyModal()" style="cursor:pointer;">
+        ⚠️ Set Gemini Key
+      </span>
+      <button id="btn-top-settings" type="button" class="btn-small" onclick="openSettingsModal()">⚙️ Settings</button>
+      <button type="button" class="btn-small" onclick="openApiKeyModal()">🔑 AI Key</button>
+      <button id="btn-mute" type="button" class="btn-small" onclick="toggleSound()">🔊 Sound On</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- ==================== SCREEN 1: HOME ==================== -->
+    <section id="screen-HOME" class="screen-section" style="justify-content: center;">
+      <div class="hero-header">
+        <h1 class="hero-title">Plot Twist Party!</h1>
+        <p class="hero-subtitle">
+          Draw your character, survive multi-round scenarios together <strong>without talking</strong>, and let Gemini judge your chaos, rank the MVP, and hand out lasting character modifiers!
+        </p>
+      </div>
+
+      <div class="dashboard-equal" style="max-height: 300px; flex: 0 1 auto;">
+        <!-- Create Room (Host) -->
+        <div class="card card-highlight" style="justify-content: space-between;">
+          <div>
+            <h2>👑 Host a New Game</h2>
+            <p class="text-muted small mb-2">
+              Create a 4-letter room code for friends to join over the internet. Only the Host needs a Gemini API key!
+            </p>
+            <div class="form-group">
+              <label for="host-player-name">Your Nickname</label>
+              <input id="host-player-name" type="text" class="input-field" placeholder="e.g., Alex" maxlength="24" />
+            </div>
+          </div>
+          <button type="button" class="btn btn-gold btn-block" onclick="hostCreateRoom()">
+            ✨ Create Room & Get Code
+          </button>
+        </div>
+
+        <!-- Join Room (Player) -->
+        <div class="card" style="justify-content: space-between;">
+          <div>
+            <h2>📲 Join a Room</h2>
+            <p class="text-muted small mb-2">
+              Enter a friend's 4-letter Room Code below to jump into their lobby!
+            </p>
+            <div style="display:grid; grid-template-columns: 140px 1fr; gap: 10px;">
+              <div class="form-group">
+                <label for="join-room-code">Room Code</label>
+                <input id="join-room-code" type="text" class="input-field input-code" placeholder="ABCD" maxlength="4" />
+              </div>
+              <div class="form-group">
+                <label for="join-player-name">Your Nickname</label>
+                <input id="join-player-name" type="text" class="input-field" placeholder="e.g., Sam" maxlength="24" style="height:44px;" />
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-block" onclick="clientJoinRoom()">
+            🚀 Join Game
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 2: LOBBY (2-Column Compact Dashboard) ==================== -->
+    <section id="screen-LOBBY" class="screen-section hidden">
+      <div class="dashboard-lobby">
+        <!-- Left Column: Room Code & Players -->
+        <div style="display:flex; flex-direction:column; min-height:0;">
+          <div class="lobby-code-banner">
+            <div class="text-muted tiny">ROOM CODE FOR FRIENDS:</div>
+            <div id="lobby-room-code-display" class="big-room-code">----</div>
+            <div class="row-gap" style="justify-content: center;">
+              <button type="button" class="btn-small" onclick="copyInviteLink()">📋 Copy Code</button>
+              <button type="button" class="btn-small btn-danger" onclick="handleGlobalBack()">⬅️ Leave</button>
+            </div>
+          </div>
+
+          <div class="card" style="flex:1;">
+            <div class="row-between">
+              <h3>👥 Players</h3>
+              <button type="button" class="btn-small" onclick="addBotPlayer()" title="Add an AI Bot teammate">
+                🤖 + Bot
+              </button>
+            </div>
+            <div id="lobby-player-list" class="player-pill-list"></div>
+          </div>
+        </div>
+
+        <!-- Right Column: Host Campaign & Settings Tabs -->
+        <div id="host-lobby-controls" class="card" style="justify-content: space-between;">
+          <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
+            <div class="lobby-main-tabs">
+              <button type="button" class="lobby-tab-btn active" data-tab="campaign" onclick="switchLobbyTab('campaign')">
+                🗺️ Campaign Selection
+              </button>
+              <button type="button" class="lobby-tab-btn" data-tab="settings" onclick="switchLobbyTab('settings')">
+                ⚙️ Host Settings
+              </button>
+            </div>
+
+            <!-- LOBBY TAB 1: CAMPAIGN SELECTION -->
+            <div id="lobby-tab-campaign" class="panel-scroll" style="flex:1;">
+              <div class="campaign-tabs">
+                <button type="button" class="campaign-tab-btn active" data-mode="premade" onclick="setCampaignMode('premade')">
+                  📚 Pre-Made Campaigns
+                </button>
+                <button type="button" class="campaign-tab-btn" data-mode="ai" onclick="setCampaignMode('ai')">
+                  ✨ AI-Generated Campaign
+                </button>
+                <button type="button" class="campaign-tab-btn" data-mode="custom" onclick="setCampaignMode('custom')">
+                  ✍️ Custom Campaign
+                </button>
+              </div>
+
+              <!-- Sub-Tab: Premade -->
+              <div id="panel-premade">
+                <div id="premade-campaign-grid" class="campaign-grid"></div>
+              </div>
+
+              <!-- Sub-Tab: AI Prompt -->
+              <div id="panel-ai" class="hidden">
+                <div class="form-group">
+                  <label for="ai-campaign-prompt">Describe any theme, setting, or plot for Gemini to build:</label>
+                  <textarea id="ai-campaign-prompt" class="input-field" rows="3"
+                    placeholder="e.g., A group of raccoons in trench coats trying to heist a 5-star wedding cake..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="ai-round-count">Number of Rounds (Acts):</label>
+                  <select id="ai-round-count" class="input-field" style="max-width: 200px;">
+                    <option value="3">3 Rounds (Quick)</option>
+                    <option value="4" selected>4 Rounds (Standard)</option>
+                    <option value="5">5 Rounds (Epic)</option>
+                  </select>
+                </div>
+                <div class="bridge-box">
+                  <strong>✨ 2-Part Round Generation:</strong> For each round, Gemini automatically generates:
+                  <br />• <strong>1. Description (Shown to Players):</strong> The scene and obstacles <em>without</em> spoiling the solution.
+                  <br />• <strong>2. Secrets (Judge LLM Only):</strong> Broad hidden rules of the moving parts (e.g., immunities &amp; general weaknesses) so many creative actions can apply!
+                </div>
+              </div>
+
+              <!-- Sub-Tab: Custom User Campaign -->
+              <div id="panel-custom" class="hidden">
+                <div class="bridge-box mb-1">
+                  <strong>📖 Campaign Guide:</strong> For each round, write <strong>1. Description</strong> (shown to players — do not give away the solution!) and <strong>2. Secrets</strong> (shown only to the Judge LLM — vague/broad truths about moving parts so many actions apply).
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap: 8px;">
+                  <div class="form-group">
+                    <label>Campaign Title</label>
+                    <input id="custom-camp-title" type="text" class="input-field" placeholder="My Custom Campaign" />
+                  </div>
+                  <div class="form-group">
+                    <label>Campaign Premise / Intro</label>
+                    <input id="custom-camp-desc" type="text" class="input-field" placeholder="Who are the players and what is their goal?" />
+                  </div>
+                </div>
+                <div id="custom-rounds-list"></div>
+                <button type="button" class="btn-small mt-1" onclick="addCustomRound()">+ Add Another Round</button>
+              </div>
+            </div>
+
+            <!-- LOBBY TAB 2: HOST GAME SETTINGS (Rendered dynamically from js/features/settings.js) -->
+            <div id="lobby-tab-settings" class="panel-scroll hidden" style="flex:1;">
+              <div id="lobby-settings-grid" class="settings-grid"></div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-gold btn-block mt-2" onclick="hostStartCampaign()">
+            🎬 Launch Campaign & Draw Characters!
+          </button>
+        </div>
+
+        <!-- Client Waiting View -->
+        <div id="client-lobby-waiting" class="card hidden" style="justify-content:center; align-items:center; text-align:center;">
+          <h3>⏳ Waiting for the Host to pick a Campaign & start...</h3>
+          <p id="client-settings-summary" class="text-muted small mt-1"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 3: CHARACTER CREATION (Compact Side-by-Side) ==================== -->
+    <section id="screen-CHAR_CREATE" class="screen-section hidden">
+      <div class="nav-bar-sub">
+        <div class="row-gap">
+          <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
+          <span class="badge badge-genre" id="char-camp-title">Campaign</span>
+          <span class="text-muted small" id="char-camp-desc"></span>
+        </div>
+        <div class="row-gap">
+          <span id="char-create-timer" class="timer-pill hidden">⏱️ 2:00</span>
+          <button id="btn-host-skip-char" type="button" class="btn-small hidden" onclick="hostForceStartFirstRound()">
+            ⏭️ Force Start Round 1
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-2col">
+        <!-- Left: Compact Drawing & Inputs Side-by-Side -->
+        <div class="card">
+          <div id="char-form-box" style="display:flex; flex-direction:column; height:100%; justify-content:space-between;">
+            <div>
+              <div class="row-between mb-1">
+                <h3>🎨 Draw & Create Your Character</h3>
+                <button type="button" class="btn-small" onclick="randomizeMyCharacter()">
+                  🎲 Random Idea + Doodle
+                </button>
+              </div>
+
+              <div class="char-create-split">
+                <!-- Canvas Column -->
+                <div class="drawing-studio">
+                  <div class="canvas-wrapper">
+                    <canvas id="char-canvas" width="240" height="240"></canvas>
+                  </div>
+                  <div id="draw-color-palette" class="draw-toolbar"></div>
+                  <div class="draw-toolbar">
+                    <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">Thin</button>
+                    <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">Med</button>
+                    <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">Thick</button>
+                    <button type="button" class="brush-btn" onclick="selectDrawColor('#1c2038')">🧽</button>
+                    <button type="button" class="brush-btn" onclick="undoCanvasStroke()">↩️</button>
+                    <button type="button" class="brush-btn" onclick="clearCharacterCanvas(true)">🗑️</button>
+                  </div>
+                </div>
+
+                <!-- Text Inputs Column -->
+                <div>
+                  <div class="form-group">
+                    <label for="char-name-input">Character Name</label>
+                    <input id="char-name-input" type="text" class="input-field" placeholder="e.g., Brick McLargeHuge" maxlength="30" />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="char-role-input">Role / Class / Personality Concept</label>
+                    <textarea id="char-role-input" class="input-field" rows="2" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
+                  </div>
+
+                  <div id="char-quirk-group" class="form-group">
+                    <label for="char-quirk-input">Optional Starting Item or Quirk</label>
+                    <input id="char-quirk-input" type="text" class="input-field" placeholder="e.g., Lucky Grappling Hook: Works 60% of the time" maxlength="80" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-gold btn-block mt-1" onclick="submitMyCharacter()">
+              ✅ Lock In My Character
+            </button>
+          </div>
+
+          <div id="char-waiting-box" class="hidden" style="margin:auto; text-align:center;">
+            <h3>🎉 Character Locked In!</h3>
+            <p class="text-muted small mb-2">Waiting for the rest of the party to finish drawing...</p>
+            <button type="button" class="btn btn-secondary" onclick="unlockMyCharacterToEdit()">
+              ✏️ Edit My Character
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Party Readiness Roster -->
+        <div class="card">
+          <h3>🛡️ The Party Roster</h3>
+          <div id="char-ready-list" class="panel-scroll mt-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 4: SCENARIO (Compact No-Scroll Dashboard) ==================== -->
+    <section id="screen-SCENARIO" class="screen-section hidden">
+      <div class="nav-bar-sub">
+        <div class="row-gap">
+          <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
+          <span id="scenario-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
+          <span class="badge badge-warn">🤫 SILENCE RULE: Do not coordinate out loud!</span>
+        </div>
+        <div class="row-gap">
+          <span id="scenario-timer" class="timer-pill">⏱️ 2:00</span>
+          <button id="btn-host-add-time" type="button" class="btn-small hidden" onclick="hostAddExtraTime(30)">
+            +30s
+          </button>
+          <button id="btn-host-force-judge" type="button" class="btn-small hidden" onclick="hostForceEvaluateRound()">
+            ⏭️ Judge Now
+          </button>
+        </div>
+      </div>
+
+      <!-- Compact Scenario Banner -->
+      <div class="scenario-box">
+        <h2 id="scenario-title" style="font-size:1.15rem;">Act I</h2>
+        <div id="scenario-bridge-box" class="bridge-box hidden"></div>
+        <p id="scenario-description" class="scenario-text"></p>
+      </div>
+
+      <div class="dashboard-2col">
+        <!-- Left: Player Character, Modifiers, Action Input & Secret Checkbox -->
+        <div class="card card-highlight" style="justify-content:space-between;">
+          <div id="my-char-banner" class="my-char-banner"></div>
+
+          <div id="scenario-input-area" style="display:flex; flex-direction:column; flex:1; justify-content:space-between;">
+            <div class="form-group" style="flex:1; display:flex; flex-direction:column;">
+              <label for="scenario-action-input">What does your character do in this scenario?</label>
+              <textarea id="scenario-action-input" class="input-field" style="flex:1; resize:none;"
+                placeholder="Describe your action! Keep your active modifiers in mind—ignoring an injury or restriction will backfire!"></textarea>
+            </div>
+
+            <!-- Checkbox to hide action from other players during the reveal -->
+            <label class="secret-checkbox-row" for="scenario-hide-action">
+              <input id="scenario-hide-action" type="checkbox" />
+              <span>🕵️ <strong>Keep my action secret from other players</strong> (hides it in "What everyone decided to do"; AI still judges it!)</span>
+            </label>
+
+            <button type="button" class="btn btn-gold btn-block" onclick="submitMyAction()">
+              🚀 Lock In My Action!
+            </button>
+          </div>
+
+          <div id="scenario-locked-area" class="hidden" style="margin:auto; text-align:center;">
+            <h3>🔒 Action Locked In!</h3>
+            <p class="text-muted small mb-2">Waiting for remaining teammates to lock in their moves...</p>
+            <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
+              ✏️ Edit My Answer
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Party Status & Modifiers -->
+        <div class="card">
+          <h3>👥 Party Status & Active Modifiers</h3>
+          <div id="scenario-party-status" class="panel-scroll mt-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 5: REVEAL (Replaces View on Each Step!) ==================== -->
+    <section id="screen-REVEAL" class="screen-section hidden">
+      <div class="nav-bar-sub">
+        <div class="row-gap">
+          <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
+          <button id="btn-host-reveal-prev" type="button" class="btn-small hidden" onclick="hostPrevRevealStep()">
+            ⬅️ View Actions
+          </button>
+        </div>
+        <div class="row-gap">
+          <span id="client-reveal-wait" class="text-muted small hidden">
+            Host is controlling the reveal...
+          </span>
+          <button id="btn-host-reveal-next" type="button" class="btn btn-gold" onclick="hostNextRevealStep()">
+            ▶️ Continue
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 1 VIEW: What Everyone Decided To Do (Replaced when Host presses Continue!) -->
+      <div id="reveal-step1-view" class="card" style="flex:1;">
+        <div class="row-between mb-1">
+          <h3>🗣️ What Everyone Decided To Do</h3>
+          <div id="reveal-ai-generating-box" class="badge badge-warn hidden">
+            ⏳ Gemini is generating the outcome...
+          </div>
+        </div>
+        <div id="reveal-actions-grid" class="actions-grid-compact panel-scroll"></div>
+      </div>
+
+      <!-- STEP 2 VIEW: Scenario Plays Out + Verdict + Leaderboard (Replaces Step 1 View!) -->
+      <div id="reveal-step2-view" class="dashboard-equal hidden">
+        <!-- Left Column: Word-by-Word Story + Immediate 3-Tier Verdict Stamp -->
+        <div class="card card-highlight" style="justify-content:space-between;">
+          <div class="panel-scroll" style="flex:1;">
+            <h3>📖 How It Actually Played Out...</h3>
+            <div id="reveal-story-paragraphs" class="mt-1"></div>
+          </div>
+
+          <!-- 3-Tier Outcome Stamp (Appears immediately when story finishes) -->
+          <div id="reveal-verdict-box" class="verdict-banner hidden">
+            <div id="verdict-stamp" class="verdict-stamp">SCENARIO PASSED!</div>
+            <div id="verdict-headline" class="small" style="font-weight:700;">Headline</div>
+          </div>
+        </div>
+
+        <!-- Right Column: Round Leaderboard & New Modifiers -->
+        <div id="reveal-rankings-box" class="card hidden">
+          <h3>🏆 Round Leaderboard & New Modifiers</h3>
+          <p class="text-muted tiny mb-1">
+            Modifiers gained below carry into future rounds!
+          </p>
+          <div id="reveal-rankings-list" class="panel-scroll" style="flex:1;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 6: GAME OVER (Compact 2-Column Podium + Summary) ==================== -->
+    <section id="screen-GAME_OVER" class="screen-section hidden">
+      <div class="nav-bar-sub">
+        <div>
+          <span id="finale-main-title" style="font-size:1.3rem; font-weight:900; color:var(--accent-gold);">🏆 Campaign Complete!</span>
+          <span id="finale-campaign-summary" class="text-muted small" style="margin-left:10px;"></span>
+        </div>
+        <button id="btn-host-play-again" type="button" class="btn btn-gold" onclick="hostBackToLobby()">
+          🔄 Return to Room Lobby
+        </button>
+      </div>
+
+      <div class="dashboard-equal">
+        <!-- Left Column: Top 3 Podium + 4th Place Honorable Mention + Full Leaderboard -->
+        <div class="card" style="overflow:hidden;">
+          <h3>👑 Top 3 Podium & Final Standings</h3>
+          <div id="final-podium-stage" class="podium-stage"></div>
+          <div id="final-honorable-mention" class="honorable-mention-banner hidden"></div>
+          <div id="final-leaderboard-list" class="panel-scroll" style="flex:1;"></div>
+        </div>
+
+        <!-- Right Column: Act-by-Act Campaign Story Summary -->
+        <div class="card">
+          <h3>📖 Campaign Story Summary</h3>
+          <div id="final-campaign-recap-list" class="panel-scroll mt-1" style="flex:1;"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== HOST GAME SETTINGS MODAL ==================== -->
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="row-between mb-2">
+        <h3>⚙️ Host Game Settings</h3>
+        <button type="button" class="btn-small" onclick="closeSettingsModal()">✕ Close</button>
+      </div>
+      <div id="modal-settings-grid" class="settings-grid"></div>
+      <div style="text-align:right; margin-top: 12px;">
+        <button type="button" class="btn btn-gold" onclick="closeSettingsModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GEMINI API KEY MODAL ==================== -->
+  <div id="api-key-modal" class="modal-backdrop hidden">
+    <div class="modal-card" style="max-width:460px;">
+      <h3>🔑 Gemini API Key Setup (Host Only)</h3>
+      <p class="text-muted small mt-1 mb-2">
+        Paste your Google Gemini API key below. Invalid keys are automatically refused and cleared.
+      </p>
+      <div class="form-group">
+        <label for="api-key-input">Gemini API Key</label>
+        <input id="api-key-input" type="password" class="input-field" placeholder="AIzaSy..." />
+      </div>
+      <div class="row-between mt-2">
+        <button type="button" class="btn btn-secondary" onclick="closeApiKeyModal()">Cancel</button>
+        <button type="button" class="btn btn-gold" onclick="saveApiKeyFromModal()">💾 Verify & Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="modal-backdrop hidden">
+    <div class="modal-card" style="text-align:center; max-width:360px;">
+      <div class="spinner"></div>
+      <h3 id="loading-text">Loading...</h3>
+    </div>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast-container"></div>
+
+  <!-- Modular Application Scripts (Ordered for file:// compatibility without bundler) -->
+  <script src="js/data/campaigns.js"></script>
+  <script src="js/ui/utils.js"></script>
+  <script src="js/services/audio.js"></script>
+  <script src="js/services/gemini.js"></script>
+  <script src="js/features/canvas.js"></script>
+  <script src="js/features/settings.js"></script>
+  <script src="js/services/network.js"></script>
+  <script src="js/ui/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
