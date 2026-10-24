@@ -287,24 +287,30 @@ function renderCharCreateScreen() {
   }
 
   const statusEl = document.getElementById('char-ready-list');
-  statusEl.innerHTML = app.state.players.map(p => {
-    const ready = Boolean(p.character && p.character.ready);
-    const photoContent = ready && p.character?.avatar && p.character.avatar.startsWith('data:image/')
-      ? `<img src="${p.character.avatar}" alt="${escapeHtml(p.character.name)}" />`
-      : `<span style="font-size:2.4rem;">🎨</span>`;
-    return `
-      <div class="polaroid-card ${ready ? 'is-ready' : ''}">
-        <div class="polaroid-photo-frame">
-          ${photoContent}
+  const rosterSig = app.state.players
+    .map(p => `${p.id}:${Boolean(p.character?.ready)}:${p.character?.name || ''}:${p.character?.role || ''}:${(p.character?.avatar || '').length}`)
+    .join('|');
+  if (statusEl.getAttribute('data-roster-sig') !== rosterSig) {
+    statusEl.setAttribute('data-roster-sig', rosterSig);
+    statusEl.innerHTML = app.state.players.map(p => {
+      const ready = Boolean(p.character && p.character.ready);
+      const photoContent = ready && p.character?.avatar && p.character.avatar.startsWith('data:image/')
+        ? `<img src="${p.character.avatar}" alt="${escapeHtml(p.character.name)}" />`
+        : `<span style="font-size:2.4rem;">🎨</span>`;
+      return `
+        <div class="polaroid-card ${ready ? 'is-ready' : ''}">
+          <div class="polaroid-photo-frame">
+            ${photoContent}
+          </div>
+          <div class="polaroid-name">${escapeHtml(ready ? p.character.name : p.name)}</div>
+          <div class="polaroid-role">${ready ? escapeHtml(p.character.role) : 'Sketching hero...'}</div>
+          <div class="polaroid-status-tag">
+            <span class="badge ${ready ? 'badge-success' : 'badge-warn'}">${ready ? '✅ Ready!' : '✏️ Drawing'}</span>
+          </div>
         </div>
-        <div class="polaroid-name">${escapeHtml(ready ? p.character.name : p.name)}</div>
-        <div class="polaroid-role">${ready ? escapeHtml(p.character.role) : 'Sketching hero...'}</div>
-        <div class="polaroid-status-tag">
-          <span class="badge ${ready ? 'badge-success' : 'badge-warn'}">${ready ? '✅ Ready!' : '✏️ Drawing'}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 
   document.getElementById('btn-host-skip-char').classList.toggle('hidden', !app.isHost);
 }
@@ -413,25 +419,32 @@ function renderScenarioScreen() {
   const lockedArea = document.getElementById('scenario-locked-area');
   lockedArea.classList.toggle('hidden', !hasSubmitted);
 
-  if (hasSubmitted) {
-    if (myDeadMod) {
-      lockedArea.innerHTML = `
-        <div class="big-locked-stamp" style="background:var(--accent-red); color:#fff;">💀 ELIMINATED!</div>
-        <p class="text-muted small">Your character met an untimely demise and is spectating the survivors.</p>
-      `;
-    } else if (mySkipMod) {
-      lockedArea.innerHTML = `
-        <div class="big-locked-stamp" style="background:var(--accent-gold); color:var(--ink);">⛓️ ${escapeHtml(mySkipMod.name)}!</div>
-        <p class="text-muted small">${escapeHtml(mySkipMod.description || 'You cannot act this round unless a teammate rescues you!')}</p>
-      `;
-    } else {
-      lockedArea.innerHTML = `
-        <div class="big-locked-stamp">🔒 MOVE LOCKED IN!</div>
-        <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
-        <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
-          ✏️ Change My Move
-        </button>
-      `;
+  const lockedStateKey = hasSubmitted
+    ? (myDeadMod ? 'dead' : (mySkipMod ? `skip:${mySkipMod.name}:${mySkipMod.description || ''}` : 'locked'))
+    : 'none';
+
+  if (lockedArea.getAttribute('data-locked-state') !== lockedStateKey) {
+    lockedArea.setAttribute('data-locked-state', lockedStateKey);
+    if (hasSubmitted) {
+      if (myDeadMod) {
+        lockedArea.innerHTML = `
+          <div class="big-locked-stamp" style="background:var(--accent-red); color:#fff;">💀 ELIMINATED!</div>
+          <p class="text-muted small">Your character met an untimely demise and is spectating the survivors.</p>
+        `;
+      } else if (mySkipMod) {
+        lockedArea.innerHTML = `
+          <div class="big-locked-stamp" style="background:var(--accent-gold); color:var(--ink);">⛓️ ${escapeHtml(mySkipMod.name)}!</div>
+          <p class="text-muted small">${escapeHtml(mySkipMod.description || 'You cannot act this round unless a teammate rescues you!')}</p>
+        `;
+      } else {
+        lockedArea.innerHTML = `
+          <div class="big-locked-stamp">🔒 MOVE LOCKED IN!</div>
+          <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
+          <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
+            ✏️ Change My Move
+          </button>
+        `;
+      }
     }
   }
 
