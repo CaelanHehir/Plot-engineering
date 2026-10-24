@@ -403,12 +403,18 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - If a player wrote a specific action, the story MUST show that character actually doing that exact thing and how it interacted with everyone else's actions in the shared scene!
    - Complete "characterActionChecklist" first to verify that every single player's exact action is explicitly included in your story.
 
-3. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
+3. DO NOT PUT QUOTES AROUND CHARACTER NAMES, ROLES, ITEMS, OR QUIRKS:
+   - NEVER put quotation marks around player characters' names, roles, items, perks, or quirks in "storyParagraphs" or "evaluation".
+   - Seamlessly integrate characters' names, items, perks, and quirks into the natural narrative prose instead of treating them as external metadata enclosed in quotes.
+   - Treat them as organic, living elements of the fictional world (e.g. write "Barnaby swung his trusty mop to block the blast" instead of "\"Barnaby\" swung his \"Trusty Mop\"").
+   - Only use quotation marks when a character is speaking actual dialogue out loud.
+
+4. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
    - INCOHERENCE / ANTI-COORDINATION: Players directly working against each other, attacking/sabotaging teammates, or doing completely incompatible things that ruin each other's moves (e.g., Player A tries tosweet-talk the guard while Player B tackles the guard down the stairs).
    - LAZY / VAGUE NON-ANSWERS: Generic filler that isn't a real action or story beat (e.g., "I solve the problem", "I win the round", "I do something cool", or leaving it blank). Lazy non-answers accomplish nothing and rank at the bottom!
    - IGNORING ACTIVE MODIFIERS: If a player has an active injury/restriction (e.g., "Broken Arm", "Handcuffed") and lazily ignores it without a funny workaround, have it backfire comedically.
 
-4. CONCRETE OR META PERKS & STATUS EFFECTS (WHEN THE TEAM PASSES):
+5. CONCRETE OR META PERKS & STATUS EFFECTS (WHEN THE TEAM PASSES):
    - CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails!
    - When the team PASSES ("FLYING_COLORS" or "BARELY_PASSED"), any modifier in "modifiersAdded" MUST be concrete and fun:
      A) CONCRETE ITEM / PERK OR COMEDIC CONDITION ("metaEffect": "NONE"):
@@ -421,7 +427,7 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
         - "BLINDED_SCENARIO": Character has sauce/paint/blindfold in their eyes (redacts half the scenario text next round).
    - If a locked-out ("SKIP_TURN") teammate is rescued by another player's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
 
-5. STORY LENGTH & PACING:
+6. STORY LENGTH & PACING:
    - Write 2 to 3 vivid, hilarious paragraphs in "storyParagraphs" (90 to 160 words total combined) so you have plenty of room to explicitly depict what EVERY character did and how their actions combined!
    - "evaluation": 1 punchy, funny sentence (max 20 words) per player explaining their score based on their humor, coordination, and coherence!
 
@@ -444,8 +450,8 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
   "outcome": "FLYING_COLORS | BARELY_PASSED | FAILED",
   "headline": "Short, funny 4-8 word episode headline",
   "storyParagraphs": [
-    "Paragraph 1 (explicitly naming characters and showing the exact details of what they did)...",
-    "Paragraph 2 (showing the remaining characters' exact actions and how all their moves combined into the hilarious outcome)..."
+    "Paragraph 1 (explicitly naming characters and showing the exact details of what they did; integrate character names, items, and quirks seamlessly into the story without quotes)...",
+    "Paragraph 2 (showing the remaining characters' exact actions and how all their moves combined into the hilarious outcome; no quotes around names or items)..."
   ],
   "continuityBridge": "1 brief comedic sentence setting up the party's state entering the next act.",
   "rankings": [
@@ -453,7 +459,7 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
       "playerId": "exact playerId from input",
       "rank": 1,
       "title": "Funny Award Title (e.g. Chief Lobster Strategist, Chaos MVP)",
-      "evaluation": "1 brief sentence praising their humor/coordination or roasting their blunder.",
+      "evaluation": "1 brief sentence praising their humor/coordination or roasting their blunder (weave names and items in naturally without quotes).",
       "modifiersAdded": [
         {
           "name": "Concrete Perk/Condition Name (empty [] if outcome is FAILED)",
