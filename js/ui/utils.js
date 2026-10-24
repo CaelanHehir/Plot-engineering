@@ -58,11 +58,14 @@ function setLoadingOverlay(visible, text = 'Loading...') {
 function showToast(message, type = 'info') {
   const container = document.getElementById('toast-container');
   if (!container) return;
+  // Only one notification at a time: immediately remove any existing toast
+  container.innerHTML = '';
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.textContent = message;
   container.appendChild(toast);
   setTimeout(() => {
+    if (!toast.isConnected) return;
     toast.classList.add('fade-out');
     setTimeout(() => toast.remove(), 300);
   }, 4000);
