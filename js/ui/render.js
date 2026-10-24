@@ -502,7 +502,7 @@ function renderRevealScreen() {
     const actionText = app.state.submissions[p.id] || '(Panicked and did nothing!)';
     const quoteHtml = isHidden
       ? `<div class="action-quote-hidden">🕵️ TOP SECRET MOVE — Redacted by Player!</div>`
-      : `<blockquote class="action-quote">"${escapeHtml(actionText)}"</blockquote>`;
+      : `<blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(actionText))}"</blockquote>`;
 
     return `
       <div class="action-reveal-card" style="animation-delay: ${idx * 0.08}s;">
@@ -644,7 +644,7 @@ function startStoryWordByWord(roundKey, judgment) {
   paragraphs.forEach((pText, pIdx) => {
     const words = String(pText).split(/\s+/).filter(Boolean);
     words.forEach((w, wIdx) => {
-      wordQueue.push({ pIdx, word: w, isFirst: wIdx === 0 });
+      wordQueue.push({ pIdx, word: hyphenateLongWords(w), isFirst: wIdx === 0 });
     });
   });
 
@@ -685,7 +685,7 @@ function skipStoryTypewriter() {
 
   const storyContainer = document.getElementById('reveal-story-paragraphs');
   if (storyContainer) {
-    storyContainer.innerHTML = paragraphs.map((pText, idx) => `<p id="story-p-${idx}" class="story-para">${escapeHtml(pText)}</p>`).join('');
+    storyContainer.innerHTML = paragraphs.map((pText, idx) => `<p id="story-p-${idx}" class="story-para">${escapeHtml(hyphenateLongWords(pText))}</p>`).join('');
   }
 
   showPostStoryVerdictAndLeaderboard(j);
@@ -878,7 +878,7 @@ function renderGameOverScreen() {
             ${escapeHtml(h.judgment?.headline || '')}
           </div>
           <p class="text-muted small">
-            ${escapeHtml((h.judgment?.storyParagraphs || []).join(' '))}
+            ${escapeHtml(hyphenateLongWords((h.judgment?.storyParagraphs || []).join(' ')))}
           </p>
         </div>
       `;

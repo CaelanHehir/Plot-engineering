@@ -38,6 +38,10 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+function hyphenateLongWords(str) {
+  return String(str ?? '').replace(/\S{10,}/g, (word) => word.split('').join('\u00AD'));
+}
+
 function formatSeconds(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
