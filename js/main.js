@@ -27,18 +27,18 @@ const app = {
       rounds: [
         {
           title: 'Act I: The Setup',
-          scenario: 'A troll blocks the way across the stone bridge. He doesn\'t seem to want to let anyone pass.',
-          secrets: 'The troll can be reasoned with, flattered, or distracted, but is virtually immune to physical attacks.'
+          scenario: 'A troll in a clip-on tie blocks the stone bridge. He crosses his arms and refuses to let anyone pass.',
+          secrets: 'The troll is secretly insecure about his fashion sense and loves dramatic flattery, absurd bribes, or coordinated slapstick distractions!'
         },
         {
           title: 'Act II: The Escalation',
-          scenario: 'Describe what the players see in Round 2 (without giving away the solution)...',
-          secrets: 'Describe the hidden truths of the moving parts for the Judge LLM (keep broad so many actions apply)...'
+          scenario: 'Describe what the players see in Round 2 (set up fun moving parts)...',
+          secrets: 'Describe the comedic quirks of the NPCs/props for the AI Judge...'
         },
         {
           title: 'Act III: The Climax',
-          scenario: 'Describe what the players see in the finale (without giving away the solution)...',
-          secrets: 'Describe the hidden truths of the moving parts for the Judge LLM (keep broad so many actions apply)...'
+          scenario: 'Describe what the players see in the finale...',
+          secrets: 'Describe the comedic hooks and moving parts for the AI Judge...'
         }
       ]
     },

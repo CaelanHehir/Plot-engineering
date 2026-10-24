@@ -191,11 +191,11 @@ function renderCampaignSelector() {
         </div>
         <input type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
           onchange="app.state.customCampaign.rounds[${i}].title = this.value" />
-        <label class="tiny text-muted" style="margin-top:2px;">1. Description (Shown to Players — do NOT include the solution!):</label>
-        <textarea class="input-field" rows="2" placeholder="e.g., A troll blocks the way. He doesn't seem to want to let anyone pass."
+        <label class="tiny text-muted" style="margin-top:2px;">1. Scene Setup (Shown to Players — set the stage without spoiling!):</label>
+        <textarea class="input-field" rows="2" placeholder="e.g., A massive troll in a clip-on tie blocks the bridge and glares at the party."
           onchange="app.state.customCampaign.rounds[${i}].scenario = this.value">${escapeHtml(r.scenario || '')}</textarea>
-        <label class="tiny text-muted" style="margin-top:2px;">2. Secrets (Only Shown to Judge LLM — keep vague/broad so many actions apply!):</label>
-        <textarea class="input-field" rows="2" placeholder="e.g., The troll can be reasoned with, but is virtually immune to physical attacks."
+        <label class="tiny text-muted" style="margin-top:2px;">2. Comedic Hooks &amp; Quirks (Shown to AI Judge — fun personalities &amp; improv fuel!):</label>
+        <textarea class="input-field" rows="2" placeholder="e.g., The troll is super insecure about his tie and loves dramatic flattery or slapstick combos!"
           onchange="app.state.customCampaign.rounds[${i}].secrets = this.value">${escapeHtml(r.secrets || '')}</textarea>
       </div>
     `).join('');
@@ -320,7 +320,7 @@ function renderScenarioScreen() {
   if (actionInput) {
     actionInput.placeholder = myWordLimitMod
       ? `😶 "${myWordLimitMod.name}" active: You may only type up to 5 words this round!`
-      : 'Write your character\'s specific move! (Avoid vague or impossible actions, and keep your active perks/injuries in mind!)';
+      : 'Write your character\'s move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!';
   }
 
   const hasSubmitted = Boolean(app.state.submissions[app.myId]);

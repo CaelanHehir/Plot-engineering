@@ -33,13 +33,13 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'strictness',
     idBase: 'setting-strictness',
-    label: '⚖️ AI Judge Strictness',
-    desc: 'How tough Gemini judges teamwork.',
+    label: '🎭 AI Judge Vibe',
+    desc: 'How Gemini scores coordination, coherence & humor.',
     type: 'select',
     options: [
-      { value: 'forgiving', text: 'Forgiving (Rule of Cool)' },
-      { value: 'balanced', text: 'Balanced (Default)' },
-      { value: 'brutal', text: 'Strict & Brutal' }
+      { value: 'forgiving', text: 'Pure "Yes, And!" Improv' },
+      { value: 'balanced', text: 'Comedy & Synergy (Default)' },
+      { value: 'brutal', text: 'Tough Comedy Critic' }
     ]
   },
   {
