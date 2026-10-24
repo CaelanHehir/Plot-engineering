@@ -842,16 +842,6 @@ async function evaluateCurrentRound() {
   broadcastState();
 }
 
-function hostPrevRevealStep() {
-  if (!app.isHost) return;
-  if (app.state.revealStep > 1) {
-    stopTypewriter();
-    app.state.revealStep = 1;
-    sfx.stepReveal();
-    broadcastState();
-  }
-}
-
 function hostNextRevealStep() {
   if (!app.isHost) return;
 

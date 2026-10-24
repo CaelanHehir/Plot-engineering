@@ -484,7 +484,6 @@ function renderRevealScreen() {
   const step2View = document.getElementById('reveal-step2-view');
   const revealSwitcher = document.getElementById('reveal-window-switcher');
   const aiGeneratingBox = document.getElementById('reveal-ai-generating-box');
-  const prevBtn = document.getElementById('btn-host-reveal-prev');
   const nextBtn = document.getElementById('btn-host-reveal-next');
   const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
@@ -521,7 +520,6 @@ function renderRevealScreen() {
     if (step2View) step2View.classList.add('hidden');
     if (revealSwitcher) revealSwitcher.classList.add('hidden');
     if (aiGeneratingBox) aiGeneratingBox.classList.remove('hidden');
-    prevBtn.classList.add('hidden');
     nextBtn.classList.add('hidden');
     if (skipBtn) skipBtn.classList.add('hidden');
     waitMsg.classList.remove('hidden');
@@ -575,12 +573,10 @@ function renderRevealScreen() {
     if (skipBtn) skipBtn.classList.add('hidden');
 
     if (app.isHost) {
-      prevBtn.classList.add('hidden');
       nextBtn.classList.remove('hidden');
       nextBtn.textContent = '▶️ Play Out Scenario!';
       waitMsg.classList.add('hidden');
     } else {
-      prevBtn.classList.add('hidden');
       nextBtn.classList.add('hidden');
       waitMsg.classList.remove('hidden');
       waitMsg.textContent = 'Outcome ready! Waiting for Host to play out the scene...';
@@ -590,12 +586,6 @@ function renderRevealScreen() {
 
   if (step1View) step1View.classList.add('hidden');
   if (step2View) step2View.classList.remove('hidden');
-
-  if (app.isHost) {
-    prevBtn.classList.remove('hidden');
-  } else {
-    prevBtn.classList.add('hidden');
-  }
 
   const roundKey = `${app.state.currentRound}-${j.headline}`;
   if (app.typewriter.activeKey !== roundKey) {
