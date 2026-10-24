@@ -36,8 +36,6 @@ const app = {
   lobbyView: 'cast',
   /** Character creation stage: 1 (Name & Bio) | 2 (Portrait Sketchpad) */
   charCreateStep: 1,
-  /** Active sub-window on SCENARIO screen: 'action' | 'crew' */
-  scenarioWindow: 'action',
   /** Whether the opening scenario popup modal is currently visible */
   scenarioPopupOpen: false,
   /** Deduplication key tracking which scenario popup has already opened */
@@ -690,15 +688,6 @@ function checkAllCharactersReady() {
 
 // --- Scenario Round & Action Submission Controllers ---
 
-/**
- * Toggles between 'action' (write action) and 'crew' (party status) views on SCENARIO screen.
- * @param {'action'|'crew'} winName
- */
-function setScenarioWindow(winName) {
-  app.scenarioWindow = winName === 'crew' ? 'crew' : 'action';
-  renderScenarioScreen();
-}
-
 /** Opens the full scenario description popup modal */
 function openScenarioPopup() {
   app.scenarioPopupOpen = true;
@@ -731,7 +720,6 @@ function startScenarioRound(roundIndex) {
   app.state.currentJudgment = null;
   app.state.isJudging = false;
   app.state.phase = 'SCENARIO';
-  app.scenarioWindow = 'action';
   app.scenarioPopupKey = '';
   app.scenarioPopupOpen = true;
 

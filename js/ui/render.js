@@ -417,7 +417,6 @@ function renderScenarioScreen() {
   if (app.scenarioPopupKey !== roundPopupKey) {
     app.scenarioPopupKey = roundPopupKey;
     app.scenarioPopupOpen = true;
-    app.scenarioWindow = 'action';
   }
 
   const scenModal = document.getElementById('scenario-popup-modal');
@@ -435,20 +434,6 @@ function renderScenarioScreen() {
   const popupRoundBadge = document.getElementById('scenario-popup-round-badge');
   if (popupRoundBadge) popupRoundBadge.textContent = roundLabelText;
   document.getElementById('scenario-title').textContent = roundObj.title;
-
-  const activeWin = app.scenarioWindow === 'crew' ? 'crew' : 'action';
-  const winActionEl = document.getElementById('scenario-window-action');
-  const winCrewEl = document.getElementById('scenario-window-crew');
-  const btnActionEl = document.getElementById('scenario-win-btn-action');
-  const btnCrewEl = document.getElementById('scenario-win-btn-crew');
-  if (winActionEl) winActionEl.classList.toggle('hidden', activeWin !== 'action');
-  if (winCrewEl) winCrewEl.classList.toggle('hidden', activeWin !== 'crew');
-  if (btnActionEl) btnActionEl.classList.toggle('active', activeWin === 'action');
-  if (btnCrewEl) {
-    btnCrewEl.classList.toggle('active', activeWin === 'crew');
-    const lockedCount = app.state.players.filter(p => Boolean(app.state.submissions[p.id])).length;
-    btnCrewEl.textContent = `👥 Crew Status (${lockedCount}/${app.state.players.length})`;
-  }
 
   if (myBlindedMod) {
     const redacted = roundObj.scenario
@@ -539,33 +524,6 @@ function renderScenarioScreen() {
       }
     }
   }
-
-  const rosterEl = document.getElementById('scenario-party-status');
-  rosterEl.innerHTML = app.state.players.map(p => {
-    const locked = Boolean(app.state.submissions[p.id]);
-    const pDead = getPlayerMetaMod(p, 'DEAD');
-    const pSkip = getPlayerMetaMod(p, 'SKIP_TURN');
-    const statusBadge = pDead
-      ? `<span class="badge btn-danger">💀 Dead</span>`
-      : pSkip
-      ? `<span class="badge badge-warn">⛓️ ${escapeHtml(pSkip.name)}</span>`
-      : `<span class="badge ${locked ? 'badge-success' : 'badge-warn'}">${locked ? '🔒 Locked In!' : '✏️ Writing...'}</span>`;
-
-    return `
-      <div class="party-status-card ${locked ? 'locked' : ''}">
-        <div class="row-between">
-          <div class="row-gap">
-            ${renderAvatarHtml(p.character?.avatar, 'avatar-img-sm')}
-            <strong>${escapeHtml(p.character?.name || p.name)}</strong>
-            <span class="score-pill">${p.score} PTS</span>
-          </div>
-          ${statusBadge}
-        </div>
-        <div class="text-muted small mt-1">${escapeHtml(p.character?.role || '')}</div>
-        <div class="modifier-chips mt-1">${renderModifierChips(p.modifiers)}</div>
-      </div>
-    `;
-  }).join('');
 
   document.getElementById('btn-host-force-judge').classList.toggle('hidden', !app.isHost);
 }

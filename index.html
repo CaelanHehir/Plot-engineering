@@ -420,18 +420,12 @@
         </div>
       </div>
 
-      <!-- Single Section with Multi-Window Switcher (What Would You Do? / Crew Status) -->
+      <!-- What Would You Do? Section -->
       <div class="card card-highlight wobbly-card scenario-single-card" style="flex:1; min-height:0;">
-        <div class="window-switcher-bar">
-          <button id="scenario-win-btn-action" type="button" class="window-tab-btn active" onclick="setScenarioWindow('action')">
-            💬 What Would You Do?
-          </button>
-          <button id="scenario-win-btn-crew" type="button" class="window-tab-btn" onclick="setScenarioWindow('crew')">
-            👥 Crew Status
-          </button>
+        <div class="scenario-title-bar">
+          <h2>💬 What Would You Do?</h2>
         </div>
 
-        <!-- WINDOW 1: What Would You Do? -->
         <div id="scenario-window-action" class="scenario-window-pane">
           <div id="my-char-banner" class="my-char-banner"></div>
 
@@ -460,11 +454,6 @@
               ✏️ Change My Move
             </button>
           </div>
-        </div>
-
-        <!-- WINDOW 2: Crew Status & Active Effects -->
-        <div id="scenario-window-crew" class="scenario-window-pane hidden">
-          <div id="scenario-party-status" class="panel-scroll" style="flex:1; min-height:0;"></div>
         </div>
       </div>
     </section>
