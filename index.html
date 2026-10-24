@@ -168,8 +168,15 @@
         <div id="lobby-right-col" class="mobile-window-hidden" style="display:flex; flex-direction:column; min-height:0; flex:1;">
           <div class="card wobbly-card" style="justify-content:space-between; align-items:center; text-align:center; flex:1; min-height:0;">
             <div class="waiting-stage-preview" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
-              <!-- Before host clicks 'Set up campaign': No 'Up next on stage' preview -->
-              <div id="lobby-stage-pre-setup" class="lobby-waiting-setup-box">
+              <!-- Before host clicks 'Set up campaign' (Host View): Prompt to configure -->
+              <div id="lobby-stage-host-pre-setup" class="lobby-waiting-setup-box hidden">
+                <div style="font-size:2.4rem; margin-bottom:8px;">🎬</div>
+                <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:6px;">Ready to configure the show?</h3>
+                <p class="text-muted small">Click "Set up campaign" below to choose a storyline, adjust rules, or create an AI plot!</p>
+              </div>
+
+              <!-- Before host clicks 'Set up campaign' (Player View): Waiting message -->
+              <div id="lobby-stage-pre-setup" class="lobby-waiting-setup-box hidden">
                 <div style="font-size:2.4rem; margin-bottom:8px;">⏳</div>
                 <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:6px;">Wait for host to set up the campaign</h3>
                 <p class="text-muted small">The Host will select the storyline and rules before launching the game.</p>

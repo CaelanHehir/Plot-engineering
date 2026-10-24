@@ -157,10 +157,12 @@ function renderLobbyScreen() {
 
   const hasSetupStarted = Boolean(app.state.campaignSetupStarted);
 
-  // Toggle "Up next on stage" preview vs "Wait for host to set up the campaign"
-  const preSetupBox = document.getElementById('lobby-stage-pre-setup');
+  // Toggle "Up next on stage" preview vs pre-setup boxes (only other players see "Wait for host...")
+  const hostPreSetupBox = document.getElementById('lobby-stage-host-pre-setup');
+  const clientPreSetupBox = document.getElementById('lobby-stage-pre-setup');
   const postSetupBox = document.getElementById('lobby-stage-post-setup');
-  if (preSetupBox) preSetupBox.classList.toggle('hidden', hasSetupStarted);
+  if (hostPreSetupBox) hostPreSetupBox.classList.toggle('hidden', hasSetupStarted || !app.isHost);
+  if (clientPreSetupBox) clientPreSetupBox.classList.toggle('hidden', hasSetupStarted || app.isHost);
   if (postSetupBox) postSetupBox.classList.toggle('hidden', !hasSetupStarted);
 
   const waitDeskTxt = document.getElementById('client-lobby-waiting-text');
@@ -245,6 +247,8 @@ function renderLobbyScreen() {
   if (snippetEl) {
     if (hasSetupStarted) {
       snippetEl.innerHTML = `🎬 Campaign: <strong>${campIcon} ${escapeHtml(campTitle)}</strong>`;
+    } else if (app.isHost) {
+      snippetEl.innerHTML = `<span class="text-muted small">🎬 Configure campaign settings below</span>`;
     } else {
       snippetEl.innerHTML = `<span class="text-muted small">⏳ Wait for host to set up the campaign</span>`;
     }
