@@ -158,7 +158,7 @@
               </button>
               <div id="client-lobby-waiting-mobile" class="waiting-host-banner hidden" style="width:100%; justify-content:center;">
                 <span class="waiting-pulse-dot"></span>
-                <span>Waiting for the Host to start the show...</span>
+                <span id="client-lobby-waiting-mobile-text">Wait for host to set up the campaign</span>
               </div>
             </div>
           </div>
@@ -168,9 +168,19 @@
         <div id="lobby-right-col" class="mobile-window-hidden" style="display:flex; flex-direction:column; min-height:0; flex:1;">
           <div class="card wobbly-card" style="justify-content:space-between; align-items:center; text-align:center; flex:1; min-height:0;">
             <div class="waiting-stage-preview" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
-              <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
-              <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
-              <p id="client-settings-summary" class="text-muted small mt-1"></p>
+              <!-- Before host clicks 'Set up campaign': No 'Up next on stage' preview -->
+              <div id="lobby-stage-pre-setup" class="lobby-waiting-setup-box">
+                <div style="font-size:2.4rem; margin-bottom:8px;">⏳</div>
+                <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:6px;">Wait for host to set up the campaign</h3>
+                <p class="text-muted small">The Host will select the storyline and rules before launching the game.</p>
+              </div>
+
+              <!-- After host clicks 'Set up campaign': Preview is revealed -->
+              <div id="lobby-stage-post-setup" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:0;">
+                <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
+                <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
+                <p id="client-settings-summary" class="text-muted small mt-1"></p>
+              </div>
             </div>
 
             <!-- Host action button at bottom of cast screen on desktop -->
@@ -181,7 +191,7 @@
             <!-- Client waiting banner on desktop -->
             <div id="client-lobby-waiting" class="waiting-host-banner mt-2 hidden">
               <span class="waiting-pulse-dot"></span>
-              <span>Waiting for the Host to start the show...</span>
+              <span id="client-lobby-waiting-text">Wait for host to set up the campaign</span>
             </div>
           </div>
         </div>

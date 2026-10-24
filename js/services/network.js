@@ -87,6 +87,7 @@ function initHostGameState(code, hostName) {
   app.state.phase = 'LOBBY';
   app.lobbyView = 'cast';
   app.state.roomCode = code;
+  app.state.campaignSetupStarted = false;
   app.state.players = [
     {
       id: app.myId,
@@ -412,6 +413,7 @@ function leaveRoomToHome() {
   app.roomCode = '';
   app.state.phase = 'HOME';
   app.state.roomCode = '';
+  app.state.campaignSetupStarted = false;
   app.state.players = [];
   renderState();
 

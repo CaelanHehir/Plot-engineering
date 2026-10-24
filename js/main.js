@@ -52,6 +52,8 @@ const app = {
     /** Current game phase: HOME | LOBBY | CHAR_CREATE | SCENARIO | REVEAL | GAME_OVER */
     phase: 'HOME',
     roomCode: '',
+    /** Tracks whether the host has clicked 'Set up campaign' in the lobby */
+    campaignSetupStarted: false,
     /** Active campaign source: 'premade' | 'ai' | 'custom' */
     campaignMode: 'premade',
     selectedPremadeId: PREMADE_CAMPAIGNS[0].id,
@@ -330,6 +332,8 @@ function renderHomeWindow() {
 function openLobbyCampaignSetup() {
   if (!app.isHost) return;
   app.lobbyView = 'campaign';
+  app.state.campaignSetupStarted = true;
+  broadcastState();
   renderLobbyScreen();
 }
 

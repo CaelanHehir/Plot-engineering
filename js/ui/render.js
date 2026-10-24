@@ -155,6 +155,22 @@ function renderLobbyScreen() {
   if (waitBannerDesk) waitBannerDesk.classList.toggle('hidden', app.isHost);
   if (waitBannerMob) waitBannerMob.classList.toggle('hidden', app.isHost);
 
+  const hasSetupStarted = Boolean(app.state.campaignSetupStarted);
+
+  // Toggle "Up next on stage" preview vs "Wait for host to set up the campaign"
+  const preSetupBox = document.getElementById('lobby-stage-pre-setup');
+  const postSetupBox = document.getElementById('lobby-stage-post-setup');
+  if (preSetupBox) preSetupBox.classList.toggle('hidden', hasSetupStarted);
+  if (postSetupBox) postSetupBox.classList.toggle('hidden', !hasSetupStarted);
+
+  const waitDeskTxt = document.getElementById('client-lobby-waiting-text');
+  const waitMobTxt = document.getElementById('client-lobby-waiting-mobile-text');
+  const waitMsg = hasSetupStarted
+    ? 'Waiting for the Host to start the show...'
+    : 'Wait for host to set up the campaign';
+  if (waitDeskTxt) waitDeskTxt.textContent = waitMsg;
+  if (waitMobTxt) waitMobTxt.textContent = waitMsg;
+
   if (isCampaignSetup) {
     renderCampaignSelector();
   }
@@ -227,7 +243,11 @@ function renderLobbyScreen() {
 
   const snippetEl = document.getElementById('lobby-cast-preview-snippet');
   if (snippetEl) {
-    snippetEl.innerHTML = `🎬 Campaign: <strong>${campIcon} ${escapeHtml(campTitle)}</strong>`;
+    if (hasSetupStarted) {
+      snippetEl.innerHTML = `🎬 Campaign: <strong>${campIcon} ${escapeHtml(campTitle)}</strong>`;
+    } else {
+      snippetEl.innerHTML = `<span class="text-muted small">⏳ Wait for host to set up the campaign</span>`;
+    }
   }
 }
 
