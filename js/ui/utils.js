@@ -1,4 +1,33 @@
-// Shared UI & DOM Helper Functions
+// Shared UI, DOM & GitHub Pages URL Helper Functions
+
+const GITHUB_PAGES_URL = 'https://caelanhehir.github.io/Plot-engineering/';
+
+function getPublicGameBaseUrl() {
+  try {
+    const loc = window.location;
+    const isHttp = loc.protocol === 'http:' || loc.protocol === 'https:';
+    const isLocalhost = loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' || loc.hostname === '';
+    if (isHttp && !isLocalhost) {
+      const cleanPath = loc.pathname.replace(/index\.html$/i, '');
+      return `${loc.origin}${cleanPath.endsWith('/') ? cleanPath : cleanPath + '/'}`;
+    }
+  } catch (e) {}
+  return GITHUB_PAGES_URL;
+}
+
+function getRoomInviteUrl(roomCode) {
+  const base = getPublicGameBaseUrl();
+  const url = new URL(base);
+  if (roomCode) {
+    url.searchParams.set('room', String(roomCode).toUpperCase());
+  }
+  return url.toString();
+}
+
+function getShortDisplayJoinUrl() {
+  const base = getPublicGameBaseUrl();
+  return base.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+}
 
 function escapeHtml(str) {
   return String(str ?? '')

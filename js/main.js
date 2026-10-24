@@ -85,10 +85,20 @@ async function initUI() {
   updateMuteButton();
 
   const params = new URLSearchParams(window.location.search);
-  const roomParam = params.get('room');
+  const roomParam = (params.get('room') || '').trim().toUpperCase();
   if (roomParam) {
+    const cleanCode = roomParam.slice(0, 4);
     const joinInput = document.getElementById('join-room-code');
-    if (joinInput) joinInput.value = roomParam.toUpperCase();
+    if (joinInput) joinInput.value = cleanCode;
+    const inviteBanner = document.getElementById('invite-room-banner');
+    if (inviteBanner) {
+      inviteBanner.classList.remove('hidden');
+      inviteBanner.innerHTML = `🎟️ Invite to Room <strong>${escapeHtml(cleanCode)}</strong>! Enter your nickname below!`;
+    }
+    const joinCard = document.getElementById('home-join-card');
+    if (joinCard) joinCard.classList.add('card-highlight');
+    const nameInput = document.getElementById('join-player-name');
+    if (nameInput) setTimeout(() => nameInput.focus(), 80);
   }
 
   renderCampaignSelector();
@@ -157,13 +167,18 @@ function hostAddExtraTime(seconds = 30) {
 }
 
 function copyInviteLink() {
-  const url = new URL(window.location.href);
-  url.searchParams.set('room', app.state.roomCode);
-  navigator.clipboard.writeText(url.toString()).then(() => {
-    showToast(`Room Code ${app.state.roomCode} & Link copied!`, 'success');
+  const inviteUrl = getRoomInviteUrl(app.state.roomCode);
+  navigator.clipboard.writeText(inviteUrl).then(() => {
+    showToast(`Copied GitHub Pages Invite Link (${app.state.roomCode})!`, 'success');
   }).catch(() => {
-    showToast(`Room Code: ${app.state.roomCode}`, 'info');
+    showToast(`Invite Link: ${inviteUrl}`, 'info');
   });
+}
+
+function toggleLobbyQrCode() {
+  const box = document.getElementById('lobby-qr-box');
+  if (!box) return;
+  box.classList.toggle('hidden');
 }
 
 // --- Lobby Roster & Campaign Configuration ---
@@ -206,12 +221,14 @@ function setCampaignMode(mode) {
   if (!app.isHost) return;
   app.state.campaignMode = mode;
   renderCampaignSelector();
+  broadcastState();
 }
 
 function selectPremadeCampaign(id) {
   if (!app.isHost) return;
   app.state.selectedPremadeId = id;
   renderCampaignSelector();
+  broadcastState();
 }
 
 function addCustomRound() {
@@ -221,12 +238,14 @@ function addCustomRound() {
     secrets: ''
   });
   renderCampaignSelector();
+  broadcastState();
 }
 
 function removeCustomRound(idx) {
   if (app.state.customCampaign.rounds.length <= 1) return;
   app.state.customCampaign.rounds.splice(idx, 1);
   renderCampaignSelector();
+  broadcastState();
 }
 
 async function hostStartCampaign() {

@@ -42,7 +42,7 @@ function renderState() {
   if (roomBadge) {
     if (phase !== 'HOME' && app.state.roomCode) {
       roomBadge.classList.remove('hidden');
-      roomBadge.innerHTML = `ROOM CODE: <strong>${escapeHtml(app.state.roomCode)}</strong>`;
+      roomBadge.innerHTML = `🎟️ ROOM: <strong>${escapeHtml(app.state.roomCode)}</strong>`;
     } else {
       roomBadge.classList.add('hidden');
     }
@@ -58,23 +58,94 @@ function renderState() {
 function renderLobbyScreen() {
   document.getElementById('lobby-room-code-display').textContent = app.state.roomCode;
 
+  const joinUrlPill = document.getElementById('lobby-join-url-pill');
+  if (joinUrlPill) {
+    joinUrlPill.innerHTML = `🌐 JOIN AT: <strong>${escapeHtml(getShortDisplayJoinUrl())}</strong>`;
+  }
+
+  const qrImg = document.getElementById('lobby-qr-img');
+  if (qrImg && app.state.roomCode) {
+    const inviteUrl = getRoomInviteUrl(app.state.roomCode);
+    const targetSrc = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(inviteUrl)}`;
+    if (qrImg.getAttribute('data-room') !== app.state.roomCode) {
+      qrImg.setAttribute('data-room', app.state.roomCode);
+      qrImg.src = targetSrc;
+    }
+  }
+
   const listEl = document.getElementById('lobby-player-list');
-  listEl.innerHTML = app.state.players.map(p => `
-    <div class="player-pill">
-      <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎮')}</span>
-      <span class="player-pill-name">${escapeHtml(p.name)} ${p.id === app.myId ? '<em>(You)</em>' : ''}</span>
-      ${app.isHost && p.id !== app.myId ? `<button type="button" class="btn-icon-remove" title="Remove" onclick="removePlayer('${p.id}')">✕</button>` : ''}
-    </div>
-  `).join('');
+  listEl.innerHTML = app.state.players.map(p => {
+    const isMe = p.id === app.myId;
+    return `
+      <div class="player-pill ${isMe ? 'is-me-pill' : ''}">
+        <div class="row-gap" style="gap:6px; min-width:0;">
+          <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎭')}</span>
+          <span class="player-pill-name" title="${escapeHtml(p.name)}">
+            ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''}
+          </span>
+        </div>
+        ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove" title="Remove" onclick="removePlayer('${p.id}')">✕</button>` : ''}
+      </div>
+    `;
+  }).join('');
 
   document.getElementById('host-lobby-controls').classList.toggle('hidden', !app.isHost);
   document.getElementById('client-lobby-waiting').classList.toggle('hidden', app.isHost);
 
+  if (app.isHost) {
+    renderCampaignSelector();
+  }
+
+  // Populate live Stage Preview card for waiting guests
+  const previewEl = document.getElementById('client-campaign-preview');
+  if (previewEl) {
+    const mode = app.state.campaignMode || 'premade';
+    if (mode === 'premade') {
+      const camp = PREMADE_CAMPAIGNS.find(c => c.id === app.state.selectedPremadeId) || PREMADE_CAMPAIGNS[0];
+      previewEl.innerHTML = `
+        <div class="campaign-card-header">
+          <span class="campaign-icon">${camp.icon}</span>
+          <div>
+            <h3>${escapeHtml(camp.title)}</h3>
+            <span class="badge badge-genre">${escapeHtml(camp.genre)} • ${camp.rounds.length} Rounds</span>
+          </div>
+        </div>
+        <p class="mt-1">${escapeHtml(camp.description)}</p>
+      `;
+    } else if (mode === 'ai') {
+      const rounds = app.state.aiRoundCount || 4;
+      const promptSnippet = (app.state.aiPrompt || '').trim();
+      previewEl.innerHTML = `
+        <div class="campaign-card-header">
+          <span class="campaign-icon">✨</span>
+          <div>
+            <h3>AI-Generated Custom Campaign</h3>
+            <span class="badge badge-warn">🔮 Gemini Plot • ${rounds} Rounds</span>
+          </div>
+        </div>
+        <p class="mt-1">${promptSnippet ? `"${escapeHtml(promptSnippet)}"` : 'The Host is cooking up a custom AI movie plot for the crew!'}</p>
+      `;
+    } else {
+      const custom = app.state.customCampaign || {};
+      const roundCount = Array.isArray(custom.rounds) ? custom.rounds.length : 3;
+      previewEl.innerHTML = `
+        <div class="campaign-card-header">
+          <span class="campaign-icon">✍️</span>
+          <div>
+            <h3>${escapeHtml(custom.title || 'Host Custom Adventure')}</h3>
+            <span class="badge badge-genre">Director's Cut • ${roundCount} Rounds</span>
+          </div>
+        </div>
+        <p class="mt-1">${escapeHtml(custom.description || 'A custom multi-round scenario written by the Host!')}</p>
+      `;
+    }
+  }
+
   const s = app.state.settings;
   const summaryEl = document.getElementById('client-settings-summary');
   if (summaryEl) {
-    const timerTxt = s.roundTimer > 0 ? `${s.roundTimer}s (${Math.round(s.roundTimer / 60 * 10) / 10} min)` : 'No Timer';
-    summaryEl.textContent = `Round Timer: ${timerTxt} • Judge Mode: ${s.strictness.toUpperCase()} • Points: ${s.pointsMultiplier}x`;
+    const timerTxt = s.roundTimer > 0 ? `${s.roundTimer}s (${Math.round(s.roundTimer / 60 * 10) / 10}m)` : 'Unlimited';
+    summaryEl.innerHTML = `⏱️ Timer: <strong>${timerTxt}</strong> &bull; ⚖️ Judge: <strong>${s.strictness.toUpperCase()}</strong> &bull; 🏆 Multiplier: <strong>${s.pointsMultiplier}x</strong>`;
   }
 }
 
@@ -102,7 +173,7 @@ function renderCampaignSelector() {
               <span class="badge badge-genre">${escapeHtml(c.genre)} • ${c.rounds.length} Rounds</span>
             </div>
           </div>
-          <p>${escapeHtml(c.description)}</p>
+          <p class="small text-muted">${escapeHtml(c.description)}</p>
         </div>
       `;
     }).join('');
@@ -115,7 +186,7 @@ function renderCampaignSelector() {
     container.innerHTML = app.state.customCampaign.rounds.map((r, i) => `
       <div class="custom-round-box">
         <div class="row-between">
-          <strong>Round ${i + 1}</strong>
+          <strong>🎬 Round ${i + 1}</strong>
           ${app.state.customCampaign.rounds.length > 1 ? `<button type="button" class="btn-small btn-danger" onclick="removeCustomRound(${i})">Remove</button>` : ''}
         </div>
         <input type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
@@ -162,16 +233,19 @@ function renderCharCreateScreen() {
   const statusEl = document.getElementById('char-ready-list');
   statusEl.innerHTML = app.state.players.map(p => {
     const ready = Boolean(p.character && p.character.ready);
+    const photoContent = ready && p.character?.avatar && p.character.avatar.startsWith('data:image/')
+      ? `<img src="${p.character.avatar}" alt="${escapeHtml(p.character.name)}" />`
+      : `<span style="font-size:2.4rem;">🎨</span>`;
     return `
-      <div class="ready-card ${ready ? 'is-ready' : ''}">
-        <div class="ready-card-left">
-          ${ready ? renderAvatarHtml(p.character.avatar, 'avatar-img') : '<span style="font-size:1.8rem;">🎨</span>'}
-          <div>
-            <strong>${escapeHtml(ready ? p.character.name : p.name)}</strong>
-            <div class="text-muted small">${ready ? escapeHtml(p.character.role) : 'Drawing character...'}</div>
-          </div>
+      <div class="polaroid-card ${ready ? 'is-ready' : ''}">
+        <div class="polaroid-photo-frame">
+          ${photoContent}
         </div>
-        <span class="badge ${ready ? 'badge-success' : 'badge-warn'}">${ready ? 'Ready!' : 'Creating'}</span>
+        <div class="polaroid-name">${escapeHtml(ready ? p.character.name : p.name)}</div>
+        <div class="polaroid-role">${ready ? escapeHtml(p.character.role) : 'Sketching hero...'}</div>
+        <div class="polaroid-status-tag">
+          <span class="badge ${ready ? 'badge-success' : 'badge-warn'}">${ready ? '✅ Ready!' : '✏️ Drawing'}</span>
+        </div>
       </div>
     `;
   }).join('');
@@ -207,7 +281,7 @@ function renderScenarioScreen() {
   if (roundIdx > 0 && app.state.roundHistory.length > 0) {
     const prev = app.state.roundHistory[app.state.roundHistory.length - 1];
     bridgeBox.classList.remove('hidden');
-    bridgeBox.innerHTML = `<strong>Previously:</strong> ${escapeHtml(prev.judgment?.continuityBridge || prev.judgment?.headline || '')}`;
+    bridgeBox.innerHTML = `<strong>🎞️ Previously:</strong> ${escapeHtml(prev.judgment?.continuityBridge || prev.judgment?.headline || '')}`;
   } else {
     bridgeBox.classList.add('hidden');
   }
@@ -234,7 +308,7 @@ function renderScenarioScreen() {
         </div>
       </div>
       <div class="modifiers-section">
-        <span class="mod-label">Your Active Perks & Status Effects:</span>
+        <span class="mod-label">Your Active Perks &amp; Status Effects:</span>
         <div class="modifier-chips">
           ${renderModifierChips(me.modifiers)}
         </div>
@@ -246,7 +320,7 @@ function renderScenarioScreen() {
   if (actionInput) {
     actionInput.placeholder = myWordLimitMod
       ? `😶 "${myWordLimitMod.name}" active: You may only type up to 5 words this round!`
-      : 'Describe your specific action! (Avoid vague or impossible actions, and keep your active perks/injuries in mind!)';
+      : 'Write your character\'s specific move! (Avoid vague or impossible actions, and keep your active perks/injuries in mind!)';
   }
 
   const hasSubmitted = Boolean(app.state.submissions[app.myId]);
@@ -257,20 +331,20 @@ function renderScenarioScreen() {
   if (hasSubmitted) {
     if (myDeadMod) {
       lockedArea.innerHTML = `
-        <h3>💀 Your Character Is Dead!</h3>
-        <p class="text-muted small">You were eliminated from the campaign and are spectating the remaining survivors.</p>
+        <div class="big-locked-stamp" style="background:var(--accent-red); color:#fff;">💀 ELIMINATED!</div>
+        <p class="text-muted small">Your character met an untimely demise and is spectating the survivors.</p>
       `;
     } else if (mySkipMod) {
       lockedArea.innerHTML = `
-        <h3>⛓️ Locked Out For 1 Turn (${escapeHtml(mySkipMod.name)})!</h3>
+        <div class="big-locked-stamp" style="background:var(--accent-gold); color:var(--ink);">⛓️ ${escapeHtml(mySkipMod.name)}!</div>
         <p class="text-muted small">${escapeHtml(mySkipMod.description || 'You cannot act this round unless a teammate rescues you!')}</p>
       `;
     } else {
       lockedArea.innerHTML = `
-        <h3>🔒 Action Locked In!</h3>
-        <p class="text-muted small mb-2">Waiting for remaining teammates to lock in their moves...</p>
+        <div class="big-locked-stamp">🔒 MOVE LOCKED IN!</div>
+        <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
         <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
-          ✏️ Edit My Answer
+          ✏️ Change My Move
         </button>
       `;
     }
@@ -285,7 +359,7 @@ function renderScenarioScreen() {
       ? `<span class="badge btn-danger">💀 Dead</span>`
       : pSkip
       ? `<span class="badge badge-warn">⛓️ ${escapeHtml(pSkip.name)}</span>`
-      : `<span class="badge ${locked ? 'badge-success' : 'badge-warn'}">${locked ? '🔒 Locked In' : '✏️ Typing...'}</span>`;
+      : `<span class="badge ${locked ? 'badge-success' : 'badge-warn'}">${locked ? '🔒 Locked In!' : '✏️ Writing...'}</span>`;
 
     return `
       <div class="party-status-card ${locked ? 'locked' : ''}">
@@ -293,7 +367,7 @@ function renderScenarioScreen() {
           <div class="row-gap">
             ${renderAvatarHtml(p.character?.avatar, 'avatar-img-sm')}
             <strong>${escapeHtml(p.character?.name || p.name)}</strong>
-            <span class="score-pill">${p.score} pts</span>
+            <span class="score-pill">${p.score} PTS</span>
           </div>
           ${statusBadge}
         </div>
@@ -316,22 +390,23 @@ function renderRevealScreen() {
   const aiGeneratingBox = document.getElementById('reveal-ai-generating-box');
   const prevBtn = document.getElementById('btn-host-reveal-prev');
   const nextBtn = document.getElementById('btn-host-reveal-next');
+  const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
 
-  // 1. Populate "What Everyone Decided To Do" (respecting secret/hidden actions)
+  // 1. Populate "What Everyone Decided To Do" as Cartoon Speech Bubbles & Censor Tape
   const actionsGrid = document.getElementById('reveal-actions-grid');
-  actionsGrid.innerHTML = app.state.players.map(p => {
+  actionsGrid.innerHTML = app.state.players.map((p, idx) => {
     const isHidden = Boolean(
       (app.state.hiddenSubmissions && app.state.hiddenSubmissions[p.id]) ||
       app.state.submissions[p.id] === '__SECRET_ACTION__'
     );
     const actionText = app.state.submissions[p.id] || '(Panicked and did nothing!)';
     const quoteHtml = isHidden
-      ? `<div class="action-quote-hidden">🕵️ Secret Action — Hidden by Player</div>`
+      ? `<div class="action-quote-hidden">🕵️ TOP SECRET MOVE — Redacted by Player!</div>`
       : `<blockquote class="action-quote">"${escapeHtml(actionText)}"</blockquote>`;
 
     return `
-      <div class="action-reveal-card">
+      <div class="action-reveal-card" style="animation-delay: ${idx * 0.08}s;">
         <div class="action-card-header">
           ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
           <div>
@@ -351,14 +426,15 @@ function renderRevealScreen() {
     if (aiGeneratingBox) aiGeneratingBox.classList.remove('hidden');
     prevBtn.classList.add('hidden');
     nextBtn.classList.add('hidden');
+    if (skipBtn) skipBtn.classList.add('hidden');
     waitMsg.classList.remove('hidden');
-    waitMsg.textContent = '🔮 Read what everyone did while the AI generates the outcome...';
+    waitMsg.textContent = '🔮 Read the speech bubbles while Gemini judges the outcome...';
     return;
   }
 
   if (aiGeneratingBox) aiGeneratingBox.classList.add('hidden');
 
-  // Populate rankings list for Step 2 using shared getModifierDisplayMeta
+  // Populate rankings list for Step 2
   const listEl = document.getElementById('reveal-rankings-list');
   listEl.innerHTML = j.rankings.map((r, i) => {
     const p = app.state.players.find(pl => pl.id === r.playerId) || { name: 'Player' };
@@ -373,7 +449,7 @@ function renderRevealScreen() {
     }).join('');
 
     return `
-      <div class="ranking-card rank-${i + 1}">
+      <div class="ranking-card rank-${i + 1}" style="animation-delay: ${i * 0.07}s;">
         <div class="row-between">
           <div class="rank-player-info">
             <span class="rank-medal">${medal}</span>
@@ -384,8 +460,8 @@ function renderRevealScreen() {
             </div>
           </div>
           <div class="rank-points">
-            +${r.pointsAwarded} pts
-            <div class="tiny text-muted">Total: ${p.score} pts</div>
+            +${r.pointsAwarded} PTS
+            <div class="tiny text-muted">Total: ${p.score} PTS</div>
           </div>
         </div>
         <p class="rank-eval">${escapeHtml(r.evaluation)}</p>
@@ -398,17 +474,18 @@ function renderRevealScreen() {
     stopTypewriter();
     if (step1View) step1View.classList.remove('hidden');
     if (step2View) step2View.classList.add('hidden');
+    if (skipBtn) skipBtn.classList.add('hidden');
 
     if (app.isHost) {
       prevBtn.classList.add('hidden');
       nextBtn.classList.remove('hidden');
-      nextBtn.textContent = '▶️ Continue (Play Out Scenario)';
+      nextBtn.textContent = '▶️ Play Out Scenario!';
       waitMsg.classList.add('hidden');
     } else {
       prevBtn.classList.add('hidden');
       nextBtn.classList.add('hidden');
       waitMsg.classList.remove('hidden');
-      waitMsg.textContent = 'Outcome ready! Waiting for Host to press Continue...';
+      waitMsg.textContent = 'Outcome ready! Waiting for Host to play out the scene...';
     }
     return;
   }
@@ -435,17 +512,21 @@ function startStoryWordByWord(roundKey, judgment) {
   app.typewriter.activeKey = roundKey;
   app.typewriter.finished = false;
 
+  const step2View = document.getElementById('reveal-step2-view');
   const storyContainer = document.getElementById('reveal-story-paragraphs');
   const verdictBox = document.getElementById('reveal-verdict-box');
   const rankingsBox = document.getElementById('reveal-rankings-box');
   const nextBtn = document.getElementById('btn-host-reveal-next');
+  const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
 
+  if (step2View) step2View.classList.add('story-centered');
   verdictBox.classList.add('hidden');
   rankingsBox.classList.add('hidden');
   nextBtn.classList.add('hidden');
+  if (skipBtn) skipBtn.classList.toggle('hidden', !app.isHost);
   waitMsg.classList.remove('hidden');
-  waitMsg.textContent = '📖 The scenario is playing out...';
+  waitMsg.textContent = '📖 The scenario is unfolding...';
 
   const paragraphs = Array.isArray(judgment.storyParagraphs) && judgment.storyParagraphs.length > 0
     ? judgment.storyParagraphs
@@ -483,11 +564,37 @@ function startStoryWordByWord(roundKey, judgment) {
   }, 55);
 }
 
+function skipStoryTypewriter() {
+  const j = app.state.currentJudgment;
+  if (!j) return;
+  if (app.typewriter.timer) {
+    clearInterval(app.typewriter.timer);
+    app.typewriter.timer = null;
+  }
+  app.typewriter.finished = true;
+
+  const paragraphs = Array.isArray(j.storyParagraphs) && j.storyParagraphs.length > 0
+    ? j.storyParagraphs
+    : ['Chaos unfolded immediately!'];
+
+  const storyContainer = document.getElementById('reveal-story-paragraphs');
+  if (storyContainer) {
+    storyContainer.innerHTML = paragraphs.map((pText, idx) => `<p id="story-p-${idx}" class="story-para">${escapeHtml(pText)}</p>`).join('');
+  }
+
+  showPostStoryVerdictAndLeaderboard(j);
+}
+
 function showPostStoryVerdictAndLeaderboard(j) {
+  const step2View = document.getElementById('reveal-step2-view');
   const verdictBox = document.getElementById('reveal-verdict-box');
   const rankingsBox = document.getElementById('reveal-rankings-box');
   const nextBtn = document.getElementById('btn-host-reveal-next');
+  const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
+
+  if (step2View) step2View.classList.remove('story-centered');
+  if (skipBtn) skipBtn.classList.add('hidden');
 
   if (verdictBox.classList.contains('hidden')) {
     if (j.outcome === 'FLYING_COLORS') {
@@ -500,7 +607,7 @@ function showPostStoryVerdictAndLeaderboard(j) {
       sfx.verdictBarely();
     } else {
       verdictBox.className = 'verdict-banner verdict-fail';
-      document.getElementById('verdict-stamp').textContent = '💥 SCENARIO FAILED — CAMPAIGN OVER!';
+      document.getElementById('verdict-stamp').textContent = '💥 SCENARIO FAILED — GAME OVER!';
       sfx.verdictFail();
     }
     document.getElementById('verdict-headline').textContent = j.headline;
@@ -514,18 +621,18 @@ function showPostStoryVerdictAndLeaderboard(j) {
   if (app.isHost) {
     nextBtn.classList.remove('hidden');
     if (isFailed) {
-      nextBtn.textContent = '🏆 Continue to Final Summary & Podium (Game Over) ➡️';
+      nextBtn.textContent = '🏆 View Final Podium & Summary ➡️';
     } else if (isLastRound) {
-      nextBtn.textContent = '🏆 Continue to Final Summary & Podium ➡️';
+      nextBtn.textContent = '🏆 View Grand Finale Podium ➡️';
     } else {
-      nextBtn.textContent = `▶️ Continue to Round ${app.state.currentRound + 2} ➡️`;
+      nextBtn.textContent = `▶️ Next Act: Round ${app.state.currentRound + 2} ➡️`;
     }
     waitMsg.classList.add('hidden');
   } else {
     nextBtn.classList.add('hidden');
     waitMsg.classList.remove('hidden');
     waitMsg.textContent = isFailed
-      ? 'Scenario Failed! Waiting for Host to open the Final Podium & Summary...'
+      ? 'Scenario Failed! Waiting for Host to open the Final Podium...'
       : 'Waiting for Host to press Continue...';
   }
 }
@@ -546,8 +653,8 @@ function renderGameOverScreen() {
   }
 
   document.getElementById('finale-campaign-summary').textContent = endedByFailure
-    ? `Your party wiped out on Round ${app.state.roundHistory.length} of "${app.state.activeCampaign?.title || 'Campaign'}" after passing ${passedCount} scenario(s)!`
-    : `Your party survived all ${totalRoundsInCamp} rounds of "${app.state.activeCampaign?.title || 'Campaign'}"!`;
+    ? `Your crew wiped out on Round ${app.state.roundHistory.length} of "${app.state.activeCampaign?.title || 'Campaign'}" after surviving ${passedCount} act(s)!`
+    : `Your crew survived all ${totalRoundsInCamp} acts of "${app.state.activeCampaign?.title || 'Campaign'}"!`;
 
   const podiumStageEl = document.getElementById('final-podium-stage');
   if (podiumStageEl) {
@@ -561,9 +668,9 @@ function renderGameOverScreen() {
         <div class="podium-pillar place-${placeNum}">
           <div class="podium-rank-tag">${label}</div>
           ${renderAvatarHtml(p.character?.avatar, 'avatar-img-lg')}
-          <h3 class="mt-1">${escapeHtml(p.character?.name || p.name)}</h3>
+          <h4 class="mt-1">${escapeHtml(p.character?.name || p.name)}</h4>
           <div class="text-muted tiny">Played by ${escapeHtml(p.name)}</div>
-          <div class="text-muted tiny mt-1">${escapeHtml(p.character?.role || '')}</div>
+          <div class="text-muted tiny">${escapeHtml(p.character?.role || '')}</div>
           <div class="podium-score">${p.score} PTS</div>
         </div>
       `;
@@ -584,11 +691,11 @@ function renderGameOverScreen() {
       honorableEl.innerHTML = `
         <div class="row-between">
           <div class="rank-player-info">
-            <span class="badge badge-genre">🎖️ HONORABLE MENTION — 4TH PLACE</span>
+            <span class="badge badge-genre">🎖️ 4TH PLACE HONORABLE MENTION</span>
             ${renderAvatarHtml(fourth.character?.avatar, 'avatar-img')}
             <div>
               <strong>${escapeHtml(fourth.character?.name || fourth.name)}</strong>
-              <span class="text-muted small"> (Played by ${escapeHtml(fourth.name)})</span>
+              <span class="text-muted small"> (${escapeHtml(fourth.name)})</span>
               <div class="text-muted tiny">${escapeHtml(fourth.character?.role || '')}</div>
             </div>
           </div>
@@ -617,9 +724,9 @@ function renderGameOverScreen() {
             </div>
             <div class="final-score-box">${p.score} PTS</div>
           </div>
-          <div class="mt-2">
-            <span class="mod-label">Final Character Condition & Modifiers:</span>
-            <div class="modifier-chips mt-1">${renderModifierChips(p.modifiers)}</div>
+          <div class="mt-1">
+            <span class="mod-label">Final Character Condition &amp; Modifiers:</span>
+            <div class="modifier-chips">${renderModifierChips(p.modifiers)}</div>
           </div>
         </div>
       `;
@@ -632,15 +739,15 @@ function renderGameOverScreen() {
       const out = h.judgment?.outcome || 'FLYING_COLORS';
       const badgeClass = out === 'FLYING_COLORS' ? 'badge-success' : (out === 'BARELY_PASSED' ? 'badge-warn' : 'btn-danger');
       const badgeText = out === 'FLYING_COLORS'
-        ? '🌟 Passed with Flying Colors'
-        : (out === 'BARELY_PASSED' ? '😅 Passed (Just Barely)' : '💥 Failed');
+        ? '🌟 Flying Colors'
+        : (out === 'BARELY_PASSED' ? '😅 Barely Passed' : '💥 Wiped Out');
       return `
         <div class="summary-round-item">
-          <div class="row-between mb-2">
-            <strong>Round ${idx + 1}: ${escapeHtml(h.roundTitle)}</strong>
+          <div class="row-between mb-1">
+            <strong>🎬 Act ${idx + 1}: ${escapeHtml(h.roundTitle)}</strong>
             <span class="badge ${badgeClass}">${badgeText}</span>
           </div>
-          <div style="font-weight:700; color: var(--accent-gold); margin-bottom:6px;">
+          <div style="font-family: var(--font-display); font-weight:700; color: var(--accent-gold); margin-bottom:5px;">
             ${escapeHtml(h.judgment?.headline || '')}
           </div>
           <p class="text-muted small">

@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plot Twist Party! — Multiplayer AI Scenario Game</title>
+  <meta name="description" content="Doodle your hero, survive multi-round disasters together in silence, and let the AI Judge roast your chaos and crown the MVP!" />
+  <meta name="theme-color" content="#12131f" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Plot Twist Party! — Co-Op AI Party Game" />
+  <meta property="og:description" content="Join the party room in your browser! Doodle your hero, survive multi-round disasters without talking, and let Gemini judge the chaos." />
+  <meta property="og:url" content="https://caelanhehir.github.io/Plot-engineering/" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Plot Twist Party! — Co-Op AI Party Game" />
+  <meta name="twitter:description" content="Join the party room in your browser! Doodle your hero and survive multi-round AI scenarios together." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎭</text></svg>" />
+  <!-- Expressive Cartoon & Legible Rounded Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/screens.css" />
@@ -12,100 +26,117 @@
 </head>
 <body>
 
-  <!-- Compact Top Navigation Bar -->
+  <!-- Floating Game-Show HUD -->
   <header class="topbar">
     <div class="topbar-left">
-      <button id="btn-global-back" type="button" class="btn-small hidden" onclick="handleGlobalBack()">
+      <button id="btn-global-back" type="button" class="btn-small hud-pill hidden" onclick="handleGlobalBack()">
         ⬅️ Back
       </button>
       <div class="brand">
-        <span>🎭 PLOT TWIST PARTY</span>
+        <span class="brand-sticker">🎭 PLOT TWIST PARTY!</span>
       </div>
     </div>
     <div class="topbar-actions">
       <div id="top-room-badge" class="room-badge hidden">ROOM: ----</div>
-      <span id="api-key-status-badge" class="badge badge-warn" onclick="openApiKeyModal()" style="cursor:pointer;">
+      <span id="api-key-status-badge" class="badge badge-warn hud-pill" onclick="openApiKeyModal()" style="cursor:pointer;">
         ⚠️ Set Gemini Key
       </span>
-      <button id="btn-top-settings" type="button" class="btn-small" onclick="openSettingsModal()">⚙️ Settings</button>
-      <button type="button" class="btn-small" onclick="openApiKeyModal()">🔑 AI Key</button>
-      <button id="btn-mute" type="button" class="btn-small" onclick="toggleSound()">🔊 Sound On</button>
+      <button id="btn-top-settings" type="button" class="btn-small hud-pill" onclick="openSettingsModal()">⚙️ Settings</button>
+      <button type="button" class="btn-small hud-pill" onclick="openApiKeyModal()">🔑 AI Key</button>
+      <button id="btn-mute" type="button" class="btn-small hud-pill" onclick="toggleSound()">🔊 Sound On</button>
     </div>
   </header>
 
   <main class="container">
 
     <!-- ==================== SCREEN 1: HOME ==================== -->
-    <section id="screen-HOME" class="screen-section" style="justify-content: center;">
+    <section id="screen-HOME" class="screen-section home-stage">
       <div class="hero-header">
+        <div class="hero-kicker-sticker">✨ CO-OP AI PARTY GAME ✨</div>
         <h1 class="hero-title">Plot Twist Party!</h1>
         <p class="hero-subtitle">
-          Draw your character, survive multi-round scenarios together <strong>without talking</strong>, and let Gemini judge your chaos, rank the MVP, and hand out lasting character modifiers!
+          Doodle your hero, survive multi-round disasters together <strong>in total silence</strong>, and let the AI Judge roast your chaos, crown the MVP, and slap on lasting status effects!
         </p>
       </div>
 
-      <div class="dashboard-equal" style="max-height: 300px; flex: 0 1 auto;">
+      <div class="dashboard-equal home-cards-grid">
         <!-- Create Room (Host) -->
-        <div class="card card-highlight" style="justify-content: space-between;">
+        <div id="home-host-card" class="card card-highlight wobbly-card tilt-left" style="justify-content: space-between;">
           <div>
-            <h2>👑 Host a New Game</h2>
+            <div class="card-ribbon ribbon-gold">👑 HOST STAGE</div>
+            <h2>Host a New Game</h2>
             <p class="text-muted small mb-2">
-              Create a 4-letter room code for friends to join over the internet. Only the Host needs a Gemini API key!
+              Spin up a 4-letter Room Code for your friends! Only the Host needs a Gemini API key (or play right away in Demo Mode).
             </p>
             <div class="form-group">
               <label for="host-player-name">Your Nickname</label>
-              <input id="host-player-name" type="text" class="input-field" placeholder="e.g., Alex" maxlength="24" />
+              <input id="host-player-name" type="text" class="input-field" placeholder="e.g., Alex" maxlength="24"
+                onkeydown="if(event.key==='Enter') hostCreateRoom()" />
             </div>
           </div>
           <button type="button" class="btn btn-gold btn-block" onclick="hostCreateRoom()">
-            ✨ Create Room & Get Code
+            ✨ Create Room &amp; Get Code!
           </button>
         </div>
 
         <!-- Join Room (Player) -->
-        <div class="card" style="justify-content: space-between;">
+        <div id="home-join-card" class="card wobbly-card tilt-right" style="justify-content: space-between;">
           <div>
-            <h2>📲 Join a Room</h2>
+            <div class="card-ribbon ribbon-cyan">📲 VIP PLAYER ENTRY</div>
+            <h2>Join a Room</h2>
+            <div id="invite-room-banner" class="invite-detected-banner hidden">
+              🎟️ Invite Link Ready! Just enter your nickname below!
+            </div>
             <p class="text-muted small mb-2">
-              Enter a friend's 4-letter Room Code below to jump into their lobby!
+              Punch in your friend's 4-letter Room Code below to hop onto the stage!
             </p>
-            <div style="display:grid; grid-template-columns: 140px 1fr; gap: 10px;">
+            <div class="join-inputs-grid">
               <div class="form-group">
                 <label for="join-room-code">Room Code</label>
-                <input id="join-room-code" type="text" class="input-field input-code" placeholder="ABCD" maxlength="4" />
+                <input id="join-room-code" type="text" class="input-field input-code" placeholder="ABCD" maxlength="4"
+                  onkeydown="if(event.key==='Enter') clientJoinRoom()" />
               </div>
               <div class="form-group">
                 <label for="join-player-name">Your Nickname</label>
-                <input id="join-player-name" type="text" class="input-field" placeholder="e.g., Sam" maxlength="24" style="height:44px;" />
+                <input id="join-player-name" type="text" class="input-field" placeholder="e.g., Sam" maxlength="24"
+                  onkeydown="if(event.key==='Enter') clientJoinRoom()" />
               </div>
             </div>
           </div>
           <button type="button" class="btn btn-primary btn-block" onclick="clientJoinRoom()">
-            🚀 Join Game
+            🚀 Enter Room!
           </button>
         </div>
       </div>
     </section>
 
-    <!-- ==================== SCREEN 2: LOBBY (2-Column Compact Dashboard) ==================== -->
+    <!-- ==================== SCREEN 2: LOBBY ==================== -->
     <section id="screen-LOBBY" class="screen-section hidden">
       <div class="dashboard-lobby">
-        <!-- Left Column: Room Code & Players -->
+        <!-- Left Column: Room Code Ticket & Sticker Player Roster -->
         <div style="display:flex; flex-direction:column; min-height:0;">
-          <div class="lobby-code-banner">
-            <div class="text-muted tiny">ROOM CODE FOR FRIENDS:</div>
+          <div class="lobby-code-banner wobbly-card">
+            <div id="lobby-join-url-pill" class="join-url-sticker" onclick="copyInviteLink()" title="Click to copy full invite link">
+              🌐 JOIN AT: <strong>caelanhehir.github.io/Plot-engineering</strong>
+            </div>
+            <div class="ticket-kicker mt-1">🎟️ ROOM CODE FOR FRIENDS</div>
             <div id="lobby-room-code-display" class="big-room-code">----</div>
             <div class="row-gap" style="justify-content: center;">
-              <button type="button" class="btn-small" onclick="copyInviteLink()">📋 Copy Code</button>
+              <button type="button" class="btn-small btn-dice" onclick="copyInviteLink()">📋 Copy Invite</button>
+              <button type="button" class="btn-small" onclick="toggleLobbyQrCode()">📱 QR Code</button>
               <button type="button" class="btn-small btn-danger" onclick="handleGlobalBack()">⬅️ Leave</button>
+            </div>
+            <div id="lobby-qr-box" class="lobby-qr-drawer hidden">
+              <img id="lobby-qr-img" class="lobby-qr-image" alt="Scan QR Code to Join Room" />
+              <div class="tiny text-muted mt-1">Scan with phone camera to join instantly!</div>
             </div>
           </div>
 
-          <div class="card" style="flex:1;">
-            <div class="row-between">
-              <h3>👥 Players</h3>
+          <div class="card wobbly-card" style="flex:1;">
+            <div class="row-between mb-1">
+              <h3>👥 The Cast</h3>
               <button type="button" class="btn-small" onclick="addBotPlayer()" title="Add an AI Bot teammate">
-                🤖 + Bot
+                🤖 + Add Bot
               </button>
             </div>
             <div id="lobby-player-list" class="player-pill-list"></div>
@@ -113,14 +144,14 @@
         </div>
 
         <!-- Right Column: Host Campaign & Settings Tabs -->
-        <div id="host-lobby-controls" class="card" style="justify-content: space-between;">
+        <div id="host-lobby-controls" class="card wobbly-card" style="justify-content: space-between;">
           <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
             <div class="lobby-main-tabs">
               <button type="button" class="lobby-tab-btn active" data-tab="campaign" onclick="switchLobbyTab('campaign')">
-                🗺️ Campaign Selection
+                🗺️ Pick a Campaign
               </button>
               <button type="button" class="lobby-tab-btn" data-tab="settings" onclick="switchLobbyTab('settings')">
-                ⚙️ Host Settings
+                ⚙️ House Rules
               </button>
             </div>
 
@@ -128,13 +159,13 @@
             <div id="lobby-tab-campaign" class="panel-scroll" style="flex:1;">
               <div class="campaign-tabs">
                 <button type="button" class="campaign-tab-btn active" data-mode="premade" onclick="setCampaignMode('premade')">
-                  📚 Pre-Made Campaigns
+                  📚 Pre-Made Adventures
                 </button>
                 <button type="button" class="campaign-tab-btn" data-mode="ai" onclick="setCampaignMode('ai')">
-                  ✨ AI-Generated Campaign
+                  ✨ AI Plot Generator
                 </button>
                 <button type="button" class="campaign-tab-btn" data-mode="custom" onclick="setCampaignMode('custom')">
-                  ✍️ Custom Campaign
+                  ✍️ Write Your Own
                 </button>
               </div>
 
@@ -146,38 +177,42 @@
               <!-- Sub-Tab: AI Prompt -->
               <div id="panel-ai" class="hidden">
                 <div class="form-group">
-                  <label for="ai-campaign-prompt">Describe any theme, setting, or plot for Gemini to build:</label>
+                  <label for="ai-campaign-prompt">Pitch any wild movie plot, heist, or disaster for Gemini to build:</label>
                   <textarea id="ai-campaign-prompt" class="input-field" rows="3"
-                    placeholder="e.g., A group of raccoons in trench coats trying to heist a 5-star wedding cake..."></textarea>
+                    placeholder="e.g., A group of raccoons in trench coats trying to heist a 5-star wedding cake..."
+                    oninput="if(app.isHost){ app.state.aiPrompt = this.value; }"></textarea>
                 </div>
                 <div class="form-group">
                   <label for="ai-round-count">Number of Rounds (Acts):</label>
-                  <select id="ai-round-count" class="input-field" style="max-width: 200px;">
-                    <option value="3">3 Rounds (Quick)</option>
-                    <option value="4" selected>4 Rounds (Standard)</option>
-                    <option value="5">5 Rounds (Epic)</option>
+                  <select id="ai-round-count" class="input-field" style="max-width: 220px;"
+                    onchange="if(app.isHost){ app.state.aiRoundCount = parseInt(this.value,10)||4; broadcastState(); }">
+                    <option value="3">3 Rounds (Quick Episode)</option>
+                    <option value="4" selected>4 Rounds (Feature Presentation)</option>
+                    <option value="5">5 Rounds (Epic Saga)</option>
                   </select>
                 </div>
                 <div class="bridge-box">
-                  <strong>✨ 2-Part Round Generation:</strong> For each round, Gemini automatically generates:
-                  <br />• <strong>1. Description (Shown to Players):</strong> The scene and obstacles <em>without</em> spoiling the solution.
-                  <br />• <strong>2. Secrets (Judge LLM Only):</strong> Broad hidden rules of the moving parts (e.g., immunities &amp; general weaknesses) so many creative actions can apply!
+                  <strong>✨ 2-Part Round Generation:</strong> For each round, Gemini automatically creates:
+                  <br />• <strong>1. Scene Cue (Shown to Players):</strong> The obstacle and props <em>without</em> spoiling the answer.
+                  <br />• <strong>2. Hidden Truths (Judge Only):</strong> Broad rules &amp; weaknesses so creative actions work!
                 </div>
               </div>
 
               <!-- Sub-Tab: Custom User Campaign -->
               <div id="panel-custom" class="hidden">
                 <div class="bridge-box mb-1">
-                  <strong>📖 Campaign Guide:</strong> For each round, write <strong>1. Description</strong> (shown to players — do not give away the solution!) and <strong>2. Secrets</strong> (shown only to the Judge LLM — vague/broad truths about moving parts so many actions apply).
+                  <strong>📖 Director's Guide:</strong> For each round, write <strong>1. Description</strong> (shown to players — don't spoil the solution!) and <strong>2. Secrets</strong> (shown only to the AI Judge — broad rules about what works or backfires).
                 </div>
-                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap: 8px;">
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap: 10px;">
                   <div class="form-group">
                     <label>Campaign Title</label>
-                    <input id="custom-camp-title" type="text" class="input-field" placeholder="My Custom Campaign" />
+                    <input id="custom-camp-title" type="text" class="input-field" placeholder="My Custom Campaign"
+                      oninput="if(app.isHost){ app.state.customCampaign.title = this.value; }" />
                   </div>
                   <div class="form-group">
                     <label>Campaign Premise / Intro</label>
-                    <input id="custom-camp-desc" type="text" class="input-field" placeholder="Who are the players and what is their goal?" />
+                    <input id="custom-camp-desc" type="text" class="input-field" placeholder="Who are the players and what is their goal?"
+                      oninput="if(app.isHost){ app.state.customCampaign.description = this.value; }" />
                   </div>
                 </div>
                 <div id="custom-rounds-list"></div>
@@ -185,26 +220,33 @@
               </div>
             </div>
 
-            <!-- LOBBY TAB 2: HOST GAME SETTINGS (Rendered dynamically from js/features/settings.js) -->
+            <!-- LOBBY TAB 2: HOST GAME SETTINGS -->
             <div id="lobby-tab-settings" class="panel-scroll hidden" style="flex:1;">
               <div id="lobby-settings-grid" class="settings-grid"></div>
             </div>
           </div>
 
           <button type="button" class="btn btn-gold btn-block mt-2" onclick="hostStartCampaign()">
-            🎬 Launch Campaign & Draw Characters!
+            🎬 Launch Campaign &amp; Doodle Characters!
           </button>
         </div>
 
-        <!-- Client Waiting View -->
-        <div id="client-lobby-waiting" class="card hidden" style="justify-content:center; align-items:center; text-align:center;">
-          <h3>⏳ Waiting for the Host to pick a Campaign & start...</h3>
-          <p id="client-settings-summary" class="text-muted small mt-1"></p>
+        <!-- Client Waiting View (Live Stage Preview!) -->
+        <div id="client-lobby-waiting" class="card wobbly-card hidden" style="justify-content:center; align-items:center; text-align:center;">
+          <div class="waiting-stage-preview">
+            <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
+            <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
+            <div class="waiting-host-banner">
+              <span class="waiting-pulse-dot"></span>
+              <span>Waiting for the Host to start the show...</span>
+            </div>
+            <p id="client-settings-summary" class="text-muted small mt-1"></p>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== SCREEN 3: CHARACTER CREATION (Compact Side-by-Side) ==================== -->
+    <!-- ==================== SCREEN 3: CHARACTER CREATION ==================== -->
     <section id="screen-CHAR_CREATE" class="screen-section hidden">
       <div class="nav-bar-sub">
         <div class="row-gap">
@@ -221,48 +263,49 @@
       </div>
 
       <div class="dashboard-2col">
-        <!-- Left: Compact Drawing & Inputs Side-by-Side -->
-        <div class="card">
+        <!-- Left: Drawful Easel & Character Sheet -->
+        <div class="card card-highlight wobbly-card">
           <div id="char-form-box" style="display:flex; flex-direction:column; height:100%; justify-content:space-between;">
-            <div>
+            <div class="panel-scroll" style="flex:1;">
               <div class="row-between mb-1">
-                <h3>🎨 Draw & Create Your Character</h3>
-                <button type="button" class="btn-small" onclick="randomizeMyCharacter()">
-                  🎲 Random Idea + Doodle
+                <h3>🎨 Doodle Your Hero!</h3>
+                <button type="button" class="btn-small btn-dice" onclick="randomizeMyCharacter()">
+                  🎲 Random Idea + Doodle!
                 </button>
               </div>
 
               <div class="char-create-split">
-                <!-- Canvas Column -->
+                <!-- Easel Canvas Column -->
                 <div class="drawing-studio">
+                  <div class="easel-top-clip">📎 SKETCHPAD</div>
                   <div class="canvas-wrapper">
                     <canvas id="char-canvas" width="240" height="240"></canvas>
                   </div>
-                  <div id="draw-color-palette" class="draw-toolbar"></div>
-                  <div class="draw-toolbar">
-                    <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">Thin</button>
-                    <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">Med</button>
-                    <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">Thick</button>
-                    <button type="button" class="brush-btn" onclick="selectDrawColor('#1c2038')">🧽</button>
-                    <button type="button" class="brush-btn" onclick="undoCanvasStroke()">↩️</button>
-                    <button type="button" class="brush-btn" onclick="clearCharacterCanvas(true)">🗑️</button>
+                  <div id="draw-color-palette" class="draw-toolbar palette-bar"></div>
+                  <div class="draw-toolbar tools-bar">
+                    <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">✏️ Thin</button>
+                    <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">🖌️ Med</button>
+                    <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">🖍️ Thick</button>
+                    <button type="button" class="brush-btn" title="Eraser" onclick="selectDrawColor('#181a2c')">🧽</button>
+                    <button type="button" class="brush-btn" title="Undo Stroke" onclick="undoCanvasStroke()">↩️</button>
+                    <button type="button" class="brush-btn" title="Clear Canvas" onclick="clearCharacterCanvas(true)">🗑️</button>
                   </div>
                 </div>
 
                 <!-- Text Inputs Column -->
-                <div>
+                <div class="char-inputs-col">
                   <div class="form-group">
-                    <label for="char-name-input">Character Name</label>
+                    <label for="char-name-input">🏷️ Character Name</label>
                     <input id="char-name-input" type="text" class="input-field" placeholder="e.g., Brick McLargeHuge" maxlength="30" />
                   </div>
 
                   <div class="form-group">
-                    <label for="char-role-input">Role / Class / Personality Concept</label>
-                    <textarea id="char-role-input" class="input-field" rows="2" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
+                    <label for="char-role-input">🎭 Role / Class / Vibe</label>
+                    <textarea id="char-role-input" class="input-field" rows="3" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
                   </div>
 
                   <div id="char-quirk-group" class="form-group">
-                    <label for="char-quirk-input">Optional Starting Item or Quirk</label>
+                    <label for="char-quirk-input">🎒 Starting Item or Quirk (Optional)</label>
                     <input id="char-quirk-input" type="text" class="input-field" placeholder="e.g., Lucky Grappling Hook: Works 60% of the time" maxlength="80" />
                   </div>
                 </div>
@@ -270,34 +313,37 @@
             </div>
 
             <button type="button" class="btn btn-gold btn-block mt-1" onclick="submitMyCharacter()">
-              ✅ Lock In My Character
+              ✅ Lock In My Character!
             </button>
           </div>
 
-          <div id="char-waiting-box" class="hidden" style="margin:auto; text-align:center;">
-            <h3>🎉 Character Locked In!</h3>
-            <p class="text-muted small mb-2">Waiting for the rest of the party to finish drawing...</p>
+          <div id="char-waiting-box" class="hidden locked-stamp-box" style="margin:auto; text-align:center;">
+            <div class="big-locked-stamp">🎨 HERO LOCKED IN!</div>
+            <p class="text-muted small mb-2">Admire the Polaroid gallery while the rest of the crew finishes doodling...</p>
             <button type="button" class="btn btn-secondary" onclick="unlockMyCharacterToEdit()">
-              ✏️ Edit My Character
+              ✏️ Re-Draw / Edit Hero
             </button>
           </div>
         </div>
 
-        <!-- Right: Party Readiness Roster -->
-        <div class="card">
-          <h3>🛡️ The Party Roster</h3>
-          <div id="char-ready-list" class="panel-scroll mt-1"></div>
+        <!-- Right: Polaroid Party Roster -->
+        <div class="card wobbly-card">
+          <div class="row-between mb-1">
+            <h3>📸 Party Polaroid Wall</h3>
+            <span class="badge badge-genre">Who's Ready?</span>
+          </div>
+          <div id="char-ready-list" class="polaroid-roster-grid panel-scroll mt-1"></div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== SCREEN 4: SCENARIO (Compact No-Scroll Dashboard) ==================== -->
+    <!-- ==================== SCREEN 4: SCENARIO ==================== -->
     <section id="screen-SCENARIO" class="screen-section hidden">
       <div class="nav-bar-sub">
         <div class="row-gap">
           <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
           <span id="scenario-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
-          <span class="badge badge-warn">🤫 SILENCE RULE: Do not coordinate out loud!</span>
+          <span class="badge badge-warn">🤫 SHHH! No talking or coordinating out loud!</span>
         </div>
         <div class="row-gap">
           <span id="scenario-timer" class="timer-pill">⏱️ 2:00</span>
@@ -310,134 +356,145 @@
         </div>
       </div>
 
-      <!-- Compact Scenario Banner -->
-      <div class="scenario-box">
-        <h2 id="scenario-title" style="font-size:1.15rem;">Act I</h2>
+      <!-- Cue-Card Scenario Banner -->
+      <div class="scenario-box wobbly-card">
+        <div class="scenario-cue-header">
+          <span class="cue-tag">🎬 SCENE CUE</span>
+          <h2 id="scenario-title">Act I</h2>
+        </div>
         <div id="scenario-bridge-box" class="bridge-box hidden"></div>
         <p id="scenario-description" class="scenario-text"></p>
       </div>
 
       <div class="dashboard-2col">
-        <!-- Left: Player Character, Modifiers, Action Input & Secret Checkbox -->
-        <div class="card card-highlight" style="justify-content:space-between;">
+        <!-- Left: Player Character Polaroid, Modifiers, Action Input & Secret Checkbox -->
+        <div class="card card-highlight wobbly-card" style="justify-content:space-between;">
           <div id="my-char-banner" class="my-char-banner"></div>
 
           <div id="scenario-input-area" style="display:flex; flex-direction:column; flex:1; justify-content:space-between;">
             <div class="form-group" style="flex:1; display:flex; flex-direction:column;">
-              <label for="scenario-action-input">What does your character do in this scenario?</label>
-              <textarea id="scenario-action-input" class="input-field" style="flex:1; resize:none;"
-                placeholder="Describe your action! Keep your active modifiers in mind—ignoring an injury or restriction will backfire!"></textarea>
+              <label for="scenario-action-input" class="prompt-call-label">💬 WHAT DO YOU DO?!</label>
+              <textarea id="scenario-action-input" class="input-field action-textarea" style="flex:1; resize:none;"
+                placeholder="Write your move! Keep your active perks & injuries in mind—ignoring a broken arm or restriction will backfire!"></textarea>
             </div>
 
             <!-- Checkbox to hide action from other players during the reveal -->
             <label class="secret-checkbox-row" for="scenario-hide-action">
               <input id="scenario-hide-action" type="checkbox" />
-              <span>🕵️ <strong>Keep my action secret from other players</strong> (hides it in "What everyone decided to do"; AI still judges it!)</span>
+              <span>🕵️ <strong>TOP SECRET MOVE:</strong> Hide my action with censor tape during "What Everyone Did" (the AI Judge still sees it!)</span>
             </label>
 
             <button type="button" class="btn btn-gold btn-block" onclick="submitMyAction()">
-              🚀 Lock In My Action!
+              🚀 Lock It In!
             </button>
           </div>
 
-          <div id="scenario-locked-area" class="hidden" style="margin:auto; text-align:center;">
-            <h3>🔒 Action Locked In!</h3>
-            <p class="text-muted small mb-2">Waiting for remaining teammates to lock in their moves...</p>
+          <div id="scenario-locked-area" class="hidden locked-stamp-box" style="margin:auto; text-align:center;">
+            <div class="big-locked-stamp">🔒 MOVE LOCKED IN!</div>
+            <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
             <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
-              ✏️ Edit My Answer
+              ✏️ Change My Move
             </button>
           </div>
         </div>
 
         <!-- Right: Party Status & Modifiers -->
-        <div class="card">
-          <h3>👥 Party Status & Active Modifiers</h3>
+        <div class="card wobbly-card">
+          <h3>👥 Crew Status &amp; Active Effects</h3>
           <div id="scenario-party-status" class="panel-scroll mt-1"></div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== SCREEN 5: REVEAL (Replaces View on Each Step!) ==================== -->
+    <!-- ==================== SCREEN 5: REVEAL ==================== -->
     <section id="screen-REVEAL" class="screen-section hidden">
       <div class="nav-bar-sub">
         <div class="row-gap">
           <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
           <button id="btn-host-reveal-prev" type="button" class="btn-small hidden" onclick="hostPrevRevealStep()">
-            ⬅️ View Actions
+            ⬅️ Back to Speech Bubbles
           </button>
         </div>
         <div class="row-gap">
           <span id="client-reveal-wait" class="text-muted small hidden">
             Host is controlling the reveal...
           </span>
+          <button id="btn-host-skip-story" type="button" class="btn-small hidden" onclick="skipStoryTypewriter()">
+            ⏩ Skip Animation
+          </button>
           <button id="btn-host-reveal-next" type="button" class="btn btn-gold" onclick="hostNextRevealStep()">
             ▶️ Continue
           </button>
         </div>
       </div>
 
-      <!-- STEP 1 VIEW: What Everyone Decided To Do (Replaced when Host presses Continue!) -->
-      <div id="reveal-step1-view" class="card" style="flex:1;">
-        <div class="row-between mb-1">
-          <h3>🗣️ What Everyone Decided To Do</h3>
-          <div id="reveal-ai-generating-box" class="badge badge-warn hidden">
-            ⏳ Gemini is generating the outcome...
+      <!-- STEP 1 VIEW: What Everyone Decided To Do (Speech Bubbles!) -->
+      <div id="reveal-step1-view" class="card wobbly-card" style="flex:1;">
+        <div class="row-between mb-2">
+          <h3>🗣️ What Everyone Decided To Do!</h3>
+          <div id="reveal-ai-generating-box" class="badge badge-warn boiling-badge hidden">
+            🔮 Gemini is judging the chaos...
           </div>
         </div>
         <div id="reveal-actions-grid" class="actions-grid-compact panel-scroll"></div>
       </div>
 
-      <!-- STEP 2 VIEW: Scenario Plays Out + Verdict + Leaderboard (Replaces Step 1 View!) -->
-      <div id="reveal-step2-view" class="dashboard-equal hidden">
-        <!-- Left Column: Word-by-Word Story + Immediate 3-Tier Verdict Stamp -->
-        <div class="card card-highlight" style="justify-content:space-between;">
+      <!-- STEP 2 VIEW: Center-Stage Story Typewriter -> Splits to Verdict Stamp + Leaderboard -->
+      <div id="reveal-step2-view" class="dashboard-equal reveal-step2-stage story-centered hidden">
+        <!-- Left / Center Column: Word-by-Word Story + Rubber-Stamp Verdict -->
+        <div class="card card-highlight wobbly-card story-stage-card" style="justify-content:space-between;">
           <div class="panel-scroll" style="flex:1;">
-            <h3>📖 How It Actually Played Out...</h3>
-            <div id="reveal-story-paragraphs" class="mt-1"></div>
+            <div class="story-header-row">
+              <h3>📖 How It Actually Played Out...</h3>
+            </div>
+            <div id="reveal-story-paragraphs" class="mt-1 story-book-box"></div>
           </div>
 
-          <!-- 3-Tier Outcome Stamp (Appears immediately when story finishes) -->
+          <!-- 3-Tier Rubber-Stamp Outcome Banner -->
           <div id="reveal-verdict-box" class="verdict-banner hidden">
             <div id="verdict-stamp" class="verdict-stamp">SCENARIO PASSED!</div>
-            <div id="verdict-headline" class="small" style="font-weight:700;">Headline</div>
+            <div id="verdict-headline" class="verdict-headline-text">Headline</div>
           </div>
         </div>
 
         <!-- Right Column: Round Leaderboard & New Modifiers -->
-        <div id="reveal-rankings-box" class="card hidden">
-          <h3>🏆 Round Leaderboard & New Modifiers</h3>
+        <div id="reveal-rankings-box" class="card wobbly-card hidden">
+          <h3>🏆 Round MVP &amp; New Status Effects</h3>
           <p class="text-muted tiny mb-1">
-            Modifiers gained below carry into future rounds!
+            Perks, items, and injuries earned below carry into future rounds!
           </p>
           <div id="reveal-rankings-list" class="panel-scroll" style="flex:1;"></div>
         </div>
       </div>
     </section>
 
-    <!-- ==================== SCREEN 6: GAME OVER (Compact 2-Column Podium + Summary) ==================== -->
+    <!-- ==================== SCREEN 6: GAME OVER ==================== -->
     <section id="screen-GAME_OVER" class="screen-section hidden">
       <div class="nav-bar-sub">
-        <div>
-          <span id="finale-main-title" style="font-size:1.3rem; font-weight:900; color:var(--accent-gold);">🏆 Campaign Complete!</span>
-          <span id="finale-campaign-summary" class="text-muted small" style="margin-left:10px;"></span>
+        <div class="row-gap">
+          <span id="finale-main-title" class="finale-banner-title">🏆 Campaign Complete!</span>
+          <span id="finale-campaign-summary" class="text-muted small"></span>
         </div>
         <button id="btn-host-play-again" type="button" class="btn btn-gold" onclick="hostBackToLobby()">
-          🔄 Return to Room Lobby
+          🔄 Back to Room Lobby!
         </button>
       </div>
 
       <div class="dashboard-equal">
-        <!-- Left Column: Top 3 Podium + 4th Place Honorable Mention + Full Leaderboard -->
-        <div class="card" style="overflow:hidden;">
-          <h3>👑 Top 3 Podium & Final Standings</h3>
+        <!-- Left Column: Celebratory Podium + 4th Place Honorable Mention + Standings -->
+        <div class="card wobbly-card podium-main-card" style="overflow:hidden;">
+          <div class="row-between">
+            <h3>👑 Grand Finale Podium</h3>
+            <span class="badge badge-warn">✨ FINAL SCORES</span>
+          </div>
           <div id="final-podium-stage" class="podium-stage"></div>
           <div id="final-honorable-mention" class="honorable-mention-banner hidden"></div>
           <div id="final-leaderboard-list" class="panel-scroll" style="flex:1;"></div>
         </div>
 
         <!-- Right Column: Act-by-Act Campaign Story Summary -->
-        <div class="card">
-          <h3>📖 Campaign Story Summary</h3>
+        <div class="card wobbly-card">
+          <h3>📖 Full Episode Story Recap</h3>
           <div id="final-campaign-recap-list" class="panel-scroll mt-1" style="flex:1;"></div>
         </div>
       </div>
@@ -447,21 +504,21 @@
 
   <!-- ==================== HOST GAME SETTINGS MODAL ==================== -->
   <div id="settings-modal" class="modal-backdrop hidden">
-    <div class="modal-card">
+    <div class="modal-card wobbly-card">
       <div class="row-between mb-2">
-        <h3>⚙️ Host Game Settings</h3>
+        <h3>⚙️ Host House Rules</h3>
         <button type="button" class="btn-small" onclick="closeSettingsModal()">✕ Close</button>
       </div>
       <div id="modal-settings-grid" class="settings-grid"></div>
-      <div style="text-align:right; margin-top: 12px;">
-        <button type="button" class="btn btn-gold" onclick="closeSettingsModal()">Done</button>
+      <div style="text-align:right; margin-top: 14px;">
+        <button type="button" class="btn btn-gold" onclick="closeSettingsModal()">👍 Save &amp; Done</button>
       </div>
     </div>
   </div>
 
   <!-- ==================== GEMINI API KEY MODAL ==================== -->
   <div id="api-key-modal" class="modal-backdrop hidden">
-    <div class="modal-card" style="max-width:460px;">
+    <div class="modal-card wobbly-card" style="max-width:480px;">
       <h3>🔑 Gemini API Key Setup (Host Only)</h3>
       <p class="text-muted small mt-1 mb-2">
         Paste your Google Gemini API key below. Invalid keys are automatically refused and cleared.
@@ -472,14 +529,14 @@
       </div>
       <div class="row-between mt-2">
         <button type="button" class="btn btn-secondary" onclick="closeApiKeyModal()">Cancel</button>
-        <button type="button" class="btn btn-gold" onclick="saveApiKeyFromModal()">💾 Verify & Save Key</button>
+        <button type="button" class="btn btn-gold" onclick="saveApiKeyFromModal()">💾 Verify &amp; Save Key</button>
       </div>
     </div>
   </div>
 
   <!-- Loading Overlay -->
   <div id="loading-overlay" class="modal-backdrop hidden">
-    <div class="modal-card" style="text-align:center; max-width:360px;">
+    <div class="modal-card wobbly-card" style="text-align:center; max-width:380px;">
       <div class="spinner"></div>
       <h3 id="loading-text">Loading...</h3>
     </div>

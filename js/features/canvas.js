@@ -120,7 +120,7 @@ function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
   if (recordUndo) saveCanvasSnapshot();
   const ctx = drawState.ctx;
-  ctx.fillStyle = '#1c2038';
+  ctx.fillStyle = '#181a2c';
   ctx.fillRect(0, 0, drawState.canvas.width, drawState.canvas.height);
 }
 
