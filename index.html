@@ -371,7 +371,9 @@
         <div class="row-gap">
           <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
           <span id="scenario-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
-          <span class="badge badge-warn">🤫 SHHH! No talking or coordinating out loud!</span>
+          <button type="button" class="btn-small btn-dice" onclick="openScenarioPopup()">
+            📜 Show Scenario Details
+          </button>
         </div>
         <div class="row-gap">
           <span id="scenario-timer" class="timer-pill">⏱️ 2:00</span>
@@ -384,32 +386,32 @@
         </div>
       </div>
 
-      <!-- Cue-Card Scenario Banner -->
-      <div class="scenario-box wobbly-card">
-        <div class="scenario-cue-header">
-          <span class="cue-tag">🎬 SCENE CUE</span>
-          <h2 id="scenario-title">Act I</h2>
+      <!-- Single Section with Multi-Window Switcher (What Would You Do? / Crew Status) -->
+      <div class="card card-highlight wobbly-card scenario-single-card" style="flex:1; min-height:0;">
+        <div class="window-switcher-bar">
+          <button id="scenario-win-btn-action" type="button" class="window-tab-btn active" onclick="setScenarioWindow('action')">
+            💬 What Would You Do?
+          </button>
+          <button id="scenario-win-btn-crew" type="button" class="window-tab-btn" onclick="setScenarioWindow('crew')">
+            👥 Crew Status
+          </button>
         </div>
-        <div id="scenario-bridge-box" class="bridge-box hidden"></div>
-        <p id="scenario-description" class="scenario-text"></p>
-      </div>
 
-      <div class="dashboard-2col">
-        <!-- Left: Player Character Polaroid, Modifiers, Action Input & Secret Checkbox -->
-        <div class="card card-highlight wobbly-card" style="justify-content:space-between;">
+        <!-- WINDOW 1: What Would You Do? -->
+        <div id="scenario-window-action" class="scenario-window-pane">
           <div id="my-char-banner" class="my-char-banner"></div>
 
-          <div id="scenario-input-area" style="display:flex; flex-direction:column; flex:1; justify-content:space-between;">
-            <div class="form-group" style="flex:1; display:flex; flex-direction:column;">
+          <div id="scenario-input-area" class="scenario-input-flex">
+            <div class="form-group scenario-textarea-group">
               <label for="scenario-action-input" class="prompt-call-label">💬 WHAT DO YOU DO?!</label>
-              <textarea id="scenario-action-input" class="input-field action-textarea" style="flex:1; resize:none;"
-                placeholder="Write your move! Keep your active perks & injuries in mind—ignoring a broken arm or restriction will backfire!"></textarea>
+              <textarea id="scenario-action-input" class="input-field action-textarea"
+                placeholder="Write your character's move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!"></textarea>
             </div>
 
             <!-- Checkbox to hide action from other players during the reveal -->
             <label class="secret-checkbox-row" for="scenario-hide-action">
               <input id="scenario-hide-action" type="checkbox" />
-              <span>🕵️ <strong>TOP SECRET MOVE:</strong> Hide my action with censor tape during "What Everyone Did" (the AI Judge still sees it!)</span>
+              <span>🕵️ <strong>TOP SECRET MOVE:</strong> Hide with censor tape during "What Everyone Did" (AI Judge still sees it!)</span>
             </label>
 
             <button type="button" class="btn btn-gold btn-block" onclick="submitMyAction()">
@@ -426,10 +428,9 @@
           </div>
         </div>
 
-        <!-- Right: Party Status & Modifiers -->
-        <div class="card wobbly-card">
-          <h3>👥 Crew Status &amp; Active Effects</h3>
-          <div id="scenario-party-status" class="panel-scroll mt-1"></div>
+        <!-- WINDOW 2: Crew Status & Active Effects -->
+        <div id="scenario-window-crew" class="scenario-window-pane hidden">
+          <div id="scenario-party-status" class="panel-scroll" style="flex:1; min-height:0;"></div>
         </div>
       </div>
     </section>
@@ -529,6 +530,27 @@
     </section>
 
   </main>
+
+  <!-- ==================== SCENARIO DETAILS POPUP MODAL ==================== -->
+  <div id="scenario-popup-modal" class="modal-backdrop hidden">
+    <div class="modal-card wobbly-card scenario-modal-card">
+      <div class="row-between mb-1">
+        <div class="row-gap">
+          <span class="cue-tag">🎬 SCENE CUE</span>
+          <span id="scenario-popup-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
+        </div>
+        <span class="badge badge-warn">🤫 No talking out loud!</span>
+      </div>
+      <h2 id="scenario-title" class="scenario-modal-title">Act I</h2>
+      <div id="scenario-bridge-box" class="bridge-box hidden"></div>
+      <div class="scenario-modal-body">
+        <p id="scenario-description" class="scenario-text"></p>
+      </div>
+      <button type="button" class="btn btn-gold btn-block mt-2" onclick="closeScenarioPopup()">
+        ▶️ Continue
+      </button>
+    </div>
+  </div>
 
   <!-- ==================== HOST GAME SETTINGS MODAL ==================== -->
   <div id="settings-modal" class="modal-backdrop hidden">

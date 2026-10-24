@@ -48,6 +48,12 @@ function renderState() {
     }
   }
 
+  if (phase !== 'SCENARIO') {
+    app.scenarioPopupOpen = false;
+    const scenModal = document.getElementById('scenario-popup-modal');
+    if (scenModal) scenModal.classList.add('hidden');
+  }
+
   if (phase === 'LOBBY') renderLobbyScreen();
   if (phase === 'CHAR_CREATE') renderCharCreateScreen();
   if (phase === 'SCENARIO') renderScenarioScreen();
@@ -281,13 +287,42 @@ function renderScenarioScreen() {
   const roundObj = camp.rounds[roundIdx];
   const me = app.state.players.find(p => p.id === app.myId);
 
+  const roundPopupKey = `${app.state.roomCode}-${camp.id || camp.title}-r${roundIdx}`;
+  if (app.scenarioPopupKey !== roundPopupKey) {
+    app.scenarioPopupKey = roundPopupKey;
+    app.scenarioPopupOpen = true;
+    app.scenarioWindow = 'action';
+  }
+
+  const scenModal = document.getElementById('scenario-popup-modal');
+  if (scenModal) {
+    scenModal.classList.toggle('hidden', !app.scenarioPopupOpen);
+  }
+
   const myDeadMod = getPlayerMetaMod(me, 'DEAD');
   const mySkipMod = getPlayerMetaMod(me, 'SKIP_TURN');
   const myWordLimitMod = getPlayerMetaMod(me, 'WORD_LIMIT');
   const myBlindedMod = getPlayerMetaMod(me, 'BLINDED_SCENARIO');
 
-  document.getElementById('scenario-round-badge').textContent = `ROUND ${roundIdx + 1} OF ${camp.rounds.length}`;
+  const roundLabelText = `ROUND ${roundIdx + 1} OF ${camp.rounds.length}`;
+  document.getElementById('scenario-round-badge').textContent = roundLabelText;
+  const popupRoundBadge = document.getElementById('scenario-popup-round-badge');
+  if (popupRoundBadge) popupRoundBadge.textContent = roundLabelText;
   document.getElementById('scenario-title').textContent = roundObj.title;
+
+  const activeWin = app.scenarioWindow === 'crew' ? 'crew' : 'action';
+  const winActionEl = document.getElementById('scenario-window-action');
+  const winCrewEl = document.getElementById('scenario-window-crew');
+  const btnActionEl = document.getElementById('scenario-win-btn-action');
+  const btnCrewEl = document.getElementById('scenario-win-btn-crew');
+  if (winActionEl) winActionEl.classList.toggle('hidden', activeWin !== 'action');
+  if (winCrewEl) winCrewEl.classList.toggle('hidden', activeWin !== 'crew');
+  if (btnActionEl) btnActionEl.classList.toggle('active', activeWin === 'action');
+  if (btnCrewEl) {
+    btnCrewEl.classList.toggle('active', activeWin === 'crew');
+    const lockedCount = app.state.players.filter(p => Boolean(app.state.submissions[p.id])).length;
+    btnCrewEl.textContent = `👥 Crew Status (${lockedCount}/${app.state.players.length})`;
+  }
 
   if (myBlindedMod) {
     const redacted = roundObj.scenario

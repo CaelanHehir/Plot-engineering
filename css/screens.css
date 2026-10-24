@@ -688,24 +688,26 @@
   margin-top: 6px;
 }
 
-/* ==================== SCREEN 4: SCENARIO ==================== */
-.scenario-box {
-  background: linear-gradient(155deg, #2d2358 0%, #1c1638 100%);
-  border: 3.5px solid var(--ink);
-  outline: 2.5px solid var(--accent-gold);
-  border-radius: var(--wobbly-box);
-  box-shadow: var(--shadow-hard);
-  padding: 12px 18px;
-  margin-bottom: 12px;
-  transform: rotate(-0.35deg);
-  flex-shrink: 0;
+/* ==================== SCREEN 4: SCENARIO (POPUP + MULTI-WINDOW STAGE) ==================== */
+.scenario-modal-card {
+  max-width: 620px;
 }
 
-.scenario-cue-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
+.scenario-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--accent-gold);
+  text-shadow: 2px 2px 0px var(--ink);
+  margin: 4px 0 6px;
+}
+
+.scenario-modal-body {
+  background: var(--bg-input);
+  border: 3px solid var(--ink);
+  border-radius: var(--wobbly-box);
+  padding: 14px 16px;
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.4);
+  margin-top: 6px;
 }
 
 .cue-tag {
@@ -724,7 +726,7 @@
 
 #scenario-title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   color: var(--accent-gold);
   text-shadow: 2px 2px 0px var(--ink);
 }
@@ -732,9 +734,87 @@
 .scenario-text {
   font-size: 1.04rem;
   font-weight: 800;
-  line-height: 1.45;
-  margin-top: 4px;
+  line-height: 1.48;
   color: #ffffff;
+}
+
+/* Multi-Window Switcher Bar (Reusable across screens) */
+.window-switcher-bar {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 2.5px dashed rgba(255, 255, 255, 0.14);
+  flex-shrink: 0;
+}
+
+.window-tab-btn {
+  flex: 1;
+  padding: 7px 14px;
+  border-radius: var(--wobbly-pill);
+  background: var(--bg-input);
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.12s, background 0.12s;
+}
+
+.window-tab-btn:hover {
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.window-tab-btn.active {
+  background: var(--accent-gold);
+  color: var(--ink);
+  transform: rotate(-0.8deg);
+}
+
+.scenario-single-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scenario-window-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scenario-input-flex {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.scenario-textarea-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.action-textarea {
+  flex: 1;
+  min-height: 110px;
+  height: 100%;
+  resize: none;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  padding: 12px 14px;
 }
 
 .bridge-box {

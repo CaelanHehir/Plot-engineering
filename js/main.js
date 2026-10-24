@@ -10,6 +10,9 @@ const app = {
   clientConns: {},
   lobbyTab: 'campaign',
   charCreateStep: 1,
+  scenarioWindow: 'action',
+  scenarioPopupOpen: false,
+  scenarioPopupKey: '',
 
   // Authoritative State (managed by Host, synced to Clients)
   state: {
@@ -517,6 +520,23 @@ function checkAllCharactersReady() {
 }
 
 // --- Scenario Round & Action Submission Controllers ---
+function setScenarioWindow(winName) {
+  app.scenarioWindow = winName === 'crew' ? 'crew' : 'action';
+  renderScenarioScreen();
+}
+
+function openScenarioPopup() {
+  app.scenarioPopupOpen = true;
+  const modal = document.getElementById('scenario-popup-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeScenarioPopup() {
+  app.scenarioPopupOpen = false;
+  const modal = document.getElementById('scenario-popup-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
 function startScenarioRound(roundIndex) {
   if (!app.isHost) return;
   stopTypewriter();
@@ -526,6 +546,9 @@ function startScenarioRound(roundIndex) {
   app.state.currentJudgment = null;
   app.state.isJudging = false;
   app.state.phase = 'SCENARIO';
+  app.scenarioWindow = 'action';
+  app.scenarioPopupKey = '';
+  app.scenarioPopupOpen = true;
 
   const actionInput = document.getElementById('scenario-action-input');
   if (actionInput) actionInput.value = '';
