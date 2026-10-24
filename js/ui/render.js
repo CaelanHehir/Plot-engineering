@@ -255,14 +255,17 @@ function renderCharCreateScreen() {
   const me = app.state.players.find(p => p.id === app.myId);
   const isReady = Boolean(me && me.character && me.character.ready);
 
-  const step = isReady ? 2 : (app.charCreateStep === 3 ? 3 : (app.charCreateStep === 2 ? 2 : 1));
+  const step = app.charCreateStep === 2 ? 2 : 1;
   const creatorCard = document.getElementById('char-creator-card');
   const rosterCard = document.getElementById('char-roster-card');
+  // Compact screens: edit your hero first, then the Crew wall replaces it once submitted
   if (creatorCard) {
-    creatorCard.classList.toggle('mobile-window-hidden', step === 3 && !isReady);
+    creatorCard.classList.toggle('mobile-window-hidden', isReady);
     creatorCard.classList.toggle('is-portrait-sketchpad', step === 2 && !isReady);
   }
-  if (rosterCard) rosterCard.classList.toggle('mobile-window-hidden', step !== 3 && !isReady);
+  if (rosterCard) rosterCard.classList.toggle('mobile-window-hidden', !isReady);
+  const rosterEditBtn = document.getElementById('btn-char-roster-edit');
+  if (rosterEditBtn) rosterEditBtn.classList.toggle('hidden', !isReady);
 
   document.getElementById('char-form-box').classList.toggle('hidden', isReady);
   document.getElementById('char-waiting-box').classList.toggle('hidden', !isReady);
@@ -271,20 +274,10 @@ function renderCharCreateScreen() {
   const stage2El = document.getElementById('char-stage-2');
   const stepBtn1 = document.getElementById('char-step-btn-1');
   const stepBtn2 = document.getElementById('char-step-btn-2');
-  const stepBtn3 = document.getElementById('char-step-btn-3');
-  const headerStage1Actions = document.getElementById('char-header-stage1-actions');
-  const headerStage2Actions = document.getElementById('char-header-stage2-actions');
   if (stage1El) stage1El.classList.toggle('hidden', step !== 1);
   if (stage2El) stage2El.classList.toggle('hidden', step !== 2);
-  if (headerStage1Actions) headerStage1Actions.classList.toggle('hidden', step !== 1);
-  if (headerStage2Actions) headerStage2Actions.classList.toggle('hidden', step !== 2);
   if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
-  if (stepBtn3) {
-    const readyCount = app.state.players.filter(p => p.character && p.character.ready).length;
-    stepBtn3.classList.toggle('active', step === 3);
-    stepBtn3.textContent = `📸 Crew (${readyCount}/${app.state.players.length})`;
-  }
 
   if (step === 2 && !isReady && typeof syncCanvasToContainer === 'function') {
     requestAnimationFrame(() => syncCanvasToContainer());

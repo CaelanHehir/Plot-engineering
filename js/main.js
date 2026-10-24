@@ -446,13 +446,7 @@ function hostForceStartFirstRound() {
 
 // --- Character Creation Controllers ---
 function setCharCreateStep(step) {
-  if (step === 3) {
-    app.charCreateStep = 3;
-  } else if (step === 2) {
-    app.charCreateStep = 2;
-  } else {
-    app.charCreateStep = 1;
-  }
+  app.charCreateStep = step === 2 ? 2 : 1;
   renderCharCreateScreen();
 }
 
@@ -471,30 +465,6 @@ function goToCharPortraitStage() {
   }
   app.charCreateStep = 2;
   sfx.stepReveal();
-  renderCharCreateScreen();
-}
-
-function randomizeMyPortraitOnly() {
-  if (drawState.canvas) {
-    saveCanvasSnapshot();
-    generateProceduralPortraitDataUrl(drawState.canvas);
-  }
-}
-
-function randomizeMyCharacter() {
-  const sample = RANDOM_CHARACTERS[Math.floor(Math.random() * RANDOM_CHARACTERS.length)];
-  document.getElementById('char-name-input').value = sample.name;
-  document.getElementById('char-role-input').value = sample.role;
-  const quirkEl = document.getElementById('char-quirk-input');
-  if (quirkEl) {
-    quirkEl.value = sample.startMod
-      ? `${sample.startMod.name}: ${sample.startMod.description}`
-      : '';
-  }
-  if (drawState.canvas) {
-    saveCanvasSnapshot();
-    generateProceduralPortraitDataUrl(drawState.canvas);
-  }
   renderCharCreateScreen();
 }
 

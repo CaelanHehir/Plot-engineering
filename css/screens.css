@@ -472,6 +472,31 @@
   transform: rotate(-1deg);
 }
 
+/* Header: Bio | Portrait | Submit — equal columns so all three always fit on narrow screens */
+.char-header-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-items: stretch;
+}
+
+.char-header-grid .char-step-pill {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.char-step-pill.char-submit-pill {
+  background: linear-gradient(180deg, #5dfc9e 0%, #00c853 100%);
+  color: var(--ink);
+}
+
+.char-step-pill.char-submit-pill:hover {
+  filter: brightness(1.08);
+}
+
 .char-stage-body {
   display: flex;
   flex-direction: column;

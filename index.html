@@ -287,32 +287,17 @@
         <!-- Left: 2-Stage Character Creation (Stage 1: Name + Description, Stage 2: Full-Section Sketchpad) -->
         <div id="char-creator-card" class="card card-highlight wobbly-card char-creator-card">
           <div id="char-form-box" class="char-stage-container">
-            <!-- HEADER SECTION: Navigation & Action UI -->
-            <div class="row-between char-stage-header">
-              <div class="char-step-pills">
-                <button id="char-step-btn-1" type="button" class="char-step-pill active" onclick="setCharCreateStep(1)">
-                  1️⃣ Bio
-                </button>
-                <button id="char-step-btn-2" type="button" class="char-step-pill" onclick="goToCharPortraitStage()">
-                  2️⃣ Portrait
-                </button>
-                <button id="char-step-btn-3" type="button" class="char-step-pill compact-only-inline" onclick="setCharCreateStep(3)">
-                  📸 Crew
-                </button>
-              </div>
-              <div id="char-header-stage1-actions" class="row-gap" style="gap:6px;">
-                <button type="button" class="btn-small btn-dice" onclick="randomizeMyCharacter()">
-                  🎲 Randomize
-                </button>
-              </div>
-              <div id="char-header-stage2-actions" class="row-gap hidden" style="gap:6px; flex-wrap:nowrap;">
-                <button type="button" class="btn-small btn-dice" onclick="randomizeMyPortraitOnly()" title="Generate a random doodle">
-                  🎲 Auto
-                </button>
-                <button type="button" class="btn-small btn-gold-pill" onclick="submitMyCharacter()">
-                  ✅ Lock In!
-                </button>
-              </div>
+            <!-- HEADER SECTION: Bio / Portrait / Submit -->
+            <div class="char-stage-header char-header-grid">
+              <button id="char-step-btn-1" type="button" class="char-step-pill active" onclick="setCharCreateStep(1)">
+                1️⃣ Bio
+              </button>
+              <button id="char-step-btn-2" type="button" class="char-step-pill" onclick="goToCharPortraitStage()">
+                2️⃣ Portrait
+              </button>
+              <button id="char-submit-btn" type="button" class="char-step-pill char-submit-pill" onclick="submitMyCharacter()">
+                ✅ Submit
+              </button>
             </div>
 
             <!-- STAGE 1: Name + Description (No Scroll) -->
@@ -374,8 +359,8 @@
         <div id="char-roster-card" class="card wobbly-card">
           <div class="row-between mb-1">
             <h3>📸 Party Polaroid Wall</h3>
-            <button id="btn-char-roster-back" type="button" class="btn-small compact-only-inline" onclick="setCharCreateStep(1)">
-              ⬅️ My Hero
+            <button id="btn-char-roster-edit" type="button" class="btn-small compact-only-inline hidden" onclick="unlockMyCharacterToEdit()">
+              ✏️ Edit My Hero
             </button>
           </div>
           <div id="char-ready-list" class="polaroid-roster-grid panel-scroll mt-1"></div>
