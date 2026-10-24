@@ -211,8 +211,16 @@ function removePlayer(playerId) {
   if (!app.isHost) return;
   app.state.players = app.state.players.filter(p => p.id !== playerId);
   if (app.clientConns[playerId]) {
-    app.clientConns[playerId].close();
+    const conn = app.clientConns[playerId];
     delete app.clientConns[playerId];
+    try {
+      if (conn.open) {
+        conn.send({ type: 'ROOM_CLOSED', reason: 'You were removed from the room by the Host.' });
+      }
+    } catch (e) {}
+    setTimeout(() => {
+      try { conn.close(); } catch (e) {}
+    }, 80);
   }
   broadcastState();
 }

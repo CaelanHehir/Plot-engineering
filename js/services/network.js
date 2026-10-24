@@ -234,11 +234,19 @@ function clientJoinRoom() {
           sfx.stepReveal();
         }
         renderState();
+      } else if (msg.type === 'ROOM_CLOSED') {
+        setLoadingOverlay(false);
+        showToast(msg.reason || 'The Host closed the room.', 'warn');
+        leaveRoomToHome();
       }
     });
 
     conn.on('close', () => {
-      showToast('Connection to Host closed.', 'warn');
+      if (app.state.phase !== 'HOME') {
+        setLoadingOverlay(false);
+        showToast('The Host closed the room.', 'warn');
+        leaveRoomToHome();
+      }
     });
   });
 
@@ -301,18 +309,56 @@ function broadcastState() {
 function leaveRoomToHome() {
   clearInterval(app.timerInterval);
   stopTypewriter();
-  if (app.hostConn) {
-    try { app.hostConn.close(); } catch (e) {}
-    app.hostConn = null;
-  }
-  if (app.peer) {
-    try { app.peer.destroy(); } catch (e) {}
-    app.peer = null;
-  }
+
+  const wasHost = app.isHost;
+  const connsToClose = app.clientConns || {};
+  const peerToDestroy = app.peer;
+  const hostConnToClose = app.hostConn;
+
   app.clientConns = {};
+  app.hostConn = null;
+  app.peer = null;
   app.isHost = false;
   app.roomCode = '';
   app.state.phase = 'HOME';
   app.state.roomCode = '';
+  app.state.players = [];
   renderState();
+
+  if (wasHost) {
+    for (const pid of Object.keys(connsToClose)) {
+      const c = connsToClose[pid];
+      if (c && c.open) {
+        try {
+          c.send({ type: 'ROOM_CLOSED', reason: 'The Host closed the room.' });
+        } catch (e) {}
+      }
+    }
+    setTimeout(() => {
+      for (const pid of Object.keys(connsToClose)) {
+        try { connsToClose[pid].close(); } catch (e) {}
+      }
+      if (peerToDestroy) {
+        try { peerToDestroy.destroy(); } catch (e) {}
+      }
+    }, 100);
+  } else {
+    if (hostConnToClose) {
+      try { hostConnToClose.close(); } catch (e) {}
+    }
+    if (peerToDestroy) {
+      try { peerToDestroy.destroy(); } catch (e) {}
+    }
+  }
 }
+
+window.addEventListener('beforeunload', () => {
+  if (app.isHost && app.clientConns) {
+    for (const pid of Object.keys(app.clientConns)) {
+      const c = app.clientConns[pid];
+      if (c && c.open) {
+        try { c.send({ type: 'ROOM_CLOSED', reason: 'The Host closed the room.' }); } catch (e) {}
+      }
+    }
+  }
+});
