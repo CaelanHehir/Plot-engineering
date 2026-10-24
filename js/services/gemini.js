@@ -1,4 +1,4 @@
-// Gemini LLM Service: API Key Validation, Model Auto-Discovery, Campaign Generation & Round Judging
+// Gemini LLM Service: API Key Validation, Model Auto-Discovery, Campaign Generation & Comedic Story Judging
 
 let cachedModelName = localStorage.getItem('chaos_coop_gemini_model') || '';
 let isApiKeyVerified = false;
@@ -127,7 +127,7 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
             }
           ],
           generationConfig: {
-            temperature: 0.55,
+            temperature: 0.75,
             responseMimeType: 'application/json'
           }
         })
@@ -185,100 +185,90 @@ function parseCleanJSON(text) {
 }
 
 /**
- * Comprehensive Campaign Generation Guide & AI Campaign Builder
+ * Campaign Generation Guide & AI Campaign Builder for Plot Engineering
  */
-const CAMPAIGN_GENERATION_GUIDE = `You are an expert cooperative party game designer creating a multi-round scenario campaign.
+const CAMPAIGN_GENERATION_GUIDE = `You are an expert comedy party game designer creating a multi-round campaign for "Plot Engineering".
+The goal of Plot Engineering is for players to create hilarious, chaotic stories together by coordinating their actions in silence—NOT to solve dry, realistic physics puzzles!
 
 ================================================================================
-COMPREHENSIVE CAMPAIGN GENERATION GUIDE (CRITICAL RULES — NEVER VIOLATE)
+CAMPAIGN GENERATION GUIDE (CRITICAL RULES)
 ================================================================================
 
 For EVERY round in the campaign, you MUST generate TWO distinct things:
-1. "scenario" (The Player-Facing Description)
-2. "secrets" (The Hidden Judge-Only Notes on Moving Parts)
+1. "scenario" (The Player-Facing Scene Setup)
+2. "secrets" (Comedic Scene Hooks & Moving Parts for the AI Judge)
 
 --------------------------------------------------------------------------------
 PART 1: THE DESCRIPTION ("scenario") — SHOWN TO PLAYERS
 --------------------------------------------------------------------------------
 - This is the ONLY text the players will see during the round.
-- NEVER GIVE THE SOLUTION OR HINTS INSIDE THE DESCRIPTION!
-  - Do NOT tell players what they "need to do", "must do", or "can do" to pass.
-  - Do NOT reveal the secret weakness, temperament, or vulnerability of the obstacle in the description.
-  - FORBIDDEN BAD EXAMPLE: "A stone door refuses to open unless you impress it, outsmart it, or bypass the moat." (Spoils the solutions!)
-  - FORBIDDEN BAD EXAMPLE: "A troll blocks the bridge. He looks too tough to fight, so you'll need to talk him down or distract him with the food cart." (Tells players the answer!)
-  - REQUIRED GOOD EXAMPLE: "A massive troll blocks the narrow stone bridge. He glares down at your party with his arms crossed and doesn't seem to want to let anyone pass. Nearby, an overturned merchant's cart sits in the mud beside an old watchtower."
+- NEVER SPOIL SOLUTIONS OR TELL PLAYERS WHAT TO DO!
+  - Do NOT write "You need to distract the guard or hack the panel."
+  - REQUIRED GOOD EXAMPLE: "A massive troll in a clip-on tie blocks the narrow stone bridge, glaring at your party with his arms crossed. Nearby, an overturned merchant's cart full of cabbages sits in the mud beside an old watchtower."
 - WHAT TO INCLUDE IN THE DESCRIPTION:
-  - Keep it brief and vivid (2 to 3 sentences, max 50 words).
-  - State the immediate situation/obstacle blocking the party.
-  - Mention 2 to 4 visible "moving parts" in the environment (e.g., NPCs/creatures, physical features, props, hazards) WITHOUT explaining how they should be used.
-  - End by asking or implying the open-ended question: What do you do?
+  - Keep it brief, punchy, and vivid (2 to 3 sentences, max 50 words).
+  - State the immediate situation/obstacle facing the party.
+  - Include 2 to 4 fun, interactive "moving parts" (weird NPCs, props, contraptions, or environmental features) that invite comedic improvisation.
 
 --------------------------------------------------------------------------------
-PART 2: THE SECRETS ("secrets") — ONLY SHOWN TO THE JUDGE LLM
+PART 2: THE SECRETS ("secrets") — COMEDIC HOOKS FOR THE JUDGE LLM
 --------------------------------------------------------------------------------
-- Players NEVER see this field. It is passed exclusively to the AI Judge LLM when evaluating what happens.
-- Contains elaborated descriptions of the different moving parts in the scene: their hidden properties, immunities, vulnerabilities, and how they react when interacted with.
-- CANONICAL EXAMPLE:
-  - Description ("scenario"): "A troll blocks the way. He doesn't seem to want to let anyone pass."
-  - Secrets ("secrets"): "The troll can be reasoned with, flattered, bribed, or distracted, but is virtually immune to physical attacks. Fighting the troll head-on will never work, while talking to or bargaining with it is generally a good solution."
-- CRITICAL RULE — KEEP SECRETS BROAD / VAGUE SO MANY ACTIONS APPLY:
-  - NEVER design a hyper-specific "moon-logic" puzzle where only one exact action works (e.g., NEVER write "The troll only moves if someone sings a lullaby while holding a blue mushroom").
-  - Instead, write VAGUE, BROAD truths about the moving parts so that MANY different creative player actions will apply to them!
-  - Define broad categories of what NEVER works (immunities, traps, backfires) vs. broad categories of what GENERALLY works (e.g., social reasoning, stealth/distraction, leverage/physics, temperature/electricity, teamwork).
-  - Elaborate on the moving parts mentioned in the description (e.g., what the main threat is immune/vulnerable to, and what the nearby props or terrain features actually contain or do if players interact with them).
+- Players NEVER see this field. It gives the AI Judge fun comedic lore and improv fuel about the moving parts in the scene.
+- Describe the quirky personalities, secret obsessions, or funny reactions of the NPCs and props in the scene (e.g., "The troll is deeply insecure about his clip-on tie and loves dramatic flattery or slapstick distractions; the cabbage cart hides a loaded catapult").
+- CRITICAL RULE — ALLOW FUNNY & UNREALISTIC IDEAS TO WORK:
+  - Never write rigid roadblocks that punish cartoon logic! Keep the hidden details playful and open-ended so any funny, coherent, or coordinated team plan can play off them.
 
 --------------------------------------------------------------------------------
 PART 3: MULTI-ROUND ARC & ESCALATION
 --------------------------------------------------------------------------------
-- Connect the rounds into a cohesive, escalating story arc from Act I (Setup) to the Final Act (Climax).
-- Vary the types of obstacles across rounds so the same tactic (like brute force or sweet-talking) doesn't solve every single round.
+- Connect the rounds into an escalating comedic adventure from Act I (Setup) to the Final Act (Climax).
 
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "Campaign Title",
   "icon": "Single relevant emoji",
-  "genre": "Short genre tag",
+  "genre": "Short comedy/genre tag",
   "description": "1 short sentence describing who the players are and their overarching goal.",
   "rounds": [
     {
       "title": "Act I: Short Round Title",
-      "scenario": "Player-facing description ONLY (2-3 sentences, max 50 words). Present the obstacle and visible moving parts WITHOUT giving away any solutions or hints!",
-      "secrets": "Judge-only hidden details (2-3 sentences). Elaborate on the moving parts, immunities (what will never work), and broad vulnerabilities (what categories of actions will generally work) kept vague enough so many creative actions apply."
+      "scenario": "Player-facing setup ONLY (2-3 sentences, max 50 words). Present the obstacle and fun moving parts WITHOUT giving away hints or solutions!",
+      "secrets": "Judge-only comedic hooks (2-3 sentences). Fun quirks of the NPCs/props and how different creative, absurd, or coordinated actions can play out."
     }
   ]
 }`;
 
 async function generateCampaignWithAI(promptText, numRounds = 4, apiKey = '') {
-  const userPrompt = `Create a ${numRounds}-round campaign based on this idea: "${promptText}".
+  const userPrompt = `Create a ${numRounds}-round comedic campaign for Plot Engineering based on this idea: "${promptText}".
 Remember:
-1. For each round, generate both "scenario" (shown to players — NO solutions or hints!) and "secrets" (only shown to the judge LLM — broad/vague truths about the moving parts, what approaches never work, and what categories of actions generally work).
-2. Make sure the rounds form a connected story arc from beginning to climax!`;
+1. For each round, generate both "scenario" (shown to players — NO solutions or hints!) and "secrets" (comedic hooks and quirky moving parts for the Judge LLM).
+2. Make sure the rounds form a connected, escalating comedic story arc from beginning to climax!`;
 
   const result = await callGeminiJSON(CAMPAIGN_GENERATION_GUIDE, userPrompt, apiKey);
   const rawRounds = Array.isArray(result.rounds) && result.rounds.length > 0
     ? result.rounds
     : [{
-        title: 'Act I: The Crisis Begins',
+        title: 'Act I: The Chaos Begins',
         scenario: promptText,
-        secrets: 'Direct brute force without a plan fails; clever use of the environment, teamwork, or social manipulation succeeds.'
+        secrets: 'Reward any funny, coordinated, or coherent combination of player actions!'
       }];
 
   return {
     id: 'ai-' + Date.now(),
-    title: result.title || 'AI Generated Campaign',
-    icon: result.icon || '✨',
-    genre: result.genre || 'Custom AI Adventure',
+    title: result.title || 'AI Plot Engineering Campaign',
+    icon: result.icon || '🎬',
+    genre: result.genre || 'Co-Op Comedy Adventure',
     description: result.description || promptText,
     rounds: rawRounds.map((r, i) => ({
       title: r.title || `Act ${i + 1}`,
       scenario: r.scenario || r.description || promptText,
-      secrets: r.secrets || 'Unthinking brute force fails; creative teamwork, social interaction, or clever use of the environment succeeds.'
+      secrets: r.secrets || 'Reward funny, coordinated, and coherent player actions that play off each other!'
     }))
   };
 }
 
 /**
- * Judge a round of player actions using Gemini
+ * Judge a round of player actions using Gemini based on Coordination, Coherence, and Humor
  */
 async function judgeRoundWithAI({
   campaign,
@@ -294,9 +284,9 @@ async function judgeRoundWithAI({
 }) {
   const strictness = settings?.strictness || 'balanced';
   const strictnessGuide = {
-    forgiving: 'FORGIVING: Be generous with creative attempts, but STILL strictly penalize vague or impossible actions and enforce the scenarioSecrets.',
-    balanced: 'BALANCED: Reward specific, funny, and synergizing plans that fit scenarioSecrets with FLYING_COLORS; messy/partial plans with BARELY_PASSED; and vague, impossible, conflicting, or secret-violating plans with FAILED.',
-    brutal: 'STRICT & BRUTAL: Demand tight tactical synergy that respects scenarioSecrets. Any vague, impossible, or uncoordinated action causes failure or heavy debuffs.'
+    forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! As long as players wrote actual actions and didn\'t directly sabotage each other, weave even the most absurd cartoon stunts into a triumphant comedic success.',
+    balanced: 'BALANCED (COMEDY & SYNERGY): Reward funny, specific, and coordinated actions (even if totally unrealistic!) with FLYING_COLORS; give BARELY_PASSED when actions are funny/coherent overall but slightly messy or uncoordinated; give FAILED only when actions completely contradict/sabotage each other or are lazy/empty non-answers.',
+    brutal: 'TOUGH CRITIC: Demand strong coordination, comedic commitment, and coherence between teammates! If players go off in completely unrelated directions without synergy or write low-effort actions, let their plans hilariously collide and fail.'
   }[strictness] || '';
 
   const playerProfiles = players.map(p => {
@@ -319,98 +309,92 @@ async function judgeRoundWithAI({
     };
   });
 
-  const systemPrompt = `You are the strict, logical AI Game Master for a multiplayer party game where players submit actions for a scenario without communicating.
+  const systemPrompt = `You are the witty, comedy-first AI Director and Judge for "Plot Engineering", a multiplayer party game where players engineer hilarious stories together without talking out loud.
 
-CRITICAL NARRATIVE & LOGIC RULES (NEVER VIOLATE THESE):
-1. ENFORCE THE HIDDEN SCENARIO SECRETS ("scenarioSecrets"):
-   - You are provided with "scenarioSecrets", which only YOU (the Judge) can see. It elaborates on the hidden moving parts, immunities, and vulnerabilities in the scene.
-   - Strictly evaluate player actions against "scenarioSecrets"!
-   - EXAMPLE: If the scenario is "A troll blocks the way" and "scenarioSecrets" states "The troll can be reasoned with, but is virtually immune to physical attacks", then any player trying to fight or physically attack the troll WILL NEVER succeed at defeating or moving it, whereas talking to, bribing, or reasoning with it is a good solution.
-   - Because "scenarioSecrets" are intentionally broad/vague, allow any specific, creative player action that logically applies to those truths to work!
+================================================================================
+CORE PHILOSOPHY: FUNNY STORIES OVER REALISTIC SOLUTIONS!
+================================================================================
+- The goal of Plot Engineering is to create FUNNY STORIES, NOT to find realistic solutions to problems!
+- Evaluate every round on three pillars:
+  1. COORDINATION: How well the players' actions work together, set each other up, or combo off one another.
+  2. COHERENCE: How well the combined actions fit together into a coherent, entertaining story beat that engages with the scene (and respects active character modifiers/injuries).
+  3. HUMOR: How funny, creative, vivid, and committed to the bit the actions are!
 
-2. NO "FAILING UPWARD", NO ACCIDENTAL WINS, & NO INVENTED FOLLOW-UP ACTIONS:
-   - Characters ONLY attempt what their player literally wrote. NEVER invent extra follow-up steps on a player's behalf to help them pass!
-   - FORBIDDEN EXAMPLE 1: A player writes "I punch John" (when no John exists). Do NOT write that he misses, falls into a crate, bewilders the guards into forgetting their posts, and "seizes the moment to scramble through the service entrance"! He never wrote that he sneaks through the entrance, and guards do not abandon their posts just because someone acts crazy. Instead, he swings at air, faceplants, and the guards immediately detain or eject him.
-   - FORBIDDEN EXAMPLE 2: A player writes a vague or clumsy action, and "while flailing around, accidentally hits the emergency bulkhead button, saving the crew!" NEVER let a failed, vague, random, or nonsensical action accidentally trigger a win or solve the objective!
-   - A scenario can ONLY pass (FLYING_COLORS or BARELY_PASSED) if at least one un-interrupted player wrote a DELIBERATE, SPECIFIC, PHYSICALLY POSSIBLE action that logically solves the core threat according to "scenarioSecrets". Otherwise, "deliberateSolutionExists" MUST be false and "outcome" MUST be "FAILED".
+================================================================================
+CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
+================================================================================
+1. FUNNY & UNREALISTIC ANSWERS MUST BE ALLOWED TO WORK IF THEY COORDINATE/COHERE:
+   - Do NOT penalize players for cartoon physics, absurd comedy, or unrealistic ideas!
+   - A funny answer—even if wildly unrealistic, over-the-top, or cartoon logic—MUST BE ALLOWED TO WORK if it works with the other players' answers or fits coherently into the comedic scene!
+   - EXAMPLE: If Player A "challenges the security laser to a staring contest" while Player B "rides a rolling lobster crate past the distracted bouncers", let it work! Play into the bit ("Yes, And!") and make the story hilarious!
+   - Use "scenarioSecrets" as comedic flavor, personality hooks, and improv fuel—NOT as rigid realism rules to shut down funny coordinated plans.
 
-3. CAUSAL CONSISTENCY & PLAYER-VS-PLAYER INTERFERENCE:
-   - Do NOT narrate each player's action in isolation one after another like separate bullet points. All actions happen in the same shared physical reality.
-   - If Player A attacks, tackles, restrains, blocks, or sabotages Player B (e.g., "Bob ignores the hull breach to pummel Vlad"), Player B's submitted action is INTERRUPTED AND PREVENTED!
-   - FORBIDDEN EXAMPLE: "Bob pummels Vlad. Vlad tries to charm the vacuum of space." (Inconsistent! Vlad cannot calmly perform his own action while Bob is pummeling him!)
-   - CORRECT CAUSAL WRITING: Show Bob tackling/pummeling Vlad before Vlad can act, completely preventing Vlad's planned action (and hurting the team's chances).
+2. THE STORY MUST EXPLICITLY CONTAIN WHAT EACH CHARACTER DID (NO VAGUE REFERENCES!):
+   - In "storyParagraphs", you MUST explicitly name EVERY SINGLE character and directly narrate the specific action they submitted!
+   - NEVER vaguely reference, summarize, or skip a player's action (FORBIDDEN: "while the rest of the team helped out", "meanwhile the others caused a distraction", or paraphrasing away the specific funny details they wrote).
+   - If a player wrote a specific action, the story MUST show that character actually doing that exact thing and how it interacted with everyone else's actions in the shared scene!
+   - Complete "characterActionChecklist" first to verify that every single player's exact action is explicitly included in your story.
 
-WHAT TO PENALIZE HEAVILY (RANK LOW & CAUSE FAILURE/DEBUFFS):
-1. VAGUE DESCRIPTIONS:
-   - Penalize generic or lazy statements that don't explain HOW they do it (e.g., "I use my item to accomplish the main objective", "I improvise a tool and rush toward the main objective", "I solve the problem", "I help the team").
-   - A vague action accomplishes NOTHING (and NEVER causes a lucky accident). Rank them at the bottom!
-2. IMPOSSIBLE / NONSENSICAL / GOD-MODING DESCRIPTIONS:
-   - Penalize physically impossible actions, superpowers, inventing items not in the scenario/modifiers, or acting on imaginary things not in the scene (e.g., "I fly over the obstacle", "I charm the vacuum of space", "I punch a phantom named John").
-   - Have them fail painfully in reality, rank them last, and give them a concrete injury or meta penalty (if the team passes the round)!
-3. ACTIONS THAT VIOLATE "scenarioSecrets", SABOTAGE TEAMMATES, OR IGNORE MODIFIERS:
-   - If a player uses an approach that "scenarioSecrets" says is ineffective or doomed (e.g., physically attacking an immune enemy), their action fails!
-   - Attacking a teammate ruins both the attacker's and the victim's turn and heavily drags the party toward FAILED.
-   - If a player has an injury/debuff (e.g., "Broken Leg", "Concussed", "Handcuffed") and tries an action that violates it, it fails immediately.
+3. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
+   - INCOHERENCE / ANTI-COORDINATION: Players directly working against each other, attacking/sabotaging teammates, or doing completely incompatible things that ruin each other's moves (e.g., Player A tries tosweet-talk the guard while Player B tackles the guard down the stairs).
+   - LAZY / VAGUE NON-ANSWERS: Generic filler that isn't a real action or story beat (e.g., "I solve the problem", "I win the round", "I do something cool", or leaving it blank). Lazy non-answers accomplish nothing and rank at the bottom!
+   - IGNORING ACTIVE MODIFIERS: If a player has an active injury/restriction (e.g., "Broken Arm", "Handcuffed") and lazily ignores it without a funny workaround, have it backfire comedically.
 
-WHAT TO REWARD HIGHLY (RANK #1 & PUSH TOWARD FLYING_COLORS):
-1. FUNNY DESCRIPTIONS (THAT MAKE SENSE & FIT THE SECRETS):
-   - Reward clever, humorous, in-character actions that realistically use the environment, props, or their character concept in a way that aligns with "scenarioSecrets"!
-2. SYNERGIZING DESCRIPTIONS (TEAMWORK COMBOS!):
-   - Heavily reward players whose independent actions naturally combo together (e.g., Player A creates a believable distraction while Player B explicitly sneaks behind the guards to unlock the door or grab the keycard). Highlight their combo in the story!
+4. CONCRETE OR META PERKS & STATUS EFFECTS (WHEN THE TEAM PASSES):
+   - CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails!
+   - When the team PASSES ("FLYING_COLORS" or "BARELY_PASSED"), any modifier in "modifiersAdded" MUST be concrete and fun:
+     A) CONCRETE ITEM / PERK OR COMEDIC CONDITION ("metaEffect": "NONE"):
+        - Buffs ("type": "buff"): Concrete items/perks gained from the scene (e.g., "Lobster Mech Suit", "Guard's Keycard", "Velvet Rope Lasso", "VIP Champagne Bottle").
+        - Debuffs ("type": "debuff"): Concrete physical/comedic conditions (e.g., "Covered in Gravy", "Lobster Pinched Nose", "Sprained Ankle", "Tangled in Tape").
+     B) META GAME-ALTERING STATUS ("type": "meta"):
+        - "SKIP_TURN": Character is captured, trapped, or incapacitated for 1 round (e.g., "Stuffed in Laundry Cart", "Jailed").
+        - "DEAD": Character did something fatally self-destructive (permanently eliminates them).
+        - "WORD_LIMIT": Character is winded, gagged, or out of breath (max 5 words next round).
+        - "BLINDED_SCENARIO": Character has sauce/paint/blindfold in their eyes (redacts half the scenario text next round).
+   - If a locked-out ("SKIP_TURN") teammate is rescued by another player's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
 
-PERKS & STATUS EFFECTS — MUST BE CONCRETE OR META (NO ABSTRACT FLUFF!):
-- CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails the round!
-- NEVER invent abstract or poetic perks like "Empty Pockets (Confusion from imagining objects)".
-- When the team PASSES ("FLYING_COLORS" or "BARELY_PASSED"), every modifier in "modifiersAdded" MUST be either:
-  A) A CONCRETE RPG CONDITION OR ITEM ("metaEffect": "NONE"):
-     - Concrete Debuffs ("type": "debuff"): "Concussed", "Sprained Ankle", "Broken Arm", "Exhausted", "Bleeding", "Pepper-Sprayed", "Tied Up", "Disarmed".
-     - Concrete Buffs/Items ("type": "buff"): "Guard's Keycard", "Stolen Taser", "First-Aid Kit", "Security Disguise", "Crowbar", "Adrenaline Rush".
-  B) A META GAME-ALTERING STATUS ("type": "meta"):
-     - Use "metaEffect": "SKIP_TURN" when a character is captured, jailed, knocked unconscious, or trapped (e.g., name: "Jailed", "Knocked Unconscious", "Locked in Freezer" — locks the player out of acting for the next 1 round!).
-     - Use "metaEffect": "DEAD" ONLY when a character does something fatally reckless or dies in the scene (e.g., name: "Dead" — permanently eliminates that character for the rest of the campaign!).
-     - Use "metaEffect": "WORD_LIMIT" when a character is winded, gagged, or dazed (e.g., name: "Winded (5-Word Limit)" — restricts the player to typing max 5 words next round!).
-     - Use "metaEffect": "BLINDED_SCENARIO" when a character is flashbanged, pepper-sprayed, or in the dark (e.g., name: "Blinded" — blacks out half the scenario text on their screen next round!).
-- Note: If a locked-out ("SKIP_TURN") player is explicitly rescued/freed by a teammate's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
-
-KEEP OUTPUT SHORT & DIRECT (NO TANGENTS!):
-- "storyParagraphs": Write ONLY 2 short, punchy paragraphs (60 to 90 words TOTAL combined). Focus on how the players' actions causally interact with the moving parts and unfold in the scenario.
-- "evaluation": 1 short sentence (max 18 words) per player explaining why they ranked there (call out vague/impossible/sabotage penalties or synergy/humor rewards!).
+5. STORY LENGTH & PACING:
+   - Write 2 to 3 vivid, hilarious paragraphs in "storyParagraphs" (90 to 160 words total combined) so you have plenty of room to explicitly depict what EVERY character did and how their actions combined!
+   - "evaluation": 1 punchy, funny sentence (max 20 words) per player explaining their score based on their humor, coordination, and coherence!
 
 THREE OUTCOMES ("outcome"):
-- "FLYING_COLORS": Passed with flying colors! Deliberate, logical actions (especially funny or synergizing combos) cleanly solved the scenario in accordance with "scenarioSecrets".
-- "BARELY_PASSED": Passed, but just barely! At least one player's deliberate, logical action genuinely solved the core obstacle in accordance with "scenarioSecrets", even though other teammates fumbled, got hurt, or were useless.
-- "FAILED": Scenario failed — ends the game immediately! Use this whenever NO player wrote a deliberate, un-interrupted, logical solution that works under "scenarioSecrets", or when teammates sabotaged the only viable plan. (Award 0 points and 0 perks/modifiers to everyone!)
+- "FLYING_COLORS": Passed with flying colors! The players' actions were funny, coherent, and coordinated (even if totally unrealistic/absurd!), creating a hilarious story beat.
+- "BARELY_PASSED": Passed, but just barely! Some players delivered funny, coherent actions that saved the scene, even though others clashed, fumbled, or were uncoordinated.
+- "FAILED": Comedic disaster — campaign over! The team's actions completely sabotaged/contradicted each other into total incoherence, or everyone submitted lazy/empty non-answers. (Award 0 points and 0 modifiers to everyone!)
 
-JUDGING DIFFICULTY:
+JUDGING MODE:
 ${strictnessGuide}
 
-Return ONLY valid JSON matching this exact schema (complete the analysis fields FIRST before choosing outcome and storyParagraphs):
+Return ONLY valid JSON matching this exact schema (complete the checklist and analysis fields FIRST before writing storyParagraphs):
 {
-  "causalInterferenceAnalysis": "1 sentence checking if any player attacked, blocked, or interfered with another player, and stating whose action was interrupted/prevented as a result.",
-  "deliberateSolutionExists": true,
-  "solutionCheckReason": "1 sentence verifying whether at least one un-interrupted player wrote a deliberate, logical action that solves the scenario according to scenarioSecrets without accidental luck or invented follow-ups.",
-  "outcome": "FLYING_COLORS | BARELY_PASSED | FAILED",
-  "headline": "Short 4-8 word verdict headline",
-  "storyParagraphs": [
-    "Short paragraph 1 (how the actions causally unfold and collide with the moving parts)...",
-    "Short paragraph 2 (the realistic consequence on the scenario)..."
+  "characterActionChecklist": [
+    "Character Name: Exact detail of what they did and how it is explicitly shown in storyParagraphs"
   ],
-  "continuityBridge": "1 brief sentence setting up what happens next.",
+  "coordinationAndCoherenceAnalysis": "1-2 sentences evaluating how the players' actions coordinated and cohered together as a story (allowing funny/unrealistic moves to succeed when they fit together!).",
+  "humorEvaluation": "1 sentence highlighting the funniest actions or combinations.",
+  "storyCoherentAndFunny": true,
+  "outcome": "FLYING_COLORS | BARELY_PASSED | FAILED",
+  "headline": "Short, funny 4-8 word episode headline",
+  "storyParagraphs": [
+    "Paragraph 1 (explicitly naming characters and showing the exact details of what they did)...",
+    "Paragraph 2 (showing the remaining characters' exact actions and how all their moves combined into the hilarious outcome)..."
+  ],
+  "continuityBridge": "1 brief comedic sentence setting up the party's state entering the next act.",
   "rankings": [
     {
       "playerId": "exact playerId from input",
       "rank": 1,
-      "title": "Short Award Title",
-      "evaluation": "1 brief sentence explaining their impact.",
+      "title": "Funny Award Title (e.g. Chief Lobster Strategist, Chaos MVP)",
+      "evaluation": "1 brief sentence praising their humor/coordination or roasting their blunder.",
       "modifiersAdded": [
         {
-          "name": "Concrete Perk/Condition Name (leave array empty [] if outcome is FAILED)",
+          "name": "Concrete Perk/Condition Name (empty [] if outcome is FAILED)",
           "type": "buff | debuff | meta",
           "metaEffect": "NONE | SKIP_TURN | DEAD | WORD_LIMIT | BLINDED_SCENARIO",
-          "description": "Short concrete rule (e.g. Locked out for 1 round, or Cannot run/jump)"
+          "description": "Short concrete effect"
         }
       ],
-      "modifiersRemoved": ["Exact Old Modifier Name if cured/rescued/used (leave empty [] if outcome is FAILED)"]
+      "modifiersRemoved": ["Exact Old Modifier Name if cured/rescued/used (empty [] if outcome is FAILED)"]
     }
   ]
 }`;
@@ -421,7 +405,7 @@ Return ONLY valid JSON matching this exact schema (complete the analysis fields 
     totalRounds,
     storySoFar: storySoFar || 'Opening act.',
     currentScenario: scenarioText,
-    scenarioSecrets: scenarioSecrets || 'No special immunities specified; judge based on realistic physics, logic, and teamwork.',
+    sceneComedicHooks: scenarioSecrets || 'Play into the comedy! Allow funny and creative actions to succeed when they coordinate and cohere.',
     playersAndActions: playerProfiles
   }, null, 2);
 
@@ -435,7 +419,7 @@ Return ONLY valid JSON matching this exact schema (complete the analysis fields 
  */
 function normalizeJudgeResult(raw, players, settings = {}) {
   let outcome = String(raw.outcome || '').toUpperCase().trim();
-  if (raw.deliberateSolutionExists === false) {
+  if (raw.storyCoherentAndFunny === false || raw.deliberateSolutionExists === false) {
     outcome = 'FAILED';
   } else if (!['FLYING_COLORS', 'BARELY_PASSED', 'FAILED'].includes(outcome)) {
     if (raw.passed === false || outcome.includes('FAIL')) {
@@ -478,8 +462,8 @@ function normalizeJudgeResult(raw, players, settings = {}) {
       normalizedRankings.push({
         playerId: p.id,
         rank: normalizedRankings.length + 1,
-        title: r.title || 'Participant',
-        evaluation: r.evaluation || 'Took part in the scenario.',
+        title: r.title || 'Scene Stealer',
+        evaluation: r.evaluation || 'Committed to the bit!',
         modifiersAdded: cleanModsAdded,
         modifiersRemoved: cleanModsRemoved
       });
@@ -491,8 +475,8 @@ function normalizeJudgeResult(raw, players, settings = {}) {
       normalizedRankings.push({
         playerId: p.id,
         rank: normalizedRankings.length + 1,
-        title: 'Bystander',
-        evaluation: 'Stayed out of the way.',
+        title: 'Background Extra',
+        evaluation: 'Watched the chaos unfold.',
         modifiersAdded: [],
         modifiersRemoved: []
       });
@@ -519,9 +503,9 @@ function normalizeJudgeResult(raw, players, settings = {}) {
   });
 
   const defaultHeadlines = {
-    FLYING_COLORS: 'Clean Teamwork Solves the Crisis!',
-    BARELY_PASSED: 'Messy Execution, But You Scraped By!',
-    FAILED: 'Uncoordinated Chaos Dooms the Party!'
+    FLYING_COLORS: 'Hilarious Synergy Steals the Show!',
+    BARELY_PASSED: 'Chaotic Comedy Somehow Works Out!',
+    FAILED: 'Incoherent Chaos Derails the Plot!'
   };
 
   return {
@@ -529,45 +513,52 @@ function normalizeJudgeResult(raw, players, settings = {}) {
     passed,
     headline: raw.headline || defaultHeadlines[outcome],
     storyParagraphs: Array.isArray(raw.storyParagraphs) && raw.storyParagraphs.length > 0
-      ? raw.storyParagraphs.slice(0, 3)
-      : ['Everyone acted at once without a shared plan.'],
+      ? raw.storyParagraphs.slice(0, 4)
+      : ['Everyone charged in at once without a script!'],
     continuityBridge: raw.continuityBridge || '',
     rankings: normalizedRankings
   };
 }
 
 /**
- * Offline Mock AI Judge
+ * Offline Mock AI Judge (Explicitly includes each character's exact action)
  */
 function mockJudgeRound({ players, submissions, settings }) {
   const actions = players.map(p => (submissions[p.id] || '').trim());
-  const detailedCount = actions.filter(a => a.length >= 25).length;
-  const nonEmptyCount = actions.filter(a => a.length >= 5).length;
+  const detailedCount = actions.filter(a => a.length >= 15).length;
+  const nonEmptyCount = actions.filter(a => a.length >= 4).length;
 
   let outcome = 'BARELY_PASSED';
   if (nonEmptyCount < Math.ceil(players.length * 0.5)) {
     outcome = 'FAILED';
-  } else if (detailedCount >= Math.ceil(players.length * 0.75)) {
+  } else if (detailedCount >= Math.ceil(players.length * 0.6)) {
     outcome = 'FLYING_COLORS';
   }
 
+  const characterActionSentences = players.map(p => {
+    const charName = p.character?.name || p.name;
+    const role = p.character?.role ? ` (${p.character.role})` : '';
+    const act = (submissions[p.id] || '').trim() || 'stood there blinking in total silence';
+    return `${charName}${role} jumped into action and explicitly ${act.replace(/^I\s+/i, '')}.`;
+  });
+
   const storyParagraphs = [
-    players.map(p => `${p.character?.name || p.name} tried to "${submissions[p.id] || 'do nothing'}".`).join(' '),
+    characterActionSentences.join(' '),
     outcome === 'FLYING_COLORS'
-      ? 'Their moves connected cleanly and resolved the crisis without a hitch.'
+      ? 'Against all laws of physics and common sense, their absurd moves combined into a masterpiece of comedic coordination that left the room speechless!'
       : outcome === 'BARELY_PASSED'
-      ? 'Their uncoordinated moves caused some painful collisions, but they barely got the job done.'
-      : "Their conflicting actions got in each other's way and failed to stop the threat."
+      ? 'The sheer audacity of their moves caused a pileup of slapstick chaos, but the bits connected just enough to carry the crew through to the next act!'
+      : 'Unfortunately, their moves went in completely opposite directions with zero coherence, turning the scene into a glorious trainwreck!'
   ];
 
-  const sampleTitles = ['MVP', 'Wildcard', 'Bruised Survivor', 'Liability'];
+  const sampleTitles = ['Comedy MVP', 'Yes-And Champion', 'Chaotic Co-Star', 'Slapstick Hazard'];
   const buffMods = [
-    { name: 'Guard Keycard', type: 'buff', metaEffect: 'NONE', description: 'Unlocks one security door or elevator' },
-    { name: 'Adrenaline Rush', type: 'buff', metaEffect: 'NONE', description: 'Boosts strength for one physical stunt' }
+    { name: 'Prop Department Megaphone', type: 'buff', metaEffect: 'NONE', description: 'Amplifies dramatic bluffs and distractions' },
+    { name: 'Unstoppable Momentum', type: 'buff', metaEffect: 'NONE', description: 'Bonus flair on absurd physical stunts' }
   ];
   const debuffMods = [
-    { name: 'Concussed', type: 'debuff', metaEffect: 'NONE', description: 'Dizzy; cannot aim or perform delicate tasks' },
-    { name: 'Jailed', type: 'meta', metaEffect: 'SKIP_TURN', description: 'Caught by guards! Locked out for 1 turn.' }
+    { name: 'Dizzy from Slapstick', type: 'debuff', metaEffect: 'NONE', description: 'Wobbly aim on delicate tasks' },
+    { name: 'Stuffed in a Trash Can', type: 'meta', metaEffect: 'SKIP_TURN', description: 'Stuck for 1 turn unless a teammate tips you out!' }
   ];
 
   const rankings = players.map((p, idx) => {
@@ -578,7 +569,7 @@ function mockJudgeRound({ players, submissions, settings }) {
       playerId: p.id,
       rank: idx + 1,
       title: sampleTitles[idx % sampleTitles.length],
-      evaluation: `(Demo Mode) Judged as part of a ${outcome.replace('_', ' ')} outcome.`,
+      evaluation: `(Demo Mode) Scored on coordination, coherence, and comedic commitment!`,
       modifiersAdded: outcome === 'FAILED' ? [] : [chosenMod],
       modifiersRemoved: []
     };
@@ -587,12 +578,12 @@ function mockJudgeRound({ players, submissions, settings }) {
   return normalizeJudgeResult({
     outcome,
     headline: outcome === 'FLYING_COLORS'
-      ? 'Clean Teamwork! (Demo Mode)'
+      ? 'Pure Comedic Genius! (Demo Mode)'
       : outcome === 'BARELY_PASSED'
-      ? 'Barely Scraped By! (Demo Mode)'
-      : 'Mission Failed! (Demo Mode)',
+      ? 'Slapstick Survival! (Demo Mode)'
+      : 'Plot Totally Derailed! (Demo Mode)',
     storyParagraphs,
-    continuityBridge: outcome === 'FAILED' ? 'The mission ended here.' : 'The crew moves on to the next act.',
+    continuityBridge: outcome === 'FAILED' ? 'The curtain falls on this disaster.' : 'The crew stumbles triumphantly into the next act.',
     rankings
   }, players, settings);
 }
