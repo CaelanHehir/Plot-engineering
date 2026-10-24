@@ -54,6 +54,12 @@ function renderState() {
     if (scenModal) scenModal.classList.add('hidden');
   }
 
+  if (phase !== 'LOBBY') {
+    const qrModal = document.getElementById('qr-popup-modal');
+    if (qrModal) qrModal.classList.add('hidden');
+  }
+
+  if (phase === 'HOME') renderHomeWindow();
   if (phase === 'LOBBY') renderLobbyScreen();
   if (phase === 'CHAR_CREATE') renderCharCreateScreen();
   if (phase === 'SCENARIO') renderScenarioScreen();
@@ -63,6 +69,22 @@ function renderState() {
 
 function renderLobbyScreen() {
   document.getElementById('lobby-room-code-display').textContent = app.state.roomCode;
+
+  const lobbyWin = app.lobbyWindow === 'stage' ? 'stage' : 'cast';
+  const leftCol = document.getElementById('lobby-left-col');
+  const rightCol = document.getElementById('lobby-right-col');
+  const btnCast = document.getElementById('lobby-win-btn-cast');
+  const btnStage = document.getElementById('lobby-win-btn-stage');
+  if (leftCol) leftCol.classList.toggle('mobile-window-hidden', lobbyWin !== 'cast');
+  if (rightCol) rightCol.classList.toggle('mobile-window-hidden', lobbyWin !== 'stage');
+  if (btnCast) {
+    btnCast.classList.toggle('active', lobbyWin === 'cast');
+    btnCast.textContent = `🎟️ Room & Cast (${app.state.players.length})`;
+  }
+  if (btnStage) {
+    btnStage.classList.toggle('active', lobbyWin === 'stage');
+    btnStage.textContent = app.isHost ? '🎬 Campaign & Rules' : '🎬 Stage Preview';
+  }
 
   const joinUrlPill = document.getElementById('lobby-join-url-pill');
   if (joinUrlPill) {
@@ -233,29 +255,35 @@ function renderCharCreateScreen() {
   const me = app.state.players.find(p => p.id === app.myId);
   const isReady = Boolean(me && me.character && me.character.ready);
 
+  const step = isReady ? 2 : (app.charCreateStep === 3 ? 3 : (app.charCreateStep === 2 ? 2 : 1));
+  const creatorCard = document.getElementById('char-creator-card');
+  const rosterCard = document.getElementById('char-roster-card');
+  if (creatorCard) creatorCard.classList.toggle('mobile-window-hidden', step === 3 && !isReady);
+  if (rosterCard) rosterCard.classList.toggle('mobile-window-hidden', step !== 3 && !isReady);
+
   document.getElementById('char-form-box').classList.toggle('hidden', isReady);
   document.getElementById('char-waiting-box').classList.toggle('hidden', !isReady);
 
-  const step = app.charCreateStep === 2 ? 2 : 1;
   const stage1El = document.getElementById('char-stage-1');
   const stage2El = document.getElementById('char-stage-2');
   const stepBtn1 = document.getElementById('char-step-btn-1');
   const stepBtn2 = document.getElementById('char-step-btn-2');
+  const stepBtn3 = document.getElementById('char-step-btn-3');
   if (stage1El) stage1El.classList.toggle('hidden', step !== 1);
   if (stage2El) stage2El.classList.toggle('hidden', step !== 2);
   if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
+  if (stepBtn3) {
+    const readyCount = app.state.players.filter(p => p.character && p.character.ready).length;
+    stepBtn3.classList.toggle('active', step === 3);
+    stepBtn3.textContent = `📸 Crew (${readyCount}/${app.state.players.length})`;
+  }
 
   const summaryBanner = document.getElementById('char-stage2-summary');
   if (summaryBanner) {
     const nameVal = (document.getElementById('char-name-input')?.value || '').trim() || 'Your Hero';
     const roleVal = (document.getElementById('char-role-input')?.value || '').trim();
     summaryBanner.innerHTML = `🎨 Drawing: <strong>${escapeHtml(nameVal)}</strong>${roleVal ? ` <span class="text-muted small">(${escapeHtml(roleVal)})</span>` : ''}`;
-  }
-
-  const rosterCard = document.getElementById('char-roster-card');
-  if (rosterCard) {
-    rosterCard.classList.toggle('mobile-hide-while-editing', !isReady);
   }
 
   const statusEl = document.getElementById('char-ready-list');
@@ -444,6 +472,7 @@ function renderRevealScreen() {
 
   const step1View = document.getElementById('reveal-step1-view');
   const step2View = document.getElementById('reveal-step2-view');
+  const revealSwitcher = document.getElementById('reveal-window-switcher');
   const aiGeneratingBox = document.getElementById('reveal-ai-generating-box');
   const prevBtn = document.getElementById('btn-host-reveal-prev');
   const nextBtn = document.getElementById('btn-host-reveal-next');
@@ -480,6 +509,7 @@ function renderRevealScreen() {
     stopTypewriter();
     if (step1View) step1View.classList.remove('hidden');
     if (step2View) step2View.classList.add('hidden');
+    if (revealSwitcher) revealSwitcher.classList.add('hidden');
     if (aiGeneratingBox) aiGeneratingBox.classList.remove('hidden');
     prevBtn.classList.add('hidden');
     nextBtn.classList.add('hidden');
@@ -531,6 +561,7 @@ function renderRevealScreen() {
     stopTypewriter();
     if (step1View) step1View.classList.remove('hidden');
     if (step2View) step2View.classList.add('hidden');
+    if (revealSwitcher) revealSwitcher.classList.add('hidden');
     if (skipBtn) skipBtn.classList.add('hidden');
 
     if (app.isHost) {
@@ -558,6 +589,7 @@ function renderRevealScreen() {
 
   const roundKey = `${app.state.currentRound}-${j.headline}`;
   if (app.typewriter.activeKey !== roundKey) {
+    app.revealWindow = 'story';
     startStoryWordByWord(roundKey, j);
   } else if (app.typewriter.finished) {
     showPostStoryVerdictAndLeaderboard(j);
@@ -570,6 +602,8 @@ function startStoryWordByWord(roundKey, judgment) {
   app.typewriter.finished = false;
 
   const step2View = document.getElementById('reveal-step2-view');
+  const revealSwitcher = document.getElementById('reveal-window-switcher');
+  const storyCard = document.getElementById('reveal-story-card');
   const storyContainer = document.getElementById('reveal-story-paragraphs');
   const verdictBox = document.getElementById('reveal-verdict-box');
   const rankingsBox = document.getElementById('reveal-rankings-box');
@@ -578,6 +612,8 @@ function startStoryWordByWord(roundKey, judgment) {
   const waitMsg = document.getElementById('client-reveal-wait');
 
   if (step2View) step2View.classList.add('story-centered');
+  if (revealSwitcher) revealSwitcher.classList.add('hidden');
+  if (storyCard) storyCard.classList.remove('mobile-window-hidden');
   verdictBox.classList.add('hidden');
   rankingsBox.classList.add('hidden');
   nextBtn.classList.add('hidden');
@@ -644,13 +680,18 @@ function skipStoryTypewriter() {
 
 function showPostStoryVerdictAndLeaderboard(j) {
   const step2View = document.getElementById('reveal-step2-view');
+  const revealSwitcher = document.getElementById('reveal-window-switcher');
+  const storyCard = document.getElementById('reveal-story-card');
   const verdictBox = document.getElementById('reveal-verdict-box');
   const rankingsBox = document.getElementById('reveal-rankings-box');
+  const btnStory = document.getElementById('reveal-win-btn-story');
+  const btnRankings = document.getElementById('reveal-win-btn-rankings');
   const nextBtn = document.getElementById('btn-host-reveal-next');
   const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
 
   if (step2View) step2View.classList.remove('story-centered');
+  if (revealSwitcher) revealSwitcher.classList.remove('hidden');
   if (skipBtn) skipBtn.classList.add('hidden');
 
   if (verdictBox.classList.contains('hidden')) {
@@ -671,6 +712,12 @@ function showPostStoryVerdictAndLeaderboard(j) {
   }
 
   rankingsBox.classList.remove('hidden');
+
+  const revWin = app.revealWindow === 'rankings' ? 'rankings' : 'story';
+  if (storyCard) storyCard.classList.toggle('mobile-window-hidden', revWin !== 'story');
+  if (rankingsBox) rankingsBox.classList.toggle('mobile-window-hidden', revWin !== 'rankings');
+  if (btnStory) btnStory.classList.toggle('active', revWin === 'story');
+  if (btnRankings) btnRankings.classList.toggle('active', revWin === 'rankings');
 
   const isFailed = j.outcome === 'FAILED';
   const isLastRound = (app.state.currentRound + 1) >= app.state.activeCampaign.rounds.length;
@@ -695,6 +742,16 @@ function showPostStoryVerdictAndLeaderboard(j) {
 }
 
 function renderGameOverScreen() {
+  const goWin = app.gameOverWindow === 'recap' ? 'recap' : 'podium';
+  const podiumCard = document.getElementById('gameover-podium-card');
+  const recapCard = document.getElementById('gameover-recap-card');
+  const btnPodium = document.getElementById('gameover-win-btn-podium');
+  const btnRecap = document.getElementById('gameover-win-btn-recap');
+  if (podiumCard) podiumCard.classList.toggle('mobile-window-hidden', goWin !== 'podium');
+  if (recapCard) recapCard.classList.toggle('mobile-window-hidden', goWin !== 'recap');
+  if (btnPodium) btnPodium.classList.toggle('active', goWin === 'podium');
+  if (btnRecap) btnRecap.classList.toggle('active', goWin === 'recap');
+
   const sorted = [...app.state.players].sort((a, b) => b.score - a.score);
   const lastRound = app.state.roundHistory[app.state.roundHistory.length - 1];
   const endedByFailure = lastRound?.judgment?.outcome === 'FAILED';

@@ -64,6 +64,16 @@
         </p>
       </div>
 
+      <!-- Mobile/Compact Window Switcher for Home -->
+      <div id="home-window-switcher" class="window-switcher-bar compact-only-switcher home-switcher">
+        <button id="home-win-btn-host" type="button" class="window-tab-btn active" onclick="setHomeWindow('host')">
+          👑 Host a Game
+        </button>
+        <button id="home-win-btn-join" type="button" class="window-tab-btn" onclick="setHomeWindow('join')">
+          📲 Join a Room
+        </button>
+      </div>
+
       <div class="dashboard-equal home-cards-grid">
         <!-- Create Room (Host) -->
         <div id="home-host-card" class="card card-highlight wobbly-card tilt-left" style="justify-content: space-between;">
@@ -117,9 +127,19 @@
 
     <!-- ==================== SCREEN 2: LOBBY ==================== -->
     <section id="screen-LOBBY" class="screen-section hidden">
+      <!-- Mobile/Compact Window Switcher for Lobby -->
+      <div id="lobby-window-switcher" class="window-switcher-bar compact-only-switcher">
+        <button id="lobby-win-btn-cast" type="button" class="window-tab-btn active" onclick="setLobbyWindow('cast')">
+          🎟️ Room &amp; Cast
+        </button>
+        <button id="lobby-win-btn-stage" type="button" class="window-tab-btn" onclick="setLobbyWindow('stage')">
+          🗺️ Campaign &amp; Rules
+        </button>
+      </div>
+
       <div class="dashboard-lobby">
         <!-- Left Column: Room Code Ticket & Sticker Player Roster -->
-        <div style="display:flex; flex-direction:column; min-height:0;">
+        <div id="lobby-left-col" style="display:flex; flex-direction:column; min-height:0;">
           <div class="lobby-code-banner wobbly-card">
             <div id="lobby-join-url-pill" class="join-url-sticker" onclick="copyInviteLink()" title="Click to copy full invite link">
               🌐 JOIN AT: <strong>caelanhehir.github.io/Plot-engineering</strong>
@@ -131,13 +151,9 @@
               <button type="button" class="btn-small" onclick="toggleLobbyQrCode()">📱 QR Code</button>
               <button type="button" class="btn-small btn-danger" onclick="handleGlobalBack()">⬅️ Leave</button>
             </div>
-            <div id="lobby-qr-box" class="lobby-qr-drawer hidden">
-              <img id="lobby-qr-img" class="lobby-qr-image" alt="Scan QR Code to Join Room" />
-              <div class="tiny text-muted mt-1">Scan with phone camera to join instantly!</div>
-            </div>
           </div>
 
-          <div class="card wobbly-card" style="flex:1;">
+          <div class="card wobbly-card" style="flex:1; min-height:0;">
             <div class="row-between mb-1">
               <h3>👥 The Cast</h3>
               <button type="button" class="btn-small" onclick="addBotPlayer()" title="Add an AI Bot teammate">
@@ -148,8 +164,9 @@
           </div>
         </div>
 
-        <!-- Right Column: Host Campaign & Settings Tabs -->
-        <div id="host-lobby-controls" class="card wobbly-card" style="justify-content: space-between;">
+        <!-- Right Column: Host Campaign & Settings Tabs OR Guest Stage Preview -->
+        <div id="lobby-right-col" style="display:flex; flex-direction:column; min-height:0; flex:1;">
+          <div id="host-lobby-controls" class="card wobbly-card" style="justify-content: space-between; flex:1; min-height:0;">
           <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
             <div class="lobby-main-tabs">
               <button type="button" class="lobby-tab-btn active" data-tab="campaign" onclick="switchLobbyTab('campaign')">
@@ -236,16 +253,17 @@
           </button>
         </div>
 
-        <!-- Client Waiting View (Live Stage Preview!) -->
-        <div id="client-lobby-waiting" class="card wobbly-card hidden" style="justify-content:center; align-items:center; text-align:center;">
-          <div class="waiting-stage-preview">
-            <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
-            <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
-            <div class="waiting-host-banner">
-              <span class="waiting-pulse-dot"></span>
-              <span>Waiting for the Host to start the show...</span>
+          <!-- Client Waiting View (Live Stage Preview!) -->
+          <div id="client-lobby-waiting" class="card wobbly-card hidden" style="justify-content:center; align-items:center; text-align:center; flex:1; min-height:0;">
+            <div class="waiting-stage-preview">
+              <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
+              <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
+              <div class="waiting-host-banner">
+                <span class="waiting-pulse-dot"></span>
+                <span>Waiting for the Host to start the show...</span>
+              </div>
+              <p id="client-settings-summary" class="text-muted small mt-1"></p>
             </div>
-            <p id="client-settings-summary" class="text-muted small mt-1"></p>
           </div>
         </div>
       </div>
@@ -269,7 +287,7 @@
 
       <div class="dashboard-2col char-create-layout">
         <!-- Left: 2-Stage Character Creation (Stage 1: Name + Description, Stage 2: Portrait Drawing) -->
-        <div class="card card-highlight wobbly-card char-creator-card">
+        <div id="char-creator-card" class="card card-highlight wobbly-card char-creator-card">
           <div id="char-form-box" class="char-stage-container">
             <!-- Stage Step Indicator Bar -->
             <div class="row-between char-stage-header">
@@ -279,6 +297,9 @@
                 </button>
                 <button id="char-step-btn-2" type="button" class="char-step-pill" onclick="goToCharPortraitStage()">
                   2️⃣ Draw Portrait
+                </button>
+                <button id="char-step-btn-3" type="button" class="char-step-pill compact-only-inline" onclick="setCharCreateStep(3)">
+                  📸 Crew
                 </button>
               </div>
               <button type="button" class="btn-small btn-dice" onclick="randomizeMyCharacter()">
@@ -358,7 +379,9 @@
         <div id="char-roster-card" class="card wobbly-card">
           <div class="row-between mb-1">
             <h3>📸 Party Polaroid Wall</h3>
-            <span class="badge badge-genre">Who's Ready?</span>
+            <button id="btn-char-roster-back" type="button" class="btn-small compact-only-inline" onclick="setCharCreateStep(1)">
+              ⬅️ My Hero
+            </button>
           </div>
           <div id="char-ready-list" class="polaroid-roster-grid panel-scroll mt-1"></div>
         </div>
@@ -468,10 +491,20 @@
         <div id="reveal-actions-grid" class="actions-grid-compact panel-scroll"></div>
       </div>
 
+      <!-- Mobile/Compact Window Switcher for Reveal Step 2 -->
+      <div id="reveal-window-switcher" class="window-switcher-bar compact-only-switcher hidden">
+        <button id="reveal-win-btn-story" type="button" class="window-tab-btn active" onclick="setRevealWindow('story')">
+          📖 Story &amp; Verdict
+        </button>
+        <button id="reveal-win-btn-ranks" type="button" class="window-tab-btn" onclick="setRevealWindow('ranks')">
+          🏆 Round Standings
+        </button>
+      </div>
+
       <!-- STEP 2 VIEW: Center-Stage Story Typewriter -> Splits to Verdict Stamp + Leaderboard -->
       <div id="reveal-step2-view" class="dashboard-equal reveal-step2-stage story-centered hidden">
         <!-- Left / Center Column: Word-by-Word Story + Rubber-Stamp Verdict -->
-        <div class="card card-highlight wobbly-card story-stage-card" style="justify-content:space-between;">
+        <div id="reveal-story-card" class="card card-highlight wobbly-card story-stage-card" style="justify-content:space-between;">
           <div class="panel-scroll" style="flex:1;">
             <div class="story-header-row">
               <h3>📖 How It Actually Played Out...</h3>
@@ -509,9 +542,19 @@
         </button>
       </div>
 
+      <!-- Mobile/Compact Window Switcher for Game Over -->
+      <div id="gameover-window-switcher" class="window-switcher-bar compact-only-switcher">
+        <button id="gameover-win-btn-podium" type="button" class="window-tab-btn active" onclick="setGameOverWindow('podium')">
+          👑 Finale Podium
+        </button>
+        <button id="gameover-win-btn-recap" type="button" class="window-tab-btn" onclick="setGameOverWindow('recap')">
+          📖 Episode Recap
+        </button>
+      </div>
+
       <div class="dashboard-equal">
         <!-- Left Column: Celebratory Podium + 4th Place Honorable Mention + Standings -->
-        <div class="card wobbly-card podium-main-card" style="overflow:hidden;">
+        <div id="gameover-podium-card" class="card wobbly-card podium-main-card" style="overflow:hidden;">
           <div class="row-between">
             <h3>👑 Grand Finale Podium</h3>
             <span class="badge badge-warn">✨ FINAL SCORES</span>
@@ -522,7 +565,7 @@
         </div>
 
         <!-- Right Column: Act-by-Act Campaign Story Summary -->
-        <div class="card wobbly-card">
+        <div id="gameover-recap-card" class="card wobbly-card">
           <h3>📖 Full Episode Story Recap</h3>
           <div id="final-campaign-recap-list" class="panel-scroll mt-1" style="flex:1;"></div>
         </div>
@@ -530,6 +573,21 @@
     </section>
 
   </main>
+
+  <!-- ==================== QR CODE INVITE POPUP MODAL ==================== -->
+  <div id="qr-popup-modal" class="modal-backdrop hidden">
+    <div class="modal-card wobbly-card" style="max-width:360px; text-align:center;">
+      <div class="row-between mb-1">
+        <h3>📱 Scan to Join Room</h3>
+        <button type="button" class="btn-small" onclick="closeQrPopup()">✕ Close</button>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; padding: 10px 0;">
+        <img id="lobby-qr-img" class="lobby-qr-image" alt="Scan QR Code to Join Room" />
+        <div class="tiny text-muted mt-2">Point your phone camera here to open the room link!</div>
+      </div>
+      <button type="button" class="btn btn-gold btn-block mt-1" onclick="closeQrPopup()">Done</button>
+    </div>
+  </div>
 
   <!-- ==================== SCENARIO DETAILS POPUP MODAL ==================== -->
   <div id="scenario-popup-modal" class="modal-backdrop hidden">

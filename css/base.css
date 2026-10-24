@@ -51,6 +51,7 @@
 
 html, body {
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   font-family: var(--font-body);
   background-color: var(--bg-dark);
@@ -213,6 +214,7 @@ body {
   max-width: 1400px;
   width: 100%;
   height: calc(100vh - 54px);
+  height: calc(100dvh - 54px);
   margin: 0 auto;
   padding: 6px 20px 14px;
   display: flex;
@@ -222,6 +224,7 @@ body {
 
 .screen-section {
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -300,12 +303,18 @@ body {
   flex-wrap: wrap;
 }
 
-/* Responsive Scroll & Column Stacking for Split-Screens, Tablets & Phones */
+/* Compact Multi-Window Helpers (Hidden on wide desktop, shown on compact/mobile) */
+.compact-only-switcher,
+.compact-only-inline {
+  display: none !important;
+}
+
+/* Locked 100dvh Multi-Window Stage for Split-Screens, Tablets & Phones (No Page Scroll) */
 @media (max-width: 1024px), (max-height: 700px) {
   html, body {
-    height: auto;
-    min-height: 100vh;
-    overflow-y: auto;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .topbar {
@@ -324,27 +333,57 @@ body {
   }
 
   .container {
-    height: auto;
-    min-height: calc(100vh - 46px);
-    overflow: visible;
-    padding: 4px 10px 22px;
+    height: calc(100vh - 46px);
+    height: calc(100dvh - 46px);
+    overflow: hidden;
+    padding: 4px 10px 10px;
   }
 
   .screen-section {
-    height: auto;
-    overflow: visible;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .nav-bar-sub {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+
+  .compact-only-switcher {
+    display: flex !important;
+  }
+
+  .compact-only-inline {
+    display: inline-flex !important;
+  }
+
+  .mobile-window-hidden {
+    display: none !important;
   }
 
   .dashboard-2col,
   .dashboard-lobby,
   .dashboard-equal {
     grid-template-columns: 1fr;
-    gap: 12px;
-    overflow: visible;
-    height: auto;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dashboard-2col > .card,
+  .dashboard-lobby > .card,
+  .dashboard-equal > .card {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .panel-scroll {
-    max-height: 360px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
   }
 }

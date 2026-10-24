@@ -46,6 +46,12 @@
   margin: 0 auto;
 }
 
+.home-window-switcher {
+  max-width: 440px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
 .home-cards-grid {
   max-width: 980px;
   width: 100%;
@@ -533,8 +539,8 @@
 
 .canvas-wrapper {
   position: relative;
-  width: 206px;
-  height: 206px;
+  width: clamp(135px, 25dvh, 204px);
+  height: clamp(135px, 25dvh, 204px);
   border-radius: 14px 10px 16px 12px;
   overflow: hidden;
   border: 3px solid var(--ink);
@@ -1198,21 +1204,21 @@
 }
 
 .podium-pillar.place-1 {
-  min-height: 190px;
+  min-height: clamp(135px, 21dvh, 185px);
   outline: 3px solid var(--accent-gold);
   background: linear-gradient(180deg, #4b3918 0%, #241c3d 100%);
   animation-delay: 0.18s;
 }
 
 .podium-pillar.place-2 {
-  min-height: 162px;
+  min-height: clamp(118px, 18dvh, 160px);
   outline: 2.5px solid #cfd8dc;
   background: linear-gradient(180deg, #2e3548 0%, #1e1a34 100%);
   animation-delay: 0.08s;
 }
 
 .podium-pillar.place-3 {
-  min-height: 145px;
+  min-height: clamp(105px, 16dvh, 142px);
   outline: 2.5px solid #ffab91;
   background: linear-gradient(180deg, #3e2729 0%, #1e1a34 100%);
   animation-delay: 0s;
@@ -1298,21 +1304,22 @@
   text-shadow: 2px 2px 0px var(--ink);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-height: 700px) {
   .hero-header {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .hero-title {
-    font-size: 2rem;
+    font-size: 1.9rem;
+    margin-bottom: 3px;
   }
 
   .hero-subtitle {
-    font-size: 0.88rem;
+    font-size: 0.84rem;
   }
 
   .card {
-    padding: 11px 13px;
+    padding: 10px 12px;
   }
 
   .tilt-left,
@@ -1330,15 +1337,15 @@
   }
 
   .lobby-code-banner {
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
     transform: none;
   }
 
   .big-room-code {
-    font-size: 2.2rem;
+    font-size: 2rem;
     letter-spacing: 5px;
-    margin: 2px 0 6px;
+    margin: 2px 0 4px;
   }
 
   .campaign-grid,
@@ -1346,12 +1353,52 @@
     grid-template-columns: 1fr;
   }
 
-  .mobile-hide-while-editing {
-    display: none !important;
-  }
-
   .drawing-studio {
     margin: 0 auto;
+    padding: 6px 10px 8px;
     transform: none;
+  }
+
+  .my-char-banner {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+
+  .action-textarea {
+    min-height: 155px;
+    font-size: 1.08rem;
+    padding: 12px;
+  }
+
+  .secret-checkbox-row {
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+  }
+
+  .window-switcher-bar {
+    gap: 6px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+
+  .window-tab-btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+
+  .podium-stage {
+    gap: 6px;
+    margin: 4px 0 8px;
+    padding: 4px 2px 0;
+  }
+
+  .podium-pillar {
+    padding: 6px 4px;
+  }
+
+  .finale-banner-title {
+    font-size: 1.25rem;
   }
 }

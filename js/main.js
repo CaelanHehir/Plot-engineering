@@ -9,10 +9,14 @@ const app = {
   hostConn: null,
   clientConns: {},
   lobbyTab: 'campaign',
+  homeWindow: 'host',
+  lobbyWindow: 'cast',
   charCreateStep: 1,
   scenarioWindow: 'action',
   scenarioPopupOpen: false,
   scenarioPopupKey: '',
+  revealWindow: 'story',
+  gameOverWindow: 'podium',
 
   // Authoritative State (managed by Host, synced to Clients)
   state: {
@@ -133,10 +137,12 @@ async function initUI() {
     }
     const joinCard = document.getElementById('home-join-card');
     if (joinCard) joinCard.classList.add('card-highlight');
+    app.homeWindow = 'join';
     const nameInput = document.getElementById('join-player-name');
     if (nameInput) setTimeout(() => nameInput.focus(), 80);
   }
 
+  renderHomeWindow();
   renderCampaignSelector();
   renderSettingsGrids();
 
@@ -212,9 +218,49 @@ function copyInviteLink() {
 }
 
 function toggleLobbyQrCode() {
-  const box = document.getElementById('lobby-qr-box');
-  if (!box) return;
-  box.classList.toggle('hidden');
+  const modal = document.getElementById('qr-popup-modal');
+  if (!modal) return;
+  modal.classList.toggle('hidden');
+}
+
+function closeQrPopup() {
+  const modal = document.getElementById('qr-popup-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// --- Multi-Window Switcher Controllers ---
+function setHomeWindow(win) {
+  app.homeWindow = win === 'join' ? 'join' : 'host';
+  renderHomeWindow();
+}
+
+function renderHomeWindow() {
+  const win = app.homeWindow === 'join' ? 'join' : 'host';
+  const hostCard = document.getElementById('home-host-card');
+  const joinCard = document.getElementById('home-join-card');
+  const btnHost = document.getElementById('home-win-btn-host');
+  const btnJoin = document.getElementById('home-win-btn-join');
+  if (hostCard) hostCard.classList.toggle('mobile-window-hidden', win !== 'host');
+  if (joinCard) joinCard.classList.toggle('mobile-window-hidden', win !== 'join');
+  if (btnHost) btnHost.classList.toggle('active', win === 'host');
+  if (btnJoin) btnJoin.classList.toggle('active', win === 'join');
+}
+
+function setLobbyWindow(win) {
+  app.lobbyWindow = win === 'stage' ? 'stage' : 'cast';
+  renderLobbyScreen();
+}
+
+function setRevealWindow(win) {
+  app.revealWindow = win === 'rankings' ? 'rankings' : 'story';
+  if (app.state.currentJudgment && app.typewriter.finished) {
+    showPostStoryVerdictAndLeaderboard(app.state.currentJudgment);
+  }
+}
+
+function setGameOverWindow(win) {
+  app.gameOverWindow = win === 'recap' ? 'recap' : 'podium';
+  renderGameOverScreen();
 }
 
 // --- Lobby Roster & Campaign Configuration ---
@@ -391,7 +437,13 @@ function hostForceStartFirstRound() {
 
 // --- Character Creation Controllers ---
 function setCharCreateStep(step) {
-  app.charCreateStep = step === 2 ? 2 : 1;
+  if (step === 3) {
+    app.charCreateStep = 3;
+  } else if (step === 2) {
+    app.charCreateStep = 2;
+  } else {
+    app.charCreateStep = 1;
+  }
   renderCharCreateScreen();
 }
 
