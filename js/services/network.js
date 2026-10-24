@@ -96,6 +96,19 @@ function handleClientMessageOnHost(conn, msg) {
   if (!msg || !msg.type) return;
 
   if (msg.type === 'JOIN_REQUEST') {
+    if (app.state.phase !== 'LOBBY') {
+      try {
+        conn.send({
+          type: 'JOIN_REJECTED',
+          reason: 'Cannot join: The Host has already started the game!'
+        });
+      } catch (e) {}
+      setTimeout(() => {
+        try { conn.close(); } catch (e) {}
+      }, 80);
+      return;
+    }
+
     const playerId = msg.playerId || ('p-' + Math.random().toString(36).slice(2, 9));
     conn.playerId = playerId;
     app.clientConns[playerId] = conn;
@@ -238,6 +251,10 @@ function clientJoinRoom() {
           sfx.stepReveal();
         }
         renderState();
+      } else if (msg.type === 'JOIN_REJECTED') {
+        setLoadingOverlay(false);
+        showToast(msg.reason || 'Cannot join: The Host has already started the game!', 'error');
+        leaveRoomToHome();
       } else if (msg.type === 'ROOM_CLOSED') {
         setLoadingOverlay(false);
         showToast(msg.reason || 'The Host closed the room.', 'warn');
