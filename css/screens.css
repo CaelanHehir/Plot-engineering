@@ -1138,8 +1138,25 @@
 }
 
 @media (max-width: 768px) {
+  .hero-header {
+    margin-bottom: 10px;
+  }
+
   .hero-title {
-    font-size: 2.3rem;
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .card {
+    padding: 11px 13px;
+  }
+
+  .tilt-left,
+  .tilt-right {
+    transform: none;
   }
 
   .home-cards-grid {
@@ -1147,7 +1164,20 @@
   }
 
   .join-inputs-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 110px 1fr;
+    gap: 8px;
+  }
+
+  .lobby-code-banner {
+    padding: 10px;
+    margin-bottom: 10px;
+    transform: none;
+  }
+
+  .big-room-code {
+    font-size: 2.2rem;
+    letter-spacing: 5px;
+    margin: 2px 0 6px;
   }
 
   .campaign-grid,
@@ -1158,5 +1188,6 @@
 
   .drawing-studio {
     margin: 0 auto;
+    transform: none;
   }
 }

@@ -79,7 +79,39 @@ const app = {
 window.addEventListener('DOMContentLoaded', () => {
   initUI();
   initDrawingCanvas();
+  document.addEventListener('click', (e) => {
+    const drawer = document.getElementById('top-menu-drawer');
+    const toggleBtn = document.getElementById('btn-top-menu');
+    if (drawer && !drawer.classList.contains('hidden')) {
+      if (!drawer.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+        closeTopMenu();
+      }
+    }
+  });
 });
+
+function toggleTopMenu(e) {
+  if (e) e.stopPropagation();
+  const drawer = document.getElementById('top-menu-drawer');
+  const btn = document.getElementById('btn-top-menu');
+  if (!drawer) return;
+  const willOpen = drawer.classList.contains('hidden');
+  drawer.classList.toggle('hidden', !willOpen);
+  if (btn) {
+    btn.setAttribute('aria-expanded', String(willOpen));
+    btn.textContent = willOpen ? '✕ Close' : '☰ Menu';
+  }
+}
+
+function closeTopMenu() {
+  const drawer = document.getElementById('top-menu-drawer');
+  const btn = document.getElementById('btn-top-menu');
+  if (drawer) drawer.classList.add('hidden');
+  if (btn) {
+    btn.setAttribute('aria-expanded', 'false');
+    btn.textContent = '☰ Menu';
+  }
+}
 
 async function initUI() {
   updateMuteButton();

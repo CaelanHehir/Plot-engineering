@@ -111,68 +111,110 @@ body {
 
 /* Floating Game-Show HUD Bar */
 .topbar {
-  height: 60px;
+  height: 54px;
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 22px 2px;
+  padding: 6px 20px 2px;
   background: transparent;
-  z-index: 50;
+  z-index: 90;
+  position: relative;
 }
 
-.topbar-left, .topbar-actions {
+.topbar-left, .topbar-right {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
+}
+
+.hud-menu-toggle {
+  background: var(--accent-gold);
+  color: var(--ink);
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  transform: rotate(1deg);
+}
+
+.hud-menu-toggle:hover {
+  background: #ffe566;
+  color: var(--ink);
+}
+
+.top-menu-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 225px;
+  background: linear-gradient(165deg, #2d2454 0%, var(--bg-card) 100%);
+  border: 3.5px solid var(--ink);
+  outline: 2px solid var(--accent-gold);
+  border-radius: var(--wobbly-box);
+  box-shadow: var(--shadow-hard-lg);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  z-index: 150;
+  animation: popBounceIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.top-menu-popover .btn-small,
+.top-menu-popover .room-badge,
+.top-menu-popover .badge {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  transform: none;
 }
 
 .brand-sticker {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: 0.6px;
+  font-size: 1.08rem;
+  letter-spacing: 0.5px;
   color: var(--ink);
   background: var(--accent-gold);
   border: 3px solid var(--ink);
   border-radius: var(--wobbly-pill);
-  padding: 5px 15px;
+  padding: 4px 14px;
   box-shadow: var(--shadow-hard-sm);
-  transform: rotate(-1.5deg);
+  transform: rotate(-1.2deg);
   transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   user-select: none;
+  white-space: nowrap;
 }
 
 .brand-sticker:hover {
-  transform: rotate(1deg) scale(1.04);
+  transform: rotate(1deg) scale(1.03);
 }
 
 .room-badge {
   font-family: var(--font-display);
   background: var(--bg-card-alt);
-  border: 3px solid var(--ink);
+  border: 2.5px solid var(--ink);
   outline: 2px solid var(--accent-cyan);
   color: var(--accent-cyan);
-  padding: 4px 14px;
+  padding: 5px 12px;
   border-radius: var(--wobbly-pill);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: 1px;
   box-shadow: var(--shadow-hard-sm);
-  transform: rotate(1.2deg);
 }
 
 /* Main Viewport Stage Container */
 .container {
   max-width: 1400px;
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 54px);
   margin: 0 auto;
-  padding: 8px 22px 16px;
+  padding: 6px 20px 14px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -267,15 +309,25 @@ body {
   }
 
   .topbar {
-    height: auto;
-    padding: 10px 14px;
+    height: 46px;
+    padding: 4px 10px;
+  }
+
+  .brand-sticker {
+    font-size: 0.9rem;
+    padding: 3px 10px;
+  }
+
+  .hud-menu-toggle {
+    font-size: 0.82rem;
+    padding: 4px 10px;
   }
 
   .container {
     height: auto;
-    min-height: calc(100vh - 70px);
+    min-height: calc(100vh - 46px);
     overflow: visible;
-    padding: 8px 14px 28px;
+    padding: 4px 10px 22px;
   }
 
   .screen-section {
@@ -287,11 +339,12 @@ body {
   .dashboard-lobby,
   .dashboard-equal {
     grid-template-columns: 1fr;
+    gap: 12px;
     overflow: visible;
     height: auto;
   }
 
   .panel-scroll {
-    max-height: 440px;
+    max-height: 360px;
   }
 }
