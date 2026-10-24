@@ -70,21 +70,11 @@ function renderState() {
 function renderLobbyScreen() {
   document.getElementById('lobby-room-code-display').textContent = app.state.roomCode;
 
-  const lobbyWin = app.lobbyWindow === 'stage' ? 'stage' : 'cast';
-  const leftCol = document.getElementById('lobby-left-col');
-  const rightCol = document.getElementById('lobby-right-col');
-  const btnCast = document.getElementById('lobby-win-btn-cast');
-  const btnStage = document.getElementById('lobby-win-btn-stage');
-  if (leftCol) leftCol.classList.toggle('mobile-window-hidden', lobbyWin !== 'cast');
-  if (rightCol) rightCol.classList.toggle('mobile-window-hidden', lobbyWin !== 'stage');
-  if (btnCast) {
-    btnCast.classList.toggle('active', lobbyWin === 'cast');
-    btnCast.textContent = `🎟️ Room & Cast (${app.state.players.length})`;
-  }
-  if (btnStage) {
-    btnStage.classList.toggle('active', lobbyWin === 'stage');
-    btnStage.textContent = app.isHost ? '🎬 Campaign & Rules' : '🎬 Stage Preview';
-  }
+  const isCampaignSetup = Boolean(app.isHost && app.lobbyView === 'campaign');
+  const castView = document.getElementById('lobby-view-cast');
+  const campView = document.getElementById('lobby-view-campaign');
+  if (castView) castView.classList.toggle('hidden', isCampaignSetup);
+  if (campView) campView.classList.toggle('hidden', !isCampaignSetup);
 
   const joinUrlPill = document.getElementById('lobby-join-url-pill');
   if (joinUrlPill) {
@@ -102,34 +92,50 @@ function renderLobbyScreen() {
   }
 
   const listEl = document.getElementById('lobby-player-list');
-  listEl.innerHTML = app.state.players.map(p => {
-    const isMe = p.id === app.myId;
-    return `
-      <div class="player-pill ${isMe ? 'is-me-pill' : ''}">
-        <div class="row-gap" style="gap:6px; min-width:0;">
-          <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎭')}</span>
-          <span class="player-pill-name" title="${escapeHtml(p.name)}">
-            ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''}
-          </span>
+  if (listEl) {
+    listEl.innerHTML = app.state.players.map(p => {
+      const isMe = p.id === app.myId;
+      return `
+        <div class="player-pill ${isMe ? 'is-me-pill' : ''}">
+          <div class="row-gap" style="gap:6px; min-width:0;">
+            <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎭')}</span>
+            <span class="player-pill-name" title="${escapeHtml(p.name)}">
+              ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''}
+            </span>
+          </div>
+          ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove" title="Remove" onclick="removePlayer('${p.id}')">✕</button>` : ''}
         </div>
-        ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove" title="Remove" onclick="removePlayer('${p.id}')">✕</button>` : ''}
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('');
+  }
 
-  document.getElementById('host-lobby-controls').classList.toggle('hidden', !app.isHost);
-  document.getElementById('client-lobby-waiting').classList.toggle('hidden', app.isHost);
+  const addBotBtn = document.getElementById('btn-lobby-add-bot');
+  if (addBotBtn) addBotBtn.classList.toggle('hidden', !app.isHost);
 
-  if (app.isHost) {
+  // Toggle "Set up campaign" vs "Waiting for host..." buttons
+  const setupBtnDesk = document.getElementById('btn-host-setup-campaign');
+  const setupBtnMob = document.getElementById('btn-host-setup-campaign-mobile');
+  const waitBannerDesk = document.getElementById('client-lobby-waiting');
+  const waitBannerMob = document.getElementById('client-lobby-waiting-mobile');
+  if (setupBtnDesk) setupBtnDesk.classList.toggle('hidden', !app.isHost);
+  if (setupBtnMob) setupBtnMob.classList.toggle('hidden', !app.isHost);
+  if (waitBannerDesk) waitBannerDesk.classList.toggle('hidden', app.isHost);
+  if (waitBannerMob) waitBannerMob.classList.toggle('hidden', app.isHost);
+
+  if (isCampaignSetup) {
     renderCampaignSelector();
   }
 
-  // Populate live Stage Preview card for waiting guests
-  const previewEl = document.getElementById('client-campaign-preview');
-  if (previewEl) {
-    const mode = app.state.campaignMode || 'premade';
-    if (mode === 'premade') {
-      const camp = PREMADE_CAMPAIGNS.find(c => c.id === app.state.selectedPremadeId) || PREMADE_CAMPAIGNS[0];
+  // Populate preview box
+  let campTitle = '';
+  let campIcon = '🎭';
+  const mode = app.state.campaignMode || 'premade';
+  if (mode === 'premade') {
+    const camp = PREMADE_CAMPAIGNS.find(c => c.id === app.state.selectedPremadeId) || PREMADE_CAMPAIGNS[0];
+    campTitle = camp.title;
+    campIcon = camp.icon || '🎭';
+    const previewEl = document.getElementById('client-campaign-preview');
+    if (previewEl) {
       previewEl.innerHTML = `
         <div class="campaign-card-header">
           <span class="campaign-icon">${camp.icon}</span>
@@ -140,9 +146,14 @@ function renderLobbyScreen() {
         </div>
         <p class="mt-1">${escapeHtml(camp.description)}</p>
       `;
-    } else if (mode === 'ai') {
-      const rounds = app.state.aiRoundCount || 4;
-      const promptSnippet = (app.state.aiPrompt || '').trim();
+    }
+  } else if (mode === 'ai') {
+    campTitle = 'AI-Generated Custom Campaign';
+    campIcon = '✨';
+    const rounds = app.state.aiRoundCount || 4;
+    const promptSnippet = (app.state.aiPrompt || '').trim();
+    const previewEl = document.getElementById('client-campaign-preview');
+    if (previewEl) {
       previewEl.innerHTML = `
         <div class="campaign-card-header">
           <span class="campaign-icon">✨</span>
@@ -153,9 +164,14 @@ function renderLobbyScreen() {
         </div>
         <p class="mt-1">${promptSnippet ? `"${escapeHtml(promptSnippet)}"` : 'The Host is cooking up a custom AI movie plot for the crew!'}</p>
       `;
-    } else {
-      const custom = app.state.customCampaign || {};
-      const roundCount = Array.isArray(custom.rounds) ? custom.rounds.length : 3;
+    }
+  } else {
+    const custom = app.state.customCampaign || {};
+    campTitle = custom.title || 'Host Custom Adventure';
+    campIcon = '✍️';
+    const roundCount = Array.isArray(custom.rounds) ? custom.rounds.length : 3;
+    const previewEl = document.getElementById('client-campaign-preview');
+    if (previewEl) {
       previewEl.innerHTML = `
         <div class="campaign-card-header">
           <span class="campaign-icon">✍️</span>
@@ -174,6 +190,11 @@ function renderLobbyScreen() {
   if (summaryEl) {
     const timerTxt = s.roundTimer > 0 ? `${s.roundTimer}s (${Math.round(s.roundTimer / 60 * 10) / 10}m)` : 'Unlimited';
     summaryEl.innerHTML = `⏱️ Timer: <strong>${timerTxt}</strong> &bull; ⚖️ Judge: <strong>${s.strictness.toUpperCase()}</strong> &bull; 🏆 Multiplier: <strong>${s.pointsMultiplier}x</strong>`;
+  }
+
+  const snippetEl = document.getElementById('lobby-cast-preview-snippet');
+  if (snippetEl) {
+    snippetEl.innerHTML = `🎬 Campaign: <strong>${campIcon} ${escapeHtml(campTitle)}</strong>`;
   }
 }
 

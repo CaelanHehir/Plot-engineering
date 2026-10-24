@@ -56,6 +56,7 @@ function hostCreateRoom() {
 
 function initHostGameState(code, hostName) {
   app.state.phase = 'LOBBY';
+  app.lobbyView = 'cast';
   app.state.roomCode = code;
   app.state.players = [
     {

@@ -124,18 +124,9 @@
 
     <!-- ==================== SCREEN 2: LOBBY ==================== -->
     <section id="screen-LOBBY" class="screen-section hidden">
-      <!-- Mobile/Compact Window Switcher for Lobby -->
-      <div id="lobby-window-switcher" class="window-switcher-bar compact-only-switcher">
-        <button id="lobby-win-btn-cast" type="button" class="window-tab-btn active" onclick="setLobbyWindow('cast')">
-          🎟️ Room &amp; Cast
-        </button>
-        <button id="lobby-win-btn-stage" type="button" class="window-tab-btn" onclick="setLobbyWindow('stage')">
-          🗺️ Campaign &amp; Rules
-        </button>
-      </div>
-
-      <div class="dashboard-lobby">
-        <!-- Left Column: Room Code Ticket & Sticker Player Roster -->
+      <!-- VIEW 1: Cast Screen (Shown to Host and Guests on arrival) -->
+      <div id="lobby-view-cast" class="dashboard-lobby" style="flex:1; min-height:0;">
+        <!-- Left Column: Room Code Banner & Cast List -->
         <div id="lobby-left-col" style="display:flex; flex-direction:column; min-height:0;">
           <div class="lobby-code-banner wobbly-card">
             <div id="lobby-join-url-pill" class="join-url-sticker" onclick="copyInviteLink()" title="Click to copy full invite link">
@@ -149,119 +140,147 @@
             </div>
           </div>
 
-          <div class="card wobbly-card" style="flex:1; min-height:0;">
-            <div class="row-between mb-1">
-              <h3>👥 The Cast</h3>
-              <button type="button" class="btn-small" onclick="addBotPlayer()" title="Add an AI Bot teammate">
-                🤖 + Add Bot
-              </button>
-            </div>
-            <div id="lobby-player-list" class="player-pill-list"></div>
-          </div>
-        </div>
-
-        <!-- Right Column: Host Campaign & Settings Tabs OR Guest Stage Preview -->
-        <div id="lobby-right-col" style="display:flex; flex-direction:column; min-height:0; flex:1;">
-          <div id="host-lobby-controls" class="card wobbly-card" style="justify-content: space-between; flex:1; min-height:0;">
-          <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
-            <div class="lobby-main-tabs">
-              <button type="button" class="lobby-tab-btn active" data-tab="campaign" onclick="switchLobbyTab('campaign')">
-                🗺️ Pick a Campaign
-              </button>
-              <button type="button" class="lobby-tab-btn" data-tab="settings" onclick="switchLobbyTab('settings')">
-                ⚙️ House Rules
-              </button>
-            </div>
-
-            <!-- LOBBY TAB 1: CAMPAIGN SELECTION -->
-            <div id="lobby-tab-campaign" class="panel-scroll" style="flex:1;">
-              <div class="campaign-tabs">
-                <button type="button" class="campaign-tab-btn active" data-mode="premade" onclick="setCampaignMode('premade')">
-                  📚 Pre-Made Adventures
-                </button>
-                <button type="button" class="campaign-tab-btn" data-mode="ai" onclick="setCampaignMode('ai')">
-                  ✨ AI Plot Generator
-                </button>
-                <button type="button" class="campaign-tab-btn" data-mode="custom" onclick="setCampaignMode('custom')">
-                  ✍️ Write Your Own
+          <div class="card wobbly-card" style="flex:1; min-height:0; justify-content:space-between;">
+            <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
+              <div class="row-between mb-1">
+                <h3>👥 The Cast</h3>
+                <button id="btn-lobby-add-bot" type="button" class="btn-small" onclick="addBotPlayer()" title="Add an AI Bot teammate">
+                  🤖 + Add Bot
                 </button>
               </div>
-
-              <!-- Sub-Tab: Premade -->
-              <div id="panel-premade">
-                <div id="premade-campaign-grid" class="campaign-grid"></div>
-              </div>
-
-              <!-- Sub-Tab: AI Prompt -->
-              <div id="panel-ai" class="hidden">
-                <div class="form-group">
-                  <label for="ai-campaign-prompt">Pitch any wild movie plot, heist, or disaster for Gemini to build:</label>
-                  <textarea id="ai-campaign-prompt" class="input-field" rows="3"
-                    placeholder="e.g., A group of raccoons in trench coats trying to heist a 5-star wedding cake..."
-                    oninput="if(app.isHost){ app.state.aiPrompt = this.value; }"></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="ai-round-count">Number of Rounds (Acts):</label>
-                  <select id="ai-round-count" class="input-field" style="max-width: 220px;"
-                    onchange="if(app.isHost){ app.state.aiRoundCount = parseInt(this.value,10)||4; broadcastState(); }">
-                    <option value="3">3 Rounds (Quick Episode)</option>
-                    <option value="4" selected>4 Rounds (Feature Presentation)</option>
-                    <option value="5">5 Rounds (Epic Saga)</option>
-                  </select>
-                </div>
-                <div class="bridge-box">
-                  <strong>✨ 2-Part Comedic Round Generation:</strong> For each round, Gemini automatically creates:
-                  <br />• <strong>1. Scene Setup (Shown to Players):</strong> Fun obstacles and interactive props to play off of.
-                  <br />• <strong>2. Comedic Hooks (Judge Only):</strong> Quirky NPC personalities &amp; improv fuel so funny, coordinated plans shine!
-                </div>
-              </div>
-
-              <!-- Sub-Tab: Custom User Campaign -->
-              <div id="panel-custom" class="hidden">
-                <div class="bridge-box mb-1">
-                  <strong>📖 Director's Guide:</strong> For each round, write <strong>1. Scene Setup</strong> (shown to players) and <strong>2. Comedic Hooks &amp; Quirks</strong> (shown to the AI Judge to fuel the story).
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap: 10px;">
-                  <div class="form-group">
-                    <label>Campaign Title</label>
-                    <input id="custom-camp-title" type="text" class="input-field" placeholder="My Custom Campaign"
-                      oninput="if(app.isHost){ app.state.customCampaign.title = this.value; }" />
-                  </div>
-                  <div class="form-group">
-                    <label>Campaign Premise / Intro</label>
-                    <input id="custom-camp-desc" type="text" class="input-field" placeholder="Who are the players and what is their goal?"
-                      oninput="if(app.isHost){ app.state.customCampaign.description = this.value; }" />
-                  </div>
-                </div>
-                <div id="custom-rounds-list"></div>
-                <button type="button" class="btn-small mt-1" onclick="addCustomRound()">+ Add Another Round</button>
-              </div>
+              <div id="lobby-player-list" class="player-pill-list"></div>
             </div>
 
-            <!-- LOBBY TAB 2: HOST GAME SETTINGS -->
-            <div id="lobby-tab-settings" class="panel-scroll hidden" style="flex:1;">
-              <div id="lobby-settings-grid" class="settings-grid"></div>
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-gold btn-block mt-2" onclick="hostStartCampaign()">
-            🎬 Launch Campaign &amp; Doodle Characters!
-          </button>
-        </div>
-
-          <!-- Client Waiting View (Live Stage Preview!) -->
-          <div id="client-lobby-waiting" class="card wobbly-card hidden" style="justify-content:center; align-items:center; text-align:center; flex:1; min-height:0;">
-            <div class="waiting-stage-preview">
-              <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
-              <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
-              <div class="waiting-host-banner">
+            <!-- Mobile-only Campaign Info Snippet & Action at bottom of Cast card -->
+            <div class="compact-only-inline" style="flex-direction:column; width:100%; margin-top:8px; border-top:2px dashed rgba(255,255,255,0.12); padding-top:8px;">
+              <div id="lobby-cast-preview-snippet" class="text-muted small mb-1"></div>
+              <button id="btn-host-setup-campaign-mobile" type="button" class="btn btn-gold btn-block hidden" onclick="openLobbyCampaignSetup()">
+                ⚙️ Set up campaign
+              </button>
+              <div id="client-lobby-waiting-mobile" class="waiting-host-banner hidden" style="width:100%; justify-content:center;">
                 <span class="waiting-pulse-dot"></span>
                 <span>Waiting for the Host to start the show...</span>
               </div>
-              <p id="client-settings-summary" class="text-muted small mt-1"></p>
             </div>
           </div>
         </div>
+
+        <!-- Right Column: Stage Preview & Action Button (Desktop) -->
+        <div id="lobby-right-col" class="mobile-window-hidden" style="display:flex; flex-direction:column; min-height:0; flex:1;">
+          <div class="card wobbly-card" style="justify-content:space-between; align-items:center; text-align:center; flex:1; min-height:0;">
+            <div class="waiting-stage-preview" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
+              <div class="hero-kicker-sticker">🍿 UP NEXT ON STAGE</div>
+              <div id="client-campaign-preview" class="client-campaign-preview-box"></div>
+              <p id="client-settings-summary" class="text-muted small mt-1"></p>
+            </div>
+
+            <!-- Host action button at bottom of cast screen on desktop -->
+            <button id="btn-host-setup-campaign" type="button" class="btn btn-gold btn-block mt-2 hidden" onclick="openLobbyCampaignSetup()">
+              ⚙️ Set up campaign
+            </button>
+
+            <!-- Client waiting banner on desktop -->
+            <div id="client-lobby-waiting" class="waiting-host-banner mt-2 hidden">
+              <span class="waiting-pulse-dot"></span>
+              <span>Waiting for the Host to start the show...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: Campaign Settings Section (Shown when Host clicks 'Set up campaign') -->
+      <div id="lobby-view-campaign" class="card card-highlight wobbly-card hidden" style="flex:1; min-height:0; justify-content:space-between;">
+        <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
+          <div class="row-between mb-1" style="border-bottom: 2.5px dashed rgba(255,255,255,0.14); padding-bottom: 8px;">
+            <div class="row-gap">
+              <button type="button" class="btn-small btn-secondary" onclick="closeLobbyCampaignSetup()">
+                ⬅️ Back to Cast
+              </button>
+              <div class="lobby-main-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
+                <button type="button" class="lobby-tab-btn active" data-tab="campaign" onclick="switchLobbyTab('campaign')">
+                  🗺️ Pick a Campaign
+                </button>
+                <button type="button" class="lobby-tab-btn" data-tab="settings" onclick="switchLobbyTab('settings')">
+                  ⚙️ House Rules
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOBBY TAB 1: CAMPAIGN SELECTION -->
+          <div id="lobby-tab-campaign" class="panel-scroll" style="flex:1;">
+            <div class="campaign-tabs">
+              <button type="button" class="campaign-tab-btn active" data-mode="premade" onclick="setCampaignMode('premade')">
+                📚 Pre-Made Adventures
+              </button>
+              <button type="button" class="campaign-tab-btn" data-mode="ai" onclick="setCampaignMode('ai')">
+                ✨ AI Plot Generator
+              </button>
+              <button type="button" class="campaign-tab-btn" data-mode="custom" onclick="setCampaignMode('custom')">
+                ✍️ Write Your Own
+              </button>
+            </div>
+
+            <!-- Sub-Tab: Premade -->
+            <div id="panel-premade">
+              <div id="premade-campaign-grid" class="campaign-grid"></div>
+            </div>
+
+            <!-- Sub-Tab: AI Prompt -->
+            <div id="panel-ai" class="hidden">
+              <div class="form-group">
+                <label for="ai-campaign-prompt">Pitch any wild movie plot, heist, or disaster for Gemini to build:</label>
+                <textarea id="ai-campaign-prompt" class="input-field" rows="3"
+                  placeholder="e.g., A group of raccoons in trench coats trying to heist a 5-star wedding cake..."
+                  oninput="if(app.isHost){ app.state.aiPrompt = this.value; }"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="ai-round-count">Number of Rounds (Acts):</label>
+                <select id="ai-round-count" class="input-field" style="max-width: 220px;"
+                  onchange="if(app.isHost){ app.state.aiRoundCount = parseInt(this.value,10)||4; broadcastState(); }">
+                  <option value="3">3 Rounds (Quick Episode)</option>
+                  <option value="4" selected>4 Rounds (Feature Presentation)</option>
+                  <option value="5">5 Rounds (Epic Saga)</option>
+                </select>
+              </div>
+              <div class="bridge-box">
+                <strong>✨ 2-Part Comedic Round Generation:</strong> For each round, Gemini automatically creates:
+                <br />• <strong>1. Scene Setup (Shown to Players):</strong> Fun obstacles and interactive props to play off of.
+                <br />• <strong>2. Comedic Hooks (Judge Only):</strong> Quirky NPC personalities &amp; improv fuel so funny, coordinated plans shine!
+              </div>
+            </div>
+
+            <!-- Sub-Tab: Custom User Campaign -->
+            <div id="panel-custom" class="hidden">
+              <div class="bridge-box mb-1">
+                <strong>📖 Director's Guide:</strong> For each round, write <strong>1. Scene Setup</strong> (shown to players) and <strong>2. Comedic Hooks &amp; Quirks</strong> (shown to the AI Judge to fuel the story).
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap: 10px;">
+                <div class="form-group">
+                  <label>Campaign Title</label>
+                  <input id="custom-camp-title" type="text" class="input-field" placeholder="My Custom Campaign"
+                    oninput="if(app.isHost){ app.state.customCampaign.title = this.value; }" />
+                </div>
+                <div class="form-group">
+                  <label>Campaign Premise / Intro</label>
+                  <input id="custom-camp-desc" type="text" class="input-field" placeholder="Who are the players and what is their goal?"
+                    oninput="if(app.isHost){ app.state.customCampaign.description = this.value; }" />
+                </div>
+              </div>
+              <div id="custom-rounds-list"></div>
+              <button type="button" class="btn-small mt-1" onclick="addCustomRound()">+ Add Another Round</button>
+            </div>
+          </div>
+
+          <!-- LOBBY TAB 2: HOST GAME SETTINGS -->
+          <div id="lobby-tab-settings" class="panel-scroll hidden" style="flex:1;">
+            <div id="lobby-settings-grid" class="settings-grid"></div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-gold btn-block mt-2" onclick="hostStartCampaign()">
+          🎬 Launch campaign
+        </button>
       </div>
     </section>
 

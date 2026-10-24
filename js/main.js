@@ -10,7 +10,7 @@ const app = {
   clientConns: {},
   lobbyTab: 'campaign',
   homeWindow: 'host',
-  lobbyWindow: 'cast',
+  lobbyView: 'cast',
   charCreateStep: 1,
   scenarioWindow: 'action',
   scenarioPopupOpen: false,
@@ -204,6 +204,7 @@ function hostBackToLobby() {
   stopTypewriter();
   app.state.isJudging = false;
   app.state.phase = 'LOBBY';
+  app.lobbyView = 'cast';
   broadcastState();
 }
 
@@ -255,8 +256,14 @@ function renderHomeWindow() {
   if (btnJoin) btnJoin.classList.toggle('active', win === 'join');
 }
 
-function setLobbyWindow(win) {
-  app.lobbyWindow = win === 'stage' ? 'stage' : 'cast';
+function openLobbyCampaignSetup() {
+  if (!app.isHost) return;
+  app.lobbyView = 'campaign';
+  renderLobbyScreen();
+}
+
+function closeLobbyCampaignSetup() {
+  app.lobbyView = 'cast';
   renderLobbyScreen();
 }
 
