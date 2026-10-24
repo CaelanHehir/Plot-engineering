@@ -1,3 +1,15 @@
+/**
+ * Plot Engineering — Game Phase Screen Layouts
+ * 
+ * Screen Views:
+ * - Screen 1: HOME (Hero header, host creation, join room inputs)
+ * - Screen 2: LOBBY (Cast roster, QR code invite, campaign selector, settings grid)
+ * - Screen 3: CHAR_CREATE (2-stage wizard: hero bio & full-section sketchpad)
+ * - Screen 4: SCENARIO (Round timer, scenario popup, move submission, crew wall)
+ * - Screen 5: REVEAL (Speech bubbles, typewriter narrative, verdict banners, awards)
+ * - Screen 6: GAME_OVER (Winner podium, 4th place honorable mention, story recap)
+ */
+
 /* ==================== SCREEN 1: HOME ==================== */
 .home-stage {
   justify-content: center;

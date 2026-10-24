@@ -1,27 +1,58 @@
-// Central Application State & Core Gameplay Controllers
+/**
+ * Plot Engineering — Central Application State & Core Gameplay Controllers
+ * 
+ * Manages:
+ * - Authoritative state container (app.state)
+ * - Round countdown timers & intervals
+ * - Character creation progression
+ * - Action submissions & hidden action toggling
+ * - AI evaluation triggering & score awards
+ * - Room navigation, bot creation, and UI window switcher tabs
+ */
 
+/**
+ * Global application singleton
+ */
 const app = {
+  /** Whether the local client is the authoritative room Host */
   isHost: false,
+  /** Local peer's unique identifier */
   myId: '',
+  /** Local player's chosen display name */
   myName: '',
+  /** 4-letter room code (uppercase) */
   roomCode: '',
+  /** PeerJS peer instance */
   peer: null,
+  /** Host connection for client peers */
   hostConn: null,
+  /** Client connections dictionary for Host { [playerId]: DataConnection } */
   clientConns: {},
+  /** Active tab in Host campaign setup: 'campaign' | 'settings' */
   lobbyTab: 'campaign',
+  /** Active mobile sub-window on HOME screen: 'host' | 'join' */
   homeWindow: 'host',
+  /** Active sub-view in LOBBY: 'cast' | 'campaign' */
   lobbyView: 'cast',
+  /** Character creation stage: 1 (Name & Bio) | 2 (Portrait Sketchpad) */
   charCreateStep: 1,
+  /** Active sub-window on SCENARIO screen: 'action' | 'crew' */
   scenarioWindow: 'action',
+  /** Whether the opening scenario popup modal is currently visible */
   scenarioPopupOpen: false,
+  /** Deduplication key tracking which scenario popup has already opened */
   scenarioPopupKey: '',
+  /** Active sub-window on REVEAL screen: 'story' | 'rankings' */
   revealWindow: 'story',
+  /** Active sub-window on GAME_OVER screen: 'podium' | 'recap' */
   gameOverWindow: 'podium',
 
-  // Authoritative State (managed by Host, synced to Clients)
+  // Authoritative State (managed by Host, synchronized to Clients)
   state: {
-    phase: 'HOME',       // HOME | LOBBY | CHAR_CREATE | SCENARIO | REVEAL | GAME_OVER
+    /** Current game phase: HOME | LOBBY | CHAR_CREATE | SCENARIO | REVEAL | GAME_OVER */
+    phase: 'HOME',
     roomCode: '',
+    /** Active campaign source: 'premade' | 'ai' | 'custom' */
     campaignMode: 'premade',
     selectedPremadeId: PREMADE_CAMPAIGNS[0].id,
     aiPrompt: '',
@@ -50,6 +81,7 @@ const app = {
         }
       ]
     },
+    /** Active campaign payload for the current playthrough */
     activeCampaign: null,
 
     // Configurable Host Settings (Default 120s / 2 minutes)
@@ -74,8 +106,10 @@ const app = {
     currentJudgment: null
   },
 
+  /** Active setInterval reference for timers */
   timerInterval: null,
 
+  /** Typewriter narration playback tracker */
   typewriter: {
     activeKey: '',
     timer: null,
@@ -87,6 +121,8 @@ const app = {
 window.addEventListener('DOMContentLoaded', () => {
   initUI();
   initDrawingCanvas();
+
+  // Close top menu drawer on outside click
   document.addEventListener('click', (e) => {
     const drawer = document.getElementById('top-menu-drawer');
     const toggleBtn = document.getElementById('btn-top-menu');
@@ -96,6 +132,8 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Global Escape key listener to dismiss popovers and modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeTopMenu();
@@ -107,6 +145,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+/** Toggles the top menu drawer popover */
 function toggleTopMenu(e) {
   if (e) e.stopPropagation();
   const drawer = document.getElementById('top-menu-drawer');
@@ -120,6 +159,7 @@ function toggleTopMenu(e) {
   }
 }
 
+/** Closes the top menu drawer popover */
 function closeTopMenu() {
   const drawer = document.getElementById('top-menu-drawer');
   const btn = document.getElementById('btn-top-menu');
@@ -130,6 +170,13 @@ function closeTopMenu() {
   }
 }
 
+/**
+ * Bootstraps the UI on page load:
+ * - Checks URL for invite parameters (?room=CODE)
+ * - Restores sound settings
+ * - Restores and verifies saved Gemini API key
+ * - Initializes settings grids and screen window tabs
+ */
 async function initUI() {
   updateMuteButton();
 
@@ -174,6 +221,11 @@ async function initUI() {
 }
 
 // --- Navigation & Timer Helpers ---
+
+/**
+ * Handles the top-left contextual back button.
+ * Prompts confirmation and leaves the room or returns the host to the lobby.
+ */
 function handleGlobalBack() {
   const phase = app.state.phase;
   if (phase === 'HOME') return;
@@ -198,6 +250,9 @@ function handleGlobalBack() {
   }
 }
 
+/**
+ * Returns all connected players back to the Room Lobby.
+ */
 function hostBackToLobby() {
   if (!app.isHost) return;
   clearInterval(app.timerInterval);
@@ -208,6 +263,10 @@ function hostBackToLobby() {
   broadcastState();
 }
 
+/**
+ * Host utility to add overtime (default +30 seconds) to the active round countdown.
+ * @param {number} seconds
+ */
 function hostAddExtraTime(seconds = 30) {
   if (!app.isHost || app.state.phase !== 'SCENARIO') return;
   if (app.state.settings.roundTimer <= 0) {
@@ -218,6 +277,9 @@ function hostAddExtraTime(seconds = 30) {
   broadcastState();
 }
 
+/**
+ * Copies the full room invite link to the clipboard.
+ */
 function copyInviteLink() {
   const inviteUrl = getRoomInviteUrl(app.state.roomCode);
   navigator.clipboard.writeText(inviteUrl).then(() => {
@@ -227,23 +289,31 @@ function copyInviteLink() {
   });
 }
 
+/** Toggles the in-lobby QR code modal for mobile joining */
 function toggleLobbyQrCode() {
   const modal = document.getElementById('qr-popup-modal');
   if (!modal) return;
   modal.classList.toggle('hidden');
 }
 
+/** Closes the QR code modal */
 function closeQrPopup() {
   const modal = document.getElementById('qr-popup-modal');
   if (modal) modal.classList.add('hidden');
 }
 
 // --- Multi-Window Switcher Controllers ---
+
+/**
+ * Switches the active sub-window on the HOME screen on mobile.
+ * @param {'host'|'join'} win
+ */
 function setHomeWindow(win) {
   app.homeWindow = win === 'join' ? 'join' : 'host';
   renderHomeWindow();
 }
 
+/** Renders the HOME screen cards based on active mobile tab */
 function renderHomeWindow() {
   const win = app.homeWindow === 'join' ? 'join' : 'host';
   const hostCard = document.getElementById('home-host-card');
@@ -256,17 +326,23 @@ function renderHomeWindow() {
   if (btnJoin) btnJoin.classList.toggle('active', win === 'join');
 }
 
+/** Host opens the Campaign Setup sub-view in the lobby */
 function openLobbyCampaignSetup() {
   if (!app.isHost) return;
   app.lobbyView = 'campaign';
   renderLobbyScreen();
 }
 
+/** Host returns to the Cast Roster sub-view in the lobby */
 function closeLobbyCampaignSetup() {
   app.lobbyView = 'cast';
   renderLobbyScreen();
 }
 
+/**
+ * Switches the active sub-window on the REVEAL screen on mobile.
+ * @param {'story'|'rankings'} win
+ */
 function setRevealWindow(win) {
   app.revealWindow = win === 'rankings' ? 'rankings' : 'story';
   if (app.state.currentJudgment && app.typewriter.finished) {
@@ -274,12 +350,21 @@ function setRevealWindow(win) {
   }
 }
 
+/**
+ * Switches the active sub-window on the GAME_OVER screen on mobile.
+ * @param {'podium'|'recap'} win
+ */
 function setGameOverWindow(win) {
   app.gameOverWindow = win === 'recap' ? 'recap' : 'podium';
   renderGameOverScreen();
 }
 
 // --- Lobby Roster & Campaign Configuration ---
+
+/**
+ * Spawns an AI bot player with a random character profile from RANDOM_CHARACTERS
+ * and an auto-generated procedural cartoon portrait.
+ */
 function addBotPlayer() {
   if (!app.isHost) return;
   const botCount = app.state.players.filter(p => p.isBot).length;
@@ -305,6 +390,10 @@ function addBotPlayer() {
   broadcastState();
 }
 
+/**
+ * Host kicks/removes a player or bot from the lobby.
+ * @param {string} playerId
+ */
 function removePlayer(playerId) {
   if (!app.isHost) return;
   app.state.players = app.state.players.filter(p => p.id !== playerId);
@@ -323,6 +412,10 @@ function removePlayer(playerId) {
   broadcastState();
 }
 
+/**
+ * Selects campaign origin mode ('premade' | 'ai' | 'custom').
+ * @param {'premade'|'ai'|'custom'} mode
+ */
 function setCampaignMode(mode) {
   if (!app.isHost) return;
   app.state.campaignMode = mode;
@@ -330,6 +423,10 @@ function setCampaignMode(mode) {
   broadcastState();
 }
 
+/**
+ * Selects a premade campaign ID.
+ * @param {string} id
+ */
 function selectPremadeCampaign(id) {
   if (!app.isHost) return;
   app.state.selectedPremadeId = id;
@@ -337,6 +434,7 @@ function selectPremadeCampaign(id) {
   broadcastState();
 }
 
+/** Adds an empty round block to the custom campaign editor */
 function addCustomRound() {
   app.state.customCampaign.rounds.push({
     title: `Act ${app.state.customCampaign.rounds.length + 1}: New Challenge`,
@@ -347,6 +445,10 @@ function addCustomRound() {
   broadcastState();
 }
 
+/**
+ * Removes a round from the custom campaign editor.
+ * @param {number} idx
+ */
 function removeCustomRound(idx) {
   if (app.state.customCampaign.rounds.length <= 1) return;
   app.state.customCampaign.rounds.splice(idx, 1);
@@ -354,6 +456,9 @@ function removeCustomRound(idx) {
   broadcastState();
 }
 
+/**
+ * Launches the selected campaign and transitions all players to CHAR_CREATE phase.
+ */
 async function hostStartCampaign() {
   if (!app.isHost) return;
 
@@ -434,6 +539,9 @@ async function hostStartCampaign() {
   broadcastState();
 }
 
+/**
+ * Host force-starts Round 1 immediately, auto-filling any incomplete player characters.
+ */
 function hostForceStartFirstRound() {
   if (!app.isHost) return;
   clearInterval(app.timerInterval);
@@ -452,11 +560,19 @@ function hostForceStartFirstRound() {
 }
 
 // --- Character Creation Controllers ---
+
+/**
+ * Toggles between Stage 1 (Bio) and Stage 2 (Sketchpad) during character creation.
+ * @param {1|2} step
+ */
 function setCharCreateStep(step) {
   app.charCreateStep = step === 2 ? 2 : 1;
   renderCharCreateScreen();
 }
 
+/**
+ * Validates Stage 1 inputs (Name and Role) and advances to Stage 2 (Sketchpad canvas).
+ */
 function goToCharPortraitStage() {
   const name = (document.getElementById('char-name-input')?.value || '').trim();
   const role = (document.getElementById('char-role-input')?.value || '').trim();
@@ -475,6 +591,10 @@ function goToCharPortraitStage() {
   renderCharCreateScreen();
 }
 
+/**
+ * Submits the local player's character profile and portrait artwork.
+ * Broadcasts or transmits SUBMIT_CHARACTER to host.
+ */
 function submitMyCharacter() {
   const name = document.getElementById('char-name-input').value.trim();
   const role = document.getElementById('char-role-input').value.trim();
@@ -532,6 +652,9 @@ function submitMyCharacter() {
   }
 }
 
+/**
+ * Unlocks the local player's character so they can edit bio or redraw portrait.
+ */
 function unlockMyCharacterToEdit() {
   const me = app.state.players.find(p => p.id === app.myId);
   if (me && me.character) {
@@ -548,6 +671,10 @@ function unlockMyCharacterToEdit() {
   }
 }
 
+/**
+ * Checks if all connected players have submitted ready characters.
+ * Automatically initiates Round 1 if everyone is ready.
+ */
 function checkAllCharactersReady() {
   if (!app.isHost) return;
   const allReady = app.state.players.length > 0 && app.state.players.every(p => p.character && p.character.ready);
@@ -558,23 +685,39 @@ function checkAllCharactersReady() {
 }
 
 // --- Scenario Round & Action Submission Controllers ---
+
+/**
+ * Toggles between 'action' (write action) and 'crew' (party status) views on SCENARIO screen.
+ * @param {'action'|'crew'} winName
+ */
 function setScenarioWindow(winName) {
   app.scenarioWindow = winName === 'crew' ? 'crew' : 'action';
   renderScenarioScreen();
 }
 
+/** Opens the full scenario description popup modal */
 function openScenarioPopup() {
   app.scenarioPopupOpen = true;
   const modal = document.getElementById('scenario-popup-modal');
   if (modal) modal.classList.remove('hidden');
 }
 
+/** Closes the full scenario description popup modal */
 function closeScenarioPopup() {
   app.scenarioPopupOpen = false;
   const modal = document.getElementById('scenario-popup-modal');
   if (modal) modal.classList.add('hidden');
 }
 
+/**
+ * Initiates a new scenario round:
+ * - Resets submissions and triggers opening scenario popup
+ * - Auto-populates submissions for eliminated or locked-out players
+ * - Simulates AI bot actions
+ * - Starts the round action countdown timer
+ * 
+ * @param {number} roundIndex - 0-based act index
+ */
 function startScenarioRound(roundIndex) {
   if (!app.isHost) return;
   stopTypewriter();
@@ -630,6 +773,11 @@ function startScenarioRound(roundIndex) {
   checkAllActionsSubmitted();
 }
 
+/**
+ * Procedurally generates an in-character action for an AI bot player.
+ * @param {object} bot - Bot player object
+ * @returns {string} Comedic action sentence
+ */
 function generateBotAction(bot) {
   const mods = bot.modifiers || [];
   const modNote = mods.length > 0 ? ` while dealing with my "${mods[0].name}"` : '';
@@ -642,6 +790,10 @@ function generateBotAction(bot) {
   return botActions[Math.floor(Math.random() * botActions.length)];
 }
 
+/**
+ * Submits the local player's move for the current scenario.
+ * Validates word count if WORD_LIMIT restriction is active.
+ */
 function submitMyAction() {
   const me = app.state.players.find(p => p.id === app.myId);
   if (getPlayerMetaMod(me, 'DEAD') || getPlayerMetaMod(me, 'SKIP_TURN')) {
@@ -692,6 +844,9 @@ function submitMyAction() {
   }
 }
 
+/**
+ * Unlocks the player's locked-in move to allow editing before the round ends.
+ */
 function unlockMyActionToEdit() {
   const me = app.state.players.find(p => p.id === app.myId);
   if (getPlayerMetaMod(me, 'DEAD') || getPlayerMetaMod(me, 'SKIP_TURN')) {
@@ -711,6 +866,10 @@ function unlockMyActionToEdit() {
   }
 }
 
+/**
+ * Checks whether all connected players have submitted an action.
+ * Automatically initiates evaluation if everyone is locked in.
+ */
 function checkAllActionsSubmitted() {
   if (!app.isHost) return;
   const allSubmitted = app.state.players.every(p => Boolean(app.state.submissions[p.id]));
@@ -720,6 +879,9 @@ function checkAllActionsSubmitted() {
   }
 }
 
+/**
+ * Host force-evaluates the round immediately when timer expires or button is clicked.
+ */
 function hostForceEvaluateRound() {
   if (!app.isHost) return;
   clearInterval(app.timerInterval);
@@ -727,6 +889,14 @@ function hostForceEvaluateRound() {
 }
 
 // --- Round Judging & Reveal Flow ---
+
+/**
+ * Executes round evaluation via Gemini (or fallback demo judge):
+ * 1. Switches phase to REVEAL Step 1 (speech bubbles visible).
+ * 2. Sends prompt with player profiles, active injuries/perks, and actions.
+ * 3. Normalizes outcome, updates player scores, applies/cures modifiers.
+ * 4. Appends to story continuity log and broadcasts to clients.
+ */
 async function evaluateCurrentRound() {
   if (!app.isHost || app.state.isJudging) return;
 
@@ -849,6 +1019,11 @@ async function evaluateCurrentRound() {
   broadcastState();
 }
 
+/**
+ * Advances the reveal flow on Host command:
+ * - Step 1 -> Step 2: Transitions from speech bubbles to story typewriter playback.
+ * - Step 2 -> Next Act: Advances to next round or terminates in GAME_OVER if failed/climax.
+ */
 function hostNextRevealStep() {
   if (!app.isHost) return;
 

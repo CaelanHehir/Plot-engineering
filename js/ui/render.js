@@ -1,5 +1,22 @@
-// Screen Rendering Engine & Typewriter Story Playback
+/**
+ * Reactive Screen Rendering Engine & Typewriter Story Narration for Plot Engineering
+ * 
+ * Manages view updates for each game phase:
+ * - HOME: Host stage and player join inputs
+ * - LOBBY: Player cast roster, room invite code/QR, and campaign configuration
+ * - CHAR_CREATE: Two-stage character creation (bio inputs and full sketchpad canvas)
+ * - SCENARIO: Round countdown timer, scene popups, action submission, and crew status
+ * - REVEAL: Cartoon speech bubbles, word-by-word typewriter story playback, and awards
+ * - GAME_OVER: Winner podium, runner-up rankings, and multi-act campaign story recap
+ * 
+ * Performance:
+ * Uses DOM caching attributes (data-roster-sig, data-locked-state) to prevent
+ * DOM thrashing, flickering, or re-triggering animations on identical state updates.
+ */
 
+/**
+ * Halts active typewriter intervals and resets narration playback state.
+ */
 function stopTypewriter() {
   if (app.typewriter.timer) {
     clearInterval(app.typewriter.timer);
@@ -9,6 +26,10 @@ function stopTypewriter() {
   app.typewriter.finished = false;
 }
 
+/**
+ * Main reactive render dispatcher.
+ * Toggles visibility for the active phase section and calls the appropriate screen renderer.
+ */
 function renderState() {
   const phase = app.state.phase;
   const screens = ['HOME', 'LOBBY', 'CHAR_CREATE', 'SCENARIO', 'REVEAL', 'GAME_OVER'];
@@ -17,6 +38,7 @@ function renderState() {
     if (el) el.classList.toggle('hidden', s !== phase);
   });
 
+  // Top header Back button text and visibility
   const backBtn = document.getElementById('btn-global-back');
   if (backBtn) {
     if (phase === 'HOME') {
@@ -33,11 +55,13 @@ function renderState() {
     }
   }
 
+  // House Rules button visibility (host-only during active game)
   const settingsBtn = document.getElementById('btn-top-settings');
   if (settingsBtn) {
     settingsBtn.classList.toggle('hidden', !app.isHost && phase !== 'HOME');
   }
 
+  // Top header room code badge
   const roomBadge = document.getElementById('top-room-badge');
   if (roomBadge) {
     if (phase !== 'HOME' && app.state.roomCode) {
@@ -48,17 +72,20 @@ function renderState() {
     }
   }
 
+  // Automatically dismiss scenario popup if phase changed away from SCENARIO
   if (phase !== 'SCENARIO') {
     app.scenarioPopupOpen = false;
     const scenModal = document.getElementById('scenario-popup-modal');
     if (scenModal) scenModal.classList.add('hidden');
   }
 
+  // Dismiss QR code popup if leaving LOBBY
   if (phase !== 'LOBBY') {
     const qrModal = document.getElementById('qr-popup-modal');
     if (qrModal) qrModal.classList.add('hidden');
   }
 
+  // Delegate rendering to current phase
   if (phase === 'HOME') renderHomeWindow();
   if (phase === 'LOBBY') renderLobbyScreen();
   if (phase === 'CHAR_CREATE') renderCharCreateScreen();
@@ -67,6 +94,12 @@ function renderState() {
   if (phase === 'GAME_OVER') renderGameOverScreen();
 }
 
+/**
+ * Renders the LOBBY screen.
+ * Supports dual views:
+ * 1. Cast View ('cast'): Roster of connected players, bot controls, and campaign preview.
+ * 2. Campaign Setup View ('campaign'): Host controls to select or generate storylines.
+ */
 function renderLobbyScreen() {
   document.getElementById('lobby-room-code-display').textContent = app.state.roomCode;
 
@@ -198,6 +231,9 @@ function renderLobbyScreen() {
   }
 }
 
+/**
+ * Renders the Campaign Selector panels (pre-made cards, AI generator prompt, or custom acts editor).
+ */
 function renderCampaignSelector() {
   const mode = app.state.campaignMode;
   document.querySelectorAll('.campaign-tab-btn').forEach(btn => {
@@ -251,6 +287,13 @@ function renderCampaignSelector() {
   }
 }
 
+/**
+ * Renders the Character Creation screen.
+ * Supports the two-stage creation flow:
+ * 1. Stage 1: Character Name, Role/vibe, and optional Quirk.
+ * 2. Stage 2: Full-sketchpad drawing canvas with undo, colors, and brush sizes.
+ * Once submitted, displays the crew polaroid status grid.
+ */
 function renderCharCreateScreen() {
   const camp = app.state.activeCampaign;
   if (!camp) return;
@@ -333,6 +376,13 @@ function renderCharCreateScreen() {
   document.getElementById('btn-host-skip-char').classList.toggle('hidden', !app.isHost);
 }
 
+/**
+ * Renders the active round's Scenario screen:
+ * - Triggers the opening scenario popup at the beginning of each round.
+ * - Supports switching between "What would you do" action view and "Crew status" list.
+ * - Enforces status restrictions (e.g. BLINDED redaction, WORD_LIMIT placeholder, SKIP_TURN lockout).
+ * - Displays active perks/modifiers and locked-in move confirmation stamp.
+ */
 function renderScenarioScreen() {
   const camp = app.state.activeCampaign;
   const roundIdx = app.state.currentRound;
@@ -496,6 +546,11 @@ function renderScenarioScreen() {
   document.getElementById('btn-host-force-judge').classList.toggle('hidden', !app.isHost);
 }
 
+/**
+ * Renders the Reveal screen across its two steps:
+ * Step 1: Cartoon Speech Bubbles showing each player's action (or redaction tape if secret).
+ * Step 2: Dramatic AI typewriter story narration, followed by the verdict banner and round rankings.
+ */
 function renderRevealScreen() {
   const j = app.state.currentJudgment;
   const step = app.state.revealStep;
@@ -617,6 +672,13 @@ function renderRevealScreen() {
   }
 }
 
+/**
+ * Starts the dramatic word-by-word typewriter animation for the AI generated story.
+ * Includes audio ticking and automatically triggers the verdict when finished.
+ * 
+ * @param {string} roundKey - Unique cache key for the round narrative
+ * @param {object} judgment - AI judgment payload
+ */
 function startStoryWordByWord(roundKey, judgment) {
   stopTypewriter();
   app.typewriter.activeKey = roundKey;
@@ -678,6 +740,9 @@ function startStoryWordByWord(roundKey, judgment) {
   }, 55);
 }
 
+/**
+ * Skips the active typewriter narration immediately and reveals full paragraphs.
+ */
 function skipStoryTypewriter() {
   const j = app.state.currentJudgment;
   if (!j) return;
@@ -699,6 +764,12 @@ function skipStoryTypewriter() {
   showPostStoryVerdictAndLeaderboard(j);
 }
 
+/**
+ * Reveals the outcome verdict banner (Flying Colors, Barely Passed, Failed)
+ * and reveals the rankings leaderboard and next round / podium button.
+ * 
+ * @param {object} j - Judgment payload
+ */
 function showPostStoryVerdictAndLeaderboard(j) {
   const step2View = document.getElementById('reveal-step2-view');
   const revealSwitcher = document.getElementById('reveal-window-switcher');
@@ -762,6 +833,14 @@ function showPostStoryVerdictAndLeaderboard(j) {
   }
 }
 
+/**
+ * Renders the Grand Finale / Game Over screen.
+ * Displays:
+ * 1. 1st, 2nd, and 3rd place cartoon pillars with avatar art and final scores.
+ * 2. 4th place honorable mention (if 4+ players).
+ * 3. Final condition & status modifier summary for every character.
+ * 4. Act-by-act multi-round campaign synopsis.
+ */
 function renderGameOverScreen() {
   const goWin = app.gameOverWindow === 'recap' ? 'recap' : 'podium';
   const podiumCard = document.getElementById('gameover-podium-card');

@@ -1,3 +1,14 @@
+/**
+ * Plot Engineering — Base Stylesheet & Design Tokens
+ * 
+ * Defines:
+ * - Color variables, typography, and wobbly border-radius tokens
+ * - Global reset and responsive viewport stage lock (100dvh, zero window scroll)
+ * - Custom cartoon scrollbar and boiling sketch keyframe animations
+ * - Topbar Game-Show HUD and popover menu drawer
+ * - Responsive breakpoints for compact screens, tablets, and phones
+ */
+
 :root {
   /* Solid Dark Chalkboard / Sketchpad Backdrop */
   --bg-dark: #12131f;
@@ -171,30 +182,6 @@ body {
   transform: none;
 }
 
-.brand-sticker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.08rem;
-  letter-spacing: 0.5px;
-  color: var(--ink);
-  background: var(--accent-gold);
-  border: 3px solid var(--ink);
-  border-radius: var(--wobbly-pill);
-  padding: 4px 14px;
-  box-shadow: var(--shadow-hard-sm);
-  transform: rotate(-1.2deg);
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-  user-select: none;
-  white-space: nowrap;
-}
-
-.brand-sticker:hover {
-  transform: rotate(1deg) scale(1.03);
-}
-
 .room-badge {
   font-family: var(--font-display);
   background: var(--bg-card-alt);
@@ -329,11 +316,6 @@ body {
   .topbar {
     height: 46px;
     padding: 4px 10px;
-  }
-
-  .brand-sticker {
-    font-size: 0.9rem;
-    padding: 3px 10px;
   }
 
   .hud-menu-toggle {

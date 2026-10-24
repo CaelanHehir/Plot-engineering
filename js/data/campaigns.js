@@ -1,5 +1,21 @@
-// Static Game Data: Pre-made Campaigns, Character Inspiration & Palette
+/**
+ * Static Game Data for Plot Engineering
+ * 
+ * Contains:
+ * 1. PREMADE_CAMPAIGNS: Curated multi-round comedic storylines with player-facing
+ *    scenarios and judge-only comedic hooks/secrets.
+ * 2. RANDOM_CHARACTERS: Sample character templates with starter perks used for
+ *    AI bot players and auto-ready fallbacks when players run out of time.
+ * 3. DRAW_COLORS: Vibrant cartoon color palette for the drawing canvas sketchpad.
+ */
 
+/**
+ * Pre-made multi-act comedy campaigns.
+ * Each round includes:
+ * - title: The act name
+ * - scenario: Player-facing scene setup (obstacles & moving parts WITHOUT spoiling solutions)
+ * - secrets: Judge-only comedic lore, NPC quirks, and improv hooks
+ */
 const PREMADE_CAMPAIGNS = [
   {
     id: 'casino-heist',
@@ -16,7 +32,7 @@ const PREMADE_CAMPAIGNS = [
       {
         title: 'Act II: The Laser Hallway',
         scenario: 'You made it into the staff corridors, but the hallway to the vault elevator is a crisscrossing web of security lasers. At the far end of the hall, a janitor with oversized headphones is mopping right in front of the locked elevator doors.',
-        secrets: 'The janitor is completely lost in his smooth-jazz playlist and has the elevator keycard clipped to his belt. Coordinated acrobatics, reflective props,滑稽/slapstick sliding on the wet floor, or teaming up to charm/distract the janitor will get the crew into the elevator!'
+        secrets: 'The janitor is completely lost in his smooth-jazz playlist and has the elevator keycard clipped to his belt. Coordinated acrobatics, reflective props, comedic slapstick sliding on the wet floor, or teaming up to charm/distract the janitor will get the crew into the elevator!'
       },
       {
         title: 'Act III: Cracking the Vault',
@@ -119,6 +135,12 @@ const PREMADE_CAMPAIGNS = [
   }
 ];
 
+/**
+ * Character archetypes with starting perks.
+ * Used for:
+ * 1. Simulating AI Bot teammates when playing with fewer than 3 human players.
+ * 2. Auto-filling character roles and quirks when players fail to submit before the timer expires.
+ */
 const RANDOM_CHARACTERS = [
   { name: 'Barnaby Slick', role: 'Disgraced Escape Artist who is allergic to ropes', startMod: { name: 'Trick Sleeve', type: 'buff', metaEffect: 'NONE', description: 'Produces small stage props at will' } },
   { name: 'Dr. Mildred Spark', role: 'Over-caffeinated Mad Scientist with zero spatial awareness', startMod: { name: 'Unstable Taser', type: 'buff', metaEffect: 'NONE', description: 'Can zap machinery or enemies once' } },
@@ -130,7 +152,17 @@ const RANDOM_CHARACTERS = [
   { name: 'Zara Zero', role: 'Conspiracy Podcaster livestreaming the entire crisis', startMod: { name: 'Selfie Stick', type: 'buff', metaEffect: 'NONE', description: 'Can peek around corners or poke buttons from 4 feet away' } }
 ];
 
+/**
+ * Palette of vibrant drawing colors for the HTML5 Character Sketchpad canvas.
+ */
 const DRAW_COLORS = [
-  '#ffffff', '#ffca28', '#ff5252', '#ff7043',
-  '#00e676', '#00e5ff', '#7c4dff', '#ec407a', '#111426'
+  '#ffffff', // White
+  '#ffca28', // Cartoon Gold
+  '#ff5252', // Cherry Red
+  '#ff7043', // Neon Orange
+  '#00e676', // Electric Green
+  '#00e5ff', // Cyan / Aqua
+  '#7c4dff', // Vivid Purple
+  '#ec407a', // Hot Pink
+  '#111426'  // Deep Ink Black
 ];

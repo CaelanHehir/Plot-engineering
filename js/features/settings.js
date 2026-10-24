@@ -1,5 +1,17 @@
-// Host Settings & Gemini API Key Modal Controllers (Single-Source Settings Grid)
+/**
+ * Host Settings & Gemini API Key Modal Controllers
+ * 
+ * Manages:
+ * 1. Single-source settings schema (HOST_SETTINGS_SCHEMA) rendering identical options
+ *    in both the in-lobby campaign view and the floating House Rules modal.
+ * 2. Real-time bi-directional setting value synchronization across UI elements.
+ * 3. Gemini API key verification against Google's Models API and modal controls.
+ */
 
+/**
+ * Single-source configuration schema for all customizable game rules.
+ * Automatically generates HTML inputs for both the lobby and the settings modal.
+ */
 const HOST_SETTINGS_SCHEMA = [
   {
     key: 'roundTimer',
@@ -77,6 +89,12 @@ const HOST_SETTINGS_SCHEMA = [
   }
 ];
 
+/**
+ * Builds the HTML grid for the settings schema.
+ * 
+ * @param {string} suffix - ID suffix (e.g., '' for lobby, '-modal' for floating modal)
+ * @returns {string} HTML markup string
+ */
 function buildSettingsGridHtml(suffix = '') {
   return HOST_SETTINGS_SCHEMA.map(item => {
     const id = `${item.idBase}${suffix}`;
@@ -106,6 +124,9 @@ function buildSettingsGridHtml(suffix = '') {
   }).join('');
 }
 
+/**
+ * Renders both the in-lobby and in-modal settings grids and synchronizes values.
+ */
 function renderSettingsGrids() {
   const lobbyGrid = document.getElementById('lobby-settings-grid');
   const modalGrid = document.getElementById('modal-settings-grid');
@@ -114,6 +135,9 @@ function renderSettingsGrids() {
   syncSettingsUI();
 }
 
+/**
+ * Synchronizes the values of all settings form inputs across both the lobby and modal.
+ */
 function syncSettingsUI() {
   const s = app.state.settings;
   ['', '-modal'].forEach(suffix => {
@@ -129,6 +153,12 @@ function syncSettingsUI() {
   });
 }
 
+/**
+ * Updates a host setting in the game state, refreshes the UI, and broadcasts to peers.
+ * 
+ * @param {string} key - Setting property name
+ * @param {string|boolean} value - New value
+ */
 function updateHostSetting(key, value) {
   if (!app.isHost && app.state.phase !== 'HOME') return;
   if (key === 'roundTimer' || key === 'charCreateTimer' || key === 'maxModifiers') {
@@ -146,6 +176,10 @@ function updateHostSetting(key, value) {
   }
 }
 
+/**
+ * Switches between the 'campaign' and 'settings' tabs in the host campaign setup section.
+ * @param {'campaign'|'settings'} tabName
+ */
 function switchLobbyTab(tabName) {
   app.lobbyTab = tabName;
   document.querySelectorAll('.lobby-tab-btn').forEach(btn => {
@@ -156,6 +190,7 @@ function switchLobbyTab(tabName) {
   syncSettingsUI();
 }
 
+/** Opens the floating House Rules modal (host only) */
 function openSettingsModal() {
   if (!app.isHost && app.state.phase !== 'HOME') {
     showToast('Only the Room Host can change game settings.', 'info');
@@ -165,10 +200,15 @@ function openSettingsModal() {
   document.getElementById('settings-modal').classList.remove('hidden');
 }
 
+/** Closes the floating House Rules modal */
 function closeSettingsModal() {
   document.getElementById('settings-modal').classList.add('hidden');
 }
 
+/**
+ * Updates the visual badge indicating Gemini API key status in the top menu bar.
+ * @param {boolean} [verified]
+ */
 function updateApiKeyBadge(verified = isApiKeyVerified) {
   const badge = document.getElementById('api-key-status-badge');
   const activeModel = localStorage.getItem('chaos_coop_gemini_model') || '';
@@ -181,15 +221,21 @@ function updateApiKeyBadge(verified = isApiKeyVerified) {
   }
 }
 
+/** Opens the Gemini API Key configuration modal */
 function openApiKeyModal() {
   document.getElementById('api-key-input').value = isApiKeyVerified ? getStoredApiKey() : '';
   document.getElementById('api-key-modal').classList.remove('hidden');
 }
 
+/** Closes the Gemini API Key configuration modal */
 function closeApiKeyModal() {
   document.getElementById('api-key-modal').classList.add('hidden');
 }
 
+/**
+ * Validates and saves the entered Gemini API key.
+ * Shows feedback or clears the key if left empty.
+ */
 async function saveApiKeyFromModal() {
   const inputEl = document.getElementById('api-key-input');
   const val = (inputEl ? inputEl.value : '').trim();

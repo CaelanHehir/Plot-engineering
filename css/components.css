@@ -1,3 +1,16 @@
+/**
+ * Plot Engineering — Shared Cartoon UI Components
+ * 
+ * Includes:
+ * - Wobbly cartoon cards, ribbons, and tilts
+ * - Form inputs, masked keys, and room code displays
+ * - 3D tactile buttons (primary, gold, secondary, danger, dice)
+ * - Badges, score pills, and boiling urgent timers
+ * - Polaroid frames and avatar thumbnail styling
+ * - Status modifier chips (buffs, debuffs, neutrals, meta conditions)
+ * - Modal dialogs, loading spinners, and toast notifications
+ */
+
 /* ==================== WOBBLY CARTOON CARDS ==================== */
 .card {
   background: linear-gradient(165deg, #262044 0%, var(--bg-card) 100%);

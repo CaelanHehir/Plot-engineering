@@ -1,12 +1,36 @@
-// Gemini LLM Service: API Key Validation, Model Auto-Discovery, Campaign Generation & Comedic Story Judging
+/**
+ * Gemini LLM Integration Service for Plot Engineering
+ * 
+ * Handles:
+ * 1. API Key storage and validation against Google's Models API (v1beta).
+ * 2. Model Auto-Discovery with priority ranking (e.g. gemini-2.5-flash, gemini-2.0-flash).
+ * 3. AI Campaign Generation: creates 3-4 act comedy stories with scenarios & hidden comedic hooks.
+ * 4. AI Story Judging & Narration: evaluates player moves based on Coordination, Coherence,
+ *    and Humor, ensuring funny/unrealistic moves succeed when they fit together, and
+ *    explicitly narrating every character's action.
+ * 5. Offline Fallback Judge: generates humorous story text and scores even without an API key.
+ */
 
+/** Cached name of the active, verified Gemini text model */
 let cachedModelName = localStorage.getItem('chaos_coop_gemini_model') || '';
+
+/** Flag tracking whether the stored API key has been verified against Google's endpoint */
 let isApiKeyVerified = false;
 
+/**
+ * Retrieves the stored Gemini API key from browser localStorage.
+ * @returns {string} Clean API key or empty string
+ */
 function getStoredApiKey() {
   return localStorage.getItem('chaos_coop_gemini_key') || '';
 }
 
+/**
+ * Stores or clears the Gemini API key in localStorage.
+ * Automatically clears the cached model and verification state if key is removed.
+ * 
+ * @param {string} key - API key from user input
+ */
 function setStoredApiKey(key) {
   const clean = (key || '').trim();
   if (clean) {
@@ -21,6 +45,11 @@ function setStoredApiKey(key) {
 
 /**
  * Strictly validates an API key against Google's v1beta Models API
+ * and returns supported text generation models sorted by speed and quality preference.
+ * 
+ * @param {string} apiKey - Gemini API key to validate
+ * @returns {Promise<Array<string>>} Sorted list of compatible model names
+ * @throws {Error} Detailed error if key is invalid, network fails, or no models found
  */
 async function validateAndDiscoverModels(apiKey) {
   const cleanKey = (apiKey || '').trim();
@@ -102,6 +131,15 @@ async function validateAndDiscoverModels(apiKey) {
   return sorted;
 }
 
+/**
+ * Executes a structured JSON prompt against the Gemini generateContent API with
+ * automatic fallback retry across discovered models.
+ * 
+ * @param {string} systemInstruction - Guiding rules & output JSON schema
+ * @param {string} userPrompt - Input parameters and scene payload
+ * @param {string} [apiKey] - Optional explicit API key
+ * @returns {Promise<object>} Parsed JSON object response from the LLM
+ */
 async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
   const cleanKey = (apiKey || getStoredApiKey()).trim();
   if (!cleanKey) {
@@ -167,6 +205,13 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
   throw new Error(errors[0] || 'Failed to call Gemini API.');
 }
 
+/**
+ * Extracts and parses a JSON object from raw LLM output, stripping markdown
+ * code fences or surrounding text if present.
+ * 
+ * @param {string} text - Raw string from LLM
+ * @returns {object} Parsed JSON object
+ */
 function parseCleanJSON(text) {
   try {
     return JSON.parse(text);
@@ -238,6 +283,14 @@ Return ONLY valid JSON matching this exact structure:
   ]
 }`;
 
+/**
+ * Generates an original multi-round campaign based on the host's prompt.
+ * 
+ * @param {string} promptText - User-provided story concept or genre
+ * @param {number} numRounds - Number of acts to create (default 4)
+ * @param {string} [apiKey] - Optional explicit API key
+ * @returns {Promise<object>} Structured campaign object ready for game state
+ */
 async function generateCampaignWithAI(promptText, numRounds = 4, apiKey = '') {
   const userPrompt = `Create a ${numRounds}-round comedic campaign for Plot Engineering based on this idea: "${promptText}".
 Remember:
@@ -268,7 +321,22 @@ Remember:
 }
 
 /**
- * Judge a round of player actions using Gemini based on Coordination, Coherence, and Humor
+ * Judges a completed round using Gemini based on Coordination, Coherence, and Humor.
+ * Evaluates whether players' actions synergize and cohere, allowing funny/unrealistic moves
+ * to succeed, and guarantees that every character's exact action is explicitly narrated.
+ * 
+ * @param {object} params
+ * @param {object} params.campaign - Active campaign object
+ * @param {number} params.roundIndex - Current 0-based round index
+ * @param {number} params.totalRounds - Total acts in campaign
+ * @param {string} params.scenarioText - Player-facing scenario
+ * @param {string} params.scenarioSecrets - Judge-only comedic hooks
+ * @param {string} params.storySoFar - Accumulated story continuity from past rounds
+ * @param {Array<object>} params.players - Connected players roster
+ * @param {Record<string, string>} params.submissions - Submissions keyed by playerId
+ * @param {object} params.settings - Host settings (strictness, pointsMultiplier, etc.)
+ * @param {string} params.apiKey - Active Gemini API key
+ * @returns {Promise<object>} Normalized judgment payload with outcome, paragraphs, and rankings
  */
 async function judgeRoundWithAI({
   campaign,
@@ -414,11 +482,18 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
 }
 
 /**
- * Normalize and calculate point awards from the AI judgment.
- * No points or perks/modifiers are given to anyone when the team fails a round.
+ * Normalizes raw judgment data from Gemini, enforcing safe fallbacks,
+ * formatting player rankings, calculating points with host multipliers,
+ * and ensuring zero points/modifiers are given to anyone on round failure.
+ * 
+ * @param {object} raw - Parsed LLM JSON
+ * @param {Array<object>} players - Player list
+ * @param {object} settings - Host settings
+ * @returns {object} Clean judgment object
  */
 function normalizeJudgeResult(raw, players, settings = {}) {
   let outcome = String(raw.outcome || '').toUpperCase().trim();
+  // Support both storyCoherentAndFunny and deliberateSolutionExists (backward compatibility)
   if (raw.storyCoherentAndFunny === false || raw.deliberateSolutionExists === false) {
     outcome = 'FAILED';
   } else if (!['FLYING_COLORS', 'BARELY_PASSED', 'FAILED'].includes(outcome)) {
@@ -521,7 +596,15 @@ function normalizeJudgeResult(raw, players, settings = {}) {
 }
 
 /**
- * Offline Mock AI Judge (Explicitly includes each character's exact action)
+ * Offline Mock AI Judge
+ * Allows full gameplay testing and demo mode without an active Gemini API key.
+ * Guarantees that every character's exact submitted action is explicitly narrated.
+ * 
+ * @param {object} params
+ * @param {Array<object>} params.players - Players roster
+ * @param {Record<string, string>} params.submissions - Submissions dictionary
+ * @param {object} params.settings - Host settings
+ * @returns {object} Normalized judgment payload
  */
 function mockJudgeRound({ players, submissions, settings }) {
   const actions = players.map(p => (submissions[p.id] || '').trim());

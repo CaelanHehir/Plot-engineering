@@ -1,23 +1,41 @@
-// Interactive HTML5 Character Drawing Studio & Procedural Portrait Generator
+/**
+ * Interactive HTML5 Character Sketchpad Studio & Procedural Portrait Generator
+ * 
+ * Features:
+ * 1. Full-screen section canvas with responsive container-filling aspect ratio.
+ * 2. Touch and mouse pointer drawing support with smooth round brush strokes.
+ * 3. 15-step undo history buffer via in-memory snapshots.
+ * 4. Color palette selector and brush size adjustments.
+ * 5. Compact 240x240 WebP/PNG avatar exporter for low-latency WebRTC transmission.
+ * 6. Procedural fallback vector portrait generator for AI bots and AFK players.
+ */
 
+/** Drawing state singleton */
 const drawState = {
+  /** @type {HTMLCanvasElement|null} */
   canvas: null,
+  /** @type {CanvasRenderingContext2D|null} */
   ctx: null,
   isDrawing: false,
   color: '#00e5ff',
   brushSize: 6,
+  /** @type {Array<string>} History snapshots for undo */
   history: [],
   lastX: 0,
   lastY: 0,
   initialized: false
 };
 
+/**
+ * Initializes the character sketchpad canvas element, event listeners, and color palette.
+ */
 function initDrawingCanvas() {
   const canvas = document.getElementById('char-canvas');
   if (!canvas) return;
   drawState.canvas = canvas;
   drawState.ctx = canvas.getContext('2d');
 
+  // Build clickable color swatches from DRAW_COLORS palette
   const paletteEl = document.getElementById('draw-color-palette');
   if (paletteEl) {
     paletteEl.innerHTML = DRAW_COLORS.map(c => `
@@ -28,6 +46,11 @@ function initDrawingCanvas() {
 
   clearCharacterCanvas(false);
 
+  /**
+   * Translates pointer coordinates from viewport CSS pixels to internal canvas coordinate space.
+   * @param {MouseEvent|TouchEvent} e
+   * @returns {{x: number, y: number}}
+   */
   const getPos = (e) => {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -38,6 +61,7 @@ function initDrawingCanvas() {
     };
   };
 
+  /** Handles stroke start for mouse and touch */
   const startDraw = (e) => {
     e.preventDefault();
     saveCanvasSnapshot();
@@ -53,6 +77,7 @@ function initDrawingCanvas() {
     ctx.fill();
   };
 
+  /** Handles stroke move for mouse and touch */
   const moveDraw = (e) => {
     if (!drawState.isDrawing) return;
     e.preventDefault();
@@ -70,18 +95,22 @@ function initDrawingCanvas() {
     drawState.lastY = pos.y;
   };
 
+  /** Handles stroke end */
   const endDraw = () => {
     drawState.isDrawing = false;
   };
 
+  // Mouse event listeners
   canvas.addEventListener('mousedown', startDraw);
   canvas.addEventListener('mousemove', moveDraw);
   window.addEventListener('mouseup', endDraw);
 
+  // Touch event listeners (prevent default scrolling while drawing on mobile)
   canvas.addEventListener('touchstart', startDraw, { passive: false });
   canvas.addEventListener('touchmove', moveDraw, { passive: false });
   window.addEventListener('touchend', endDraw);
 
+  // Dynamic resize handler
   window.addEventListener('resize', () => {
     syncCanvasToContainer();
   });
@@ -89,6 +118,10 @@ function initDrawingCanvas() {
   drawState.initialized = true;
 }
 
+/**
+ * Dynamically resizes the HTML5 canvas resolution to match its CSS display box
+ * while copying existing artwork so drawings are preserved across rotations/resizes.
+ */
 function syncCanvasToContainer() {
   const canvas = drawState.canvas;
   if (!canvas) return;
@@ -98,12 +131,14 @@ function syncCanvasToContainer() {
   if (targetW < 40 || targetH < 40) return;
   if (Math.abs(canvas.width - targetW) <= 2 && Math.abs(canvas.height - targetH) <= 2) return;
 
+  // Snapshot current artwork to temporary off-screen canvas
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = canvas.width;
   tempCanvas.height = canvas.height;
   const tempCtx = tempCanvas.getContext('2d');
   tempCtx.drawImage(canvas, 0, 0);
 
+  // Update canvas resolution to match new container dimensions
   canvas.width = targetW;
   canvas.height = targetH;
 
@@ -111,6 +146,7 @@ function syncCanvasToContainer() {
   ctx.fillStyle = '#181a2c';
   ctx.fillRect(0, 0, targetW, targetH);
 
+  // Rescale and center old artwork into the new dimensions
   const scale = Math.min(targetW / tempCanvas.width, targetH / tempCanvas.height);
   const drawW = tempCanvas.width * scale;
   const drawH = tempCanvas.height * scale;
@@ -119,6 +155,10 @@ function syncCanvasToContainer() {
   ctx.drawImage(tempCanvas, offsetX, offsetY, drawW, drawH);
 }
 
+/**
+ * Selects active drawing color from the palette.
+ * @param {string} color - Hex color code
+ */
 function selectDrawColor(color) {
   drawState.color = color;
   document.querySelectorAll('.color-swatch').forEach(el => {
@@ -126,6 +166,10 @@ function selectDrawColor(color) {
   });
 }
 
+/**
+ * Selects brush width in pixels.
+ * @param {number} size - Stroke width (3, 6, 12, etc.)
+ */
 function selectBrushSize(size) {
   drawState.brushSize = size;
   document.querySelectorAll('.brush-size-btn').forEach(btn => {
@@ -133,12 +177,18 @@ function selectBrushSize(size) {
   });
 }
 
+/**
+ * Saves a snapshot of the current canvas to the undo history stack (max 15 steps).
+ */
 function saveCanvasSnapshot() {
   if (!drawState.canvas) return;
   if (drawState.history.length >= 15) drawState.history.shift();
   drawState.history.push(drawState.canvas.toDataURL());
 }
 
+/**
+ * Reverts the canvas to the most recent snapshot in the undo history stack.
+ */
 function undoCanvasStroke() {
   if (!drawState.canvas || drawState.history.length === 0) return;
   const lastUrl = drawState.history.pop();
@@ -150,6 +200,10 @@ function undoCanvasStroke() {
   img.src = lastUrl;
 }
 
+/**
+ * Clears the drawing canvas back to dark chalkboard slate.
+ * @param {boolean} recordUndo - Whether to record snapshot before wiping
+ */
 function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
   if (recordUndo) saveCanvasSnapshot();
@@ -158,6 +212,13 @@ function clearCharacterCanvas(recordUndo = true) {
   ctx.fillRect(0, 0, drawState.canvas.width, drawState.canvas.height);
 }
 
+/**
+ * Exports a square 240x240 compressed avatar from the canvas for efficient
+ * peer-to-peer WebRTC network synchronization.
+ * 
+ * @param {HTMLCanvasElement} sourceCanvas - Source drawing canvas
+ * @returns {string} Data URL (image/webp or image/png fallback)
+ */
 function exportCompactAvatar(sourceCanvas) {
   const out = document.createElement('canvas');
   out.width = 240;
@@ -180,6 +241,13 @@ function exportCompactAvatar(sourceCanvas) {
   }
 }
 
+/**
+ * Generates an expressive cartoon vector avatar programmatically.
+ * Used for AI Bot players and players who did not submit a drawing before time ran out.
+ * 
+ * @param {HTMLCanvasElement} [targetCanvas] - Optional canvas to paint directly onto
+ * @returns {string} Compact image data URL
+ */
 function generateProceduralPortraitDataUrl(targetCanvas) {
   if (targetCanvas === drawState.canvas) {
     syncCanvasToContainer();
@@ -205,7 +273,7 @@ function generateProceduralPortraitDataUrl(targetCanvas) {
   ctx.translate(cx - 120 * s, cy - 120 * s);
   ctx.scale(s, s);
 
-  // Shoulders/Body
+  // Shoulders & Body
   ctx.fillStyle = headColor;
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 4;
@@ -228,14 +296,14 @@ function generateProceduralPortraitDataUrl(targetCanvas) {
   ctx.arc(120 + eyeOffset, 105, 7, 0, Math.PI * 2);
   ctx.fill();
 
-  // Eye shine
+  // Eye shine highlights
   ctx.fillStyle = '#ffffff';
   ctx.beginPath();
   ctx.arc(118 - eyeOffset, 103, 2.5, 0, Math.PI * 2);
   ctx.arc(118 + eyeOffset, 103, 2.5, 0, Math.PI * 2);
   ctx.fill();
 
-  // Expression
+  // Comedic mouth expressions (smile, smirk, or gasp)
   ctx.strokeStyle = '#111426';
   ctx.lineWidth = 4;
   ctx.lineCap = 'round';
@@ -251,13 +319,15 @@ function generateProceduralPortraitDataUrl(targetCanvas) {
   }
   ctx.stroke();
 
-  // Random Hat / Accessory
+  // Random Cartoon Hat or Accessory (Top Hat, Crown, or Antenna)
   const hatType = Math.floor(Math.random() * 3);
   if (hatType === 0) {
+    // Top Hat
     ctx.fillStyle = '#111426';
     ctx.fillRect(80, 56, 80, 10);
     ctx.fillRect(95, 22, 50, 36);
   } else if (hatType === 1) {
+    // Party Crown
     ctx.fillStyle = '#ffca28';
     ctx.beginPath();
     ctx.moveTo(85, 68);
@@ -269,6 +339,7 @@ function generateProceduralPortraitDataUrl(targetCanvas) {
     ctx.fill();
     ctx.stroke();
   } else {
+    // Alien Antenna
     ctx.strokeStyle = '#00e5ff';
     ctx.beginPath();
     ctx.moveTo(120, 63);
