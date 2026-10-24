@@ -39,7 +39,9 @@ function escapeHtml(str) {
 }
 
 function hyphenateLongWords(str) {
-  return String(str ?? '').replace(/\S{10,}/g, (word) => word.split('').join('\u00AD'));
+  // Only target words that take up an entire text box (26+ characters).
+  // Normal words (< 26 chars) wrap intact to the next line without being split.
+  return String(str ?? '').replace(/\S{26,}/g, (word) => word.split('').join('\u00AD'));
 }
 
 function formatSeconds(sec) {

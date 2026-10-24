@@ -979,9 +979,7 @@
   line-height: 1.38;
   margin-top: 4px;
   overflow-wrap: break-word;
-  word-break: break-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  word-break: normal;
 }
 
 /* Speech Bubble Pointer Tail */
@@ -1059,9 +1057,7 @@
   color: #ffffff;
   max-width: 100%;
   overflow-wrap: break-word;
-  word-break: break-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  word-break: normal;
 }
 
 .story-para:last-child {
