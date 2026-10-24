@@ -284,10 +284,10 @@
       </div>
 
       <div class="dashboard-2col char-create-layout">
-        <!-- Left: 2-Stage Character Creation (Stage 1: Name + Description, Stage 2: Portrait Drawing) -->
+        <!-- Left: 2-Stage Character Creation (Stage 1: Name + Description, Stage 2: Full-Section Sketchpad) -->
         <div id="char-creator-card" class="card card-highlight wobbly-card char-creator-card">
           <div id="char-form-box" class="char-stage-container">
-            <!-- Stage Step Indicator Bar -->
+            <!-- HEADER SECTION: Navigation & Action UI -->
             <div class="row-between char-stage-header">
               <div class="char-step-pills">
                 <button id="char-step-btn-1" type="button" class="char-step-pill active" onclick="setCharCreateStep(1)">
@@ -300,9 +300,19 @@
                   📸 Crew
                 </button>
               </div>
-              <button type="button" class="btn-small btn-dice" onclick="randomizeMyCharacter()">
-                🎲 Randomize
-              </button>
+              <div id="char-header-stage1-actions" class="row-gap" style="gap:6px;">
+                <button type="button" class="btn-small btn-dice" onclick="randomizeMyCharacter()">
+                  🎲 Randomize
+                </button>
+              </div>
+              <div id="char-header-stage2-actions" class="row-gap hidden" style="gap:6px; flex-wrap:nowrap;">
+                <button type="button" class="btn-small btn-dice" onclick="randomizeMyPortraitOnly()" title="Generate a random doodle">
+                  🎲 Auto
+                </button>
+                <button type="button" class="btn-small btn-gold-pill" onclick="submitMyCharacter()">
+                  ✅ Lock In!
+                </button>
+              </div>
             </div>
 
             <!-- STAGE 1: Name + Description (No Scroll) -->
@@ -329,37 +339,24 @@
               </button>
             </div>
 
-            <!-- STAGE 2: Portrait Drawing (No Scroll) -->
-            <div id="char-stage-2" class="char-stage-body hidden">
-              <div class="char-stage2-center">
-                <div id="char-stage2-summary" class="char-stage2-banner">Drawing Your Hero</div>
-                <div class="drawing-studio">
-                  <div class="row-between" style="width:100%; margin-bottom:3px;">
-                    <span class="easel-top-clip" style="margin-bottom:0;">📎 SKETCHPAD</span>
-                    <button type="button" class="brush-btn" onclick="randomizeMyPortraitOnly()" title="Generate a random doodle">🎲 Auto-Doodle</button>
-                  </div>
-                  <div class="canvas-wrapper">
-                    <canvas id="char-canvas" width="240" height="240"></canvas>
-                  </div>
-                  <div id="draw-color-palette" class="draw-toolbar palette-bar"></div>
-                  <div class="draw-toolbar tools-bar">
-                    <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">Thin</button>
-                    <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">Med</button>
-                    <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">Thick</button>
-                    <button type="button" class="brush-btn" title="Eraser" onclick="selectDrawColor('#181a2c')">🧽</button>
-                    <button type="button" class="brush-btn" title="Undo Stroke" onclick="undoCanvasStroke()">↩️</button>
-                    <button type="button" class="brush-btn" title="Clear Canvas" onclick="clearCharacterCanvas(true)">🗑️</button>
-                  </div>
-                </div>
+            <!-- STAGE 2: Full-Section Sketchpad + Footer Toolbars -->
+            <div id="char-stage-2" class="char-stage-body char-sketchpad-stage hidden">
+              <!-- FULL MIDDLE SECTION: The Sketchpad Canvas -->
+              <div class="full-sketchpad-canvas-area">
+                <canvas id="char-canvas" width="360" height="360"></canvas>
               </div>
 
-              <div class="char-stage2-actions">
-                <button type="button" class="btn btn-secondary" onclick="setCharCreateStep(1)">
-                  ⬅️ Back
-                </button>
-                <button type="button" class="btn btn-gold" style="flex:1;" onclick="submitMyCharacter()">
-                  ✅ Lock In Hero!
-                </button>
+              <!-- FOOTER SECTION: Color Picking, Line Width & Canvas Tools -->
+              <div class="sketchpad-footer-bar">
+                <div id="draw-color-palette" class="draw-toolbar palette-bar"></div>
+                <div class="draw-toolbar tools-bar">
+                  <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">✏️ Thin</button>
+                  <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">🖌️ Med</button>
+                  <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">🖍️ Thick</button>
+                  <button type="button" class="brush-btn" title="Eraser" onclick="selectDrawColor('#181a2c')">🧽 Eraser</button>
+                  <button type="button" class="brush-btn" title="Undo Stroke" onclick="undoCanvasStroke()">↩️ Undo</button>
+                  <button type="button" class="brush-btn" title="Clear Canvas" onclick="clearCharacterCanvas(true)">🗑️ Clear</button>
+                </div>
               </div>
             </div>
           </div>

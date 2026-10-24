@@ -258,7 +258,10 @@ function renderCharCreateScreen() {
   const step = isReady ? 2 : (app.charCreateStep === 3 ? 3 : (app.charCreateStep === 2 ? 2 : 1));
   const creatorCard = document.getElementById('char-creator-card');
   const rosterCard = document.getElementById('char-roster-card');
-  if (creatorCard) creatorCard.classList.toggle('mobile-window-hidden', step === 3 && !isReady);
+  if (creatorCard) {
+    creatorCard.classList.toggle('mobile-window-hidden', step === 3 && !isReady);
+    creatorCard.classList.toggle('is-portrait-sketchpad', step === 2 && !isReady);
+  }
   if (rosterCard) rosterCard.classList.toggle('mobile-window-hidden', step !== 3 && !isReady);
 
   document.getElementById('char-form-box').classList.toggle('hidden', isReady);
@@ -269,8 +272,12 @@ function renderCharCreateScreen() {
   const stepBtn1 = document.getElementById('char-step-btn-1');
   const stepBtn2 = document.getElementById('char-step-btn-2');
   const stepBtn3 = document.getElementById('char-step-btn-3');
+  const headerStage1Actions = document.getElementById('char-header-stage1-actions');
+  const headerStage2Actions = document.getElementById('char-header-stage2-actions');
   if (stage1El) stage1El.classList.toggle('hidden', step !== 1);
   if (stage2El) stage2El.classList.toggle('hidden', step !== 2);
+  if (headerStage1Actions) headerStage1Actions.classList.toggle('hidden', step !== 1);
+  if (headerStage2Actions) headerStage2Actions.classList.toggle('hidden', step !== 2);
   if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
   if (stepBtn3) {
@@ -279,11 +286,8 @@ function renderCharCreateScreen() {
     stepBtn3.textContent = `📸 Crew (${readyCount}/${app.state.players.length})`;
   }
 
-  const summaryBanner = document.getElementById('char-stage2-summary');
-  if (summaryBanner) {
-    const nameVal = (document.getElementById('char-name-input')?.value || '').trim() || 'Your Hero';
-    const roleVal = (document.getElementById('char-role-input')?.value || '').trim();
-    summaryBanner.innerHTML = `🎨 Drawing: <strong>${escapeHtml(nameVal)}</strong>${roleVal ? ` <span class="text-muted small">(${escapeHtml(roleVal)})</span>` : ''}`;
+  if (step === 2 && !isReady && typeof syncCanvasToContainer === 'function') {
+    requestAnimationFrame(() => syncCanvasToContainer());
   }
 
   const statusEl = document.getElementById('char-ready-list');

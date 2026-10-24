@@ -82,7 +82,41 @@ function initDrawingCanvas() {
   canvas.addEventListener('touchmove', moveDraw, { passive: false });
   window.addEventListener('touchend', endDraw);
 
+  window.addEventListener('resize', () => {
+    syncCanvasToContainer();
+  });
+
   drawState.initialized = true;
+}
+
+function syncCanvasToContainer() {
+  const canvas = drawState.canvas;
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const targetW = Math.round(rect.width);
+  const targetH = Math.round(rect.height);
+  if (targetW < 40 || targetH < 40) return;
+  if (Math.abs(canvas.width - targetW) <= 2 && Math.abs(canvas.height - targetH) <= 2) return;
+
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+  const tempCtx = tempCanvas.getContext('2d');
+  tempCtx.drawImage(canvas, 0, 0);
+
+  canvas.width = targetW;
+  canvas.height = targetH;
+
+  const ctx = drawState.ctx;
+  ctx.fillStyle = '#181a2c';
+  ctx.fillRect(0, 0, targetW, targetH);
+
+  const scale = Math.min(targetW / tempCanvas.width, targetH / tempCanvas.height);
+  const drawW = tempCanvas.width * scale;
+  const drawH = tempCanvas.height * scale;
+  const offsetX = (targetW - drawW) / 2;
+  const offsetY = (targetH - drawH) / 2;
+  ctx.drawImage(tempCanvas, offsetX, offsetY, drawW, drawH);
 }
 
 function selectDrawColor(color) {
@@ -125,14 +159,31 @@ function clearCharacterCanvas(recordUndo = true) {
 }
 
 function exportCompactAvatar(sourceCanvas) {
+  const out = document.createElement('canvas');
+  out.width = 240;
+  out.height = 240;
+  const outCtx = out.getContext('2d');
+  outCtx.fillStyle = '#181a2c';
+  outCtx.fillRect(0, 0, 240, 240);
+
+  const scale = Math.min(240 / sourceCanvas.width, 240 / sourceCanvas.height);
+  const drawW = sourceCanvas.width * scale;
+  const drawH = sourceCanvas.height * scale;
+  const offsetX = (240 - drawW) / 2;
+  const offsetY = (240 - drawH) / 2;
+  outCtx.drawImage(sourceCanvas, offsetX, offsetY, drawW, drawH);
+
   try {
-    return sourceCanvas.toDataURL('image/webp', 0.75);
+    return out.toDataURL('image/webp', 0.75);
   } catch (e) {
-    return sourceCanvas.toDataURL('image/png');
+    return out.toDataURL('image/png');
   }
 }
 
 function generateProceduralPortraitDataUrl(targetCanvas) {
+  if (targetCanvas === drawState.canvas) {
+    syncCanvasToContainer();
+  }
   const c = targetCanvas || document.createElement('canvas');
   if (!targetCanvas) {
     c.width = 240;
@@ -145,6 +196,14 @@ function generateProceduralPortraitDataUrl(targetCanvas) {
 
   ctx.fillStyle = bgColors[Math.floor(Math.random() * bgColors.length)];
   ctx.fillRect(0, 0, c.width, c.height);
+
+  const s = Math.min(c.width, c.height) / 240;
+  const cx = c.width / 2;
+  const cy = c.height / 2;
+
+  ctx.save();
+  ctx.translate(cx - 120 * s, cy - 120 * s);
+  ctx.scale(s, s);
 
   // Shoulders/Body
   ctx.fillStyle = headColor;
@@ -221,5 +280,6 @@ function generateProceduralPortraitDataUrl(targetCanvas) {
     ctx.fill();
   }
 
+  ctx.restore();
   return exportCompactAvatar(c);
 }

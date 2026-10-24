@@ -492,78 +492,30 @@
   gap: 4px;
 }
 
-.char-stage2-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  gap: 5px;
-}
-
-.char-stage2-banner {
-  background: var(--bg-input);
-  border: 2px solid var(--ink);
-  border-radius: var(--wobbly-pill);
-  padding: 3px 12px;
-  font-size: 0.82rem;
-  box-shadow: 2px 2px 0px var(--ink);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.char-stage2-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.drawing-studio {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--cream-polaroid);
+.btn-gold-pill {
+  background: linear-gradient(180deg, #ffe047 0%, #ffb300 100%);
   color: var(--ink);
-  border: 3.5px solid var(--ink);
-  border-radius: 20px 14px 22px 16px;
-  box-shadow: var(--shadow-hard);
-  padding: 7px 10px 8px;
-  max-width: 276px;
-  width: 100%;
-  min-height: 0;
-  flex-shrink: 1;
-  transform: rotate(-0.6deg);
 }
-
-.easel-top-clip {
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  background: var(--accent-gold);
+.btn-gold-pill:hover {
+  background: linear-gradient(180deg, #fff078 0%, #ffc400 100%);
   color: var(--ink);
-  border: 2px solid var(--ink);
-  border-radius: var(--wobbly-pill);
-  padding: 2px 9px;
-  margin-bottom: 4px;
-  box-shadow: 2px 2px 0px var(--ink);
 }
 
-.canvas-wrapper {
+/* Full-Section Sketchpad Layout (Header UI + Full Middle Canvas + Footer Toolbars) */
+.char-sketchpad-stage {
+  gap: 0;
+}
+
+.full-sketchpad-canvas-area {
   position: relative;
-  width: clamp(120px, 23dvh, 196px);
-  height: clamp(120px, 23dvh, 196px);
-  flex-shrink: 1;
-  border-radius: 14px 10px 16px 12px;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border-radius: 14px 10px 0 0;
   overflow: hidden;
   border: 3px solid var(--ink);
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.55);
   background: #181a2c;
   touch-action: none;
 }
@@ -576,13 +528,28 @@
   touch-action: none;
 }
 
+.sketchpad-footer-bar {
+  flex-shrink: 0;
+  background: var(--cream-polaroid);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  border-top: none;
+  border-radius: 0 0 16px 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 0 var(--ink);
+}
+
 .draw-toolbar {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 0;
   width: 100%;
 }
 
@@ -1419,41 +1386,25 @@
     font-size: 0.74rem;
   }
 
-  .char-stage2-banner {
-    display: none;
-  }
-
-  .drawing-studio {
-    margin: 0 auto;
-    padding: 5px 8px 6px;
-    max-width: 256px;
-    transform: none;
-  }
-
-  .canvas-wrapper {
-    width: clamp(106px, 21dvh, 162px);
-    height: clamp(106px, 21dvh, 162px);
+  .sketchpad-footer-bar {
+    padding: 6px 8px;
+    gap: 5px;
   }
 
   .draw-toolbar {
     gap: 4px;
-    margin-top: 5px;
+    margin-top: 0;
     flex-wrap: nowrap;
   }
 
   .color-swatch {
-    width: 21px;
-    height: 21px;
+    width: 22px;
+    height: 22px;
   }
 
   .brush-btn {
-    padding: 3px 6px;
-    font-size: 0.7rem;
-  }
-
-  .char-stage2-actions .btn {
-    padding: 7px 14px;
-    font-size: 0.92rem;
+    padding: 4px 7px;
+    font-size: 0.72rem;
   }
 
   .my-char-banner {
