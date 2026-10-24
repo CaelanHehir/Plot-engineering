@@ -96,6 +96,15 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeTopMenu();
+      closeSettingsModal();
+      closeApiKeyModal();
+      closeQrPopup();
+      if (app.scenarioPopupOpen) closeScenarioPopup();
+    }
+  });
 });
 
 function toggleTopMenu(e) {

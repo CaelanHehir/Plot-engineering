@@ -85,7 +85,7 @@
             </p>
             <div class="form-group">
               <label for="host-player-name">Your Nickname</label>
-              <input id="host-player-name" type="text" class="input-field" placeholder="e.g., Alex" maxlength="24"
+              <input id="host-player-name" type="text" name="plot_host_nick_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Alex" maxlength="24"
                 onkeydown="if(event.key==='Enter') hostCreateRoom()" />
             </div>
           </div>
@@ -108,12 +108,12 @@
             <div class="join-inputs-grid">
               <div class="form-group">
                 <label for="join-room-code">Room Code</label>
-                <input id="join-room-code" type="text" class="input-field input-code" placeholder="ABCD" maxlength="4"
+                <input id="join-room-code" type="text" name="plot_room_code_nofill" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" data-lpignore="true" class="input-field input-code" placeholder="ABCD" maxlength="4"
                   onkeydown="if(event.key==='Enter') clientJoinRoom()" />
               </div>
               <div class="form-group">
                 <label for="join-player-name">Your Nickname</label>
-                <input id="join-player-name" type="text" class="input-field" placeholder="e.g., Sam" maxlength="24"
+                <input id="join-player-name" type="text" name="plot_join_nick_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Sam" maxlength="24"
                   onkeydown="if(event.key==='Enter') clientJoinRoom()" />
               </div>
             </div>
@@ -149,7 +149,6 @@
             <div class="row-gap" style="justify-content: center;">
               <button type="button" class="btn-small btn-dice" onclick="copyInviteLink()">📋 Copy Invite</button>
               <button type="button" class="btn-small" onclick="toggleLobbyQrCode()">📱 QR Code</button>
-              <button type="button" class="btn-small btn-danger" onclick="handleGlobalBack()">⬅️ Leave</button>
             </div>
           </div>
 
@@ -273,9 +272,8 @@
     <section id="screen-CHAR_CREATE" class="screen-section hidden">
       <div class="nav-bar-sub">
         <div class="row-gap">
-          <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
           <span class="badge badge-genre" id="char-camp-title">Campaign</span>
-          <span class="text-muted small" id="char-camp-desc"></span>
+          <span class="text-muted small desktop-only-inline" id="char-camp-desc"></span>
         </div>
         <div class="row-gap">
           <span id="char-create-timer" class="timer-pill hidden">⏱️ 2:00</span>
@@ -293,10 +291,10 @@
             <div class="row-between char-stage-header">
               <div class="char-step-pills">
                 <button id="char-step-btn-1" type="button" class="char-step-pill active" onclick="setCharCreateStep(1)">
-                  1️⃣ Name &amp; Bio
+                  1️⃣ Bio
                 </button>
                 <button id="char-step-btn-2" type="button" class="char-step-pill" onclick="goToCharPortraitStage()">
-                  2️⃣ Draw Portrait
+                  2️⃣ Portrait
                 </button>
                 <button id="char-step-btn-3" type="button" class="char-step-pill compact-only-inline" onclick="setCharCreateStep(3)">
                   📸 Crew
@@ -312,17 +310,17 @@
               <div class="char-inputs-col">
                 <div class="form-group">
                   <label for="char-name-input">🏷️ Character Name</label>
-                  <input id="char-name-input" type="text" class="input-field" placeholder="e.g., Brick McLargeHuge" maxlength="30" />
+                  <input id="char-name-input" type="text" name="plot_char_name_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Brick McLargeHuge" maxlength="30" />
                 </div>
 
                 <div class="form-group">
                   <label for="char-role-input">🎭 Role / Description / Vibe</label>
-                  <textarea id="char-role-input" class="input-field" rows="3" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
+                  <textarea id="char-role-input" name="plot_char_role_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" rows="2" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
                 </div>
 
                 <div id="char-quirk-group" class="form-group">
                   <label for="char-quirk-input">🎒 Starting Item or Quirk (Optional)</label>
-                  <input id="char-quirk-input" type="text" class="input-field" placeholder="e.g., Lucky Grappling Hook: Works 60% of the time" maxlength="80" />
+                  <input id="char-quirk-input" type="text" name="plot_char_quirk_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Lucky Grappling Hook: Works 60% of the time" maxlength="80" />
                 </div>
               </div>
 
@@ -336,7 +334,7 @@
               <div class="char-stage2-center">
                 <div id="char-stage2-summary" class="char-stage2-banner">Drawing Your Hero</div>
                 <div class="drawing-studio">
-                  <div class="row-between" style="width:100%; margin-bottom:4px;">
+                  <div class="row-between" style="width:100%; margin-bottom:3px;">
                     <span class="easel-top-clip" style="margin-bottom:0;">📎 SKETCHPAD</span>
                     <button type="button" class="brush-btn" onclick="randomizeMyPortraitOnly()" title="Generate a random doodle">🎲 Auto-Doodle</button>
                   </div>
@@ -345,9 +343,9 @@
                   </div>
                   <div id="draw-color-palette" class="draw-toolbar palette-bar"></div>
                   <div class="draw-toolbar tools-bar">
-                    <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">✏️ Thin</button>
-                    <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">🖌️ Med</button>
-                    <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">🖍️ Thick</button>
+                    <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">Thin</button>
+                    <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">Med</button>
+                    <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">Thick</button>
                     <button type="button" class="brush-btn" title="Eraser" onclick="selectDrawColor('#181a2c')">🧽</button>
                     <button type="button" class="brush-btn" title="Undo Stroke" onclick="undoCanvasStroke()">↩️</button>
                     <button type="button" class="brush-btn" title="Clear Canvas" onclick="clearCharacterCanvas(true)">🗑️</button>
@@ -392,7 +390,6 @@
     <section id="screen-SCENARIO" class="screen-section hidden">
       <div class="nav-bar-sub">
         <div class="row-gap">
-          <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
           <span id="scenario-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
           <button type="button" class="btn-small btn-dice" onclick="openScenarioPopup()">
             📜 Show Scenario Details
@@ -462,7 +459,6 @@
     <section id="screen-REVEAL" class="screen-section hidden">
       <div class="nav-bar-sub">
         <div class="row-gap">
-          <button type="button" class="btn-small" onclick="handleGlobalBack()">⬅️ Lobby</button>
           <button id="btn-host-reveal-prev" type="button" class="btn-small hidden" onclick="hostPrevRevealStep()">
             ⬅️ Back to Speech Bubbles
           </button>
@@ -496,7 +492,7 @@
         <button id="reveal-win-btn-story" type="button" class="window-tab-btn active" onclick="setRevealWindow('story')">
           📖 Story &amp; Verdict
         </button>
-        <button id="reveal-win-btn-ranks" type="button" class="window-tab-btn" onclick="setRevealWindow('ranks')">
+        <button id="reveal-win-btn-rankings" type="button" class="window-tab-btn" onclick="setRevealWindow('rankings')">
           🏆 Round Standings
         </button>
       </div>
@@ -575,9 +571,9 @@
   </main>
 
   <!-- ==================== QR CODE INVITE POPUP MODAL ==================== -->
-  <div id="qr-popup-modal" class="modal-backdrop hidden">
+  <div id="qr-popup-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeQrPopup()">
     <div class="modal-card wobbly-card" style="max-width:360px; text-align:center;">
-      <div class="row-between mb-1">
+      <div class="row-between mb-1 modal-header-bar">
         <h3>📱 Scan to Join Room</h3>
         <button type="button" class="btn-small" onclick="closeQrPopup()">✕ Close</button>
       </div>
@@ -590,14 +586,14 @@
   </div>
 
   <!-- ==================== SCENARIO DETAILS POPUP MODAL ==================== -->
-  <div id="scenario-popup-modal" class="modal-backdrop hidden">
+  <div id="scenario-popup-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeScenarioPopup()">
     <div class="modal-card wobbly-card scenario-modal-card">
-      <div class="row-between mb-1">
+      <div class="row-between mb-1 modal-header-bar">
         <div class="row-gap">
           <span class="cue-tag">🎬 SCENE CUE</span>
           <span id="scenario-popup-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
         </div>
-        <span class="badge badge-warn">🤫 No talking out loud!</span>
+        <span class="badge badge-warn">🤫 No talking!</span>
       </div>
       <h2 id="scenario-title" class="scenario-modal-title">Act I</h2>
       <div id="scenario-bridge-box" class="bridge-box hidden"></div>
@@ -611,31 +607,34 @@
   </div>
 
   <!-- ==================== HOST GAME SETTINGS MODAL ==================== -->
-  <div id="settings-modal" class="modal-backdrop hidden">
-    <div class="modal-card wobbly-card">
-      <div class="row-between mb-2">
+  <div id="settings-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeSettingsModal()">
+    <div class="modal-card wobbly-card settings-modal-card">
+      <div class="row-between mb-1 modal-header-bar">
         <h3>⚙️ Host House Rules</h3>
-        <button type="button" class="btn-small" onclick="closeSettingsModal()">✕ Close</button>
+        <button type="button" class="btn-small btn-danger" onclick="closeSettingsModal()">✕ Close</button>
       </div>
-      <div id="modal-settings-grid" class="settings-grid"></div>
-      <div style="text-align:right; margin-top: 14px;">
-        <button type="button" class="btn btn-gold" onclick="closeSettingsModal()">👍 Save &amp; Done</button>
+      <div id="modal-settings-grid" class="settings-grid modal-settings-grid"></div>
+      <div class="modal-footer-bar">
+        <button type="button" class="btn btn-gold btn-block" onclick="closeSettingsModal()">👍 Save &amp; Done</button>
       </div>
     </div>
   </div>
 
   <!-- ==================== GEMINI API KEY MODAL ==================== -->
-  <div id="api-key-modal" class="modal-backdrop hidden">
+  <div id="api-key-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeApiKeyModal()">
     <div class="modal-card wobbly-card" style="max-width:480px;">
-      <h3>🔑 Gemini API Key Setup (Host Only)</h3>
-      <p class="text-muted small mt-1 mb-2">
+      <div class="row-between mb-1 modal-header-bar">
+        <h3>🔑 Gemini API Key (Host Only)</h3>
+        <button type="button" class="btn-small" onclick="closeApiKeyModal()">✕ Close</button>
+      </div>
+      <p class="text-muted small mb-2">
         Paste your Google Gemini API key below. Invalid keys are automatically refused and cleared.
       </p>
       <div class="form-group">
         <label for="api-key-input">Gemini API Key</label>
-        <input id="api-key-input" type="password" class="input-field" placeholder="AIzaSy..." />
+        <input id="api-key-input" type="text" name="gemini_token_nofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field masked-key-input" placeholder="AIzaSy..." />
       </div>
-      <div class="row-between mt-2">
+      <div class="row-between mt-2 modal-footer-bar">
         <button type="button" class="btn btn-secondary" onclick="closeApiKeyModal()">Cancel</button>
         <button type="button" class="btn btn-gold" onclick="saveApiKeyFromModal()">💾 Verify &amp; Save Key</button>
       </div>

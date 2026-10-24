@@ -309,12 +309,20 @@ body {
   display: none !important;
 }
 
+.desktop-only-inline {
+  display: inline;
+}
+
 /* Locked 100dvh Multi-Window Stage for Split-Screens, Tablets & Phones (No Page Scroll) */
 @media (max-width: 1024px), (max-height: 700px) {
   html, body {
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
+  }
+
+  .desktop-only-inline {
+    display: none !important;
   }
 
   .topbar {
