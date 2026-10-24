@@ -9,6 +9,7 @@ const app = {
   hostConn: null,
   clientConns: {},
   lobbyTab: 'campaign',
+  charCreateStep: 1,
 
   // Authoritative State (managed by Host, synced to Clients)
   state: {
@@ -342,6 +343,7 @@ async function hostStartCampaign() {
   });
 
   app.state.phase = 'CHAR_CREATE';
+  app.charCreateStep = 1;
   clearCharacterCanvas(false);
 
   clearInterval(app.timerInterval);
@@ -385,6 +387,36 @@ function hostForceStartFirstRound() {
 }
 
 // --- Character Creation Controllers ---
+function setCharCreateStep(step) {
+  app.charCreateStep = step === 2 ? 2 : 1;
+  renderCharCreateScreen();
+}
+
+function goToCharPortraitStage() {
+  const name = (document.getElementById('char-name-input')?.value || '').trim();
+  const role = (document.getElementById('char-role-input')?.value || '').trim();
+  if (!name) {
+    showToast('Give your character a name first!', 'error');
+    document.getElementById('char-name-input')?.focus();
+    return;
+  }
+  if (!role) {
+    showToast("Describe your character's role or vibe first!", 'error');
+    document.getElementById('char-role-input')?.focus();
+    return;
+  }
+  app.charCreateStep = 2;
+  sfx.stepReveal();
+  renderCharCreateScreen();
+}
+
+function randomizeMyPortraitOnly() {
+  if (drawState.canvas) {
+    saveCanvasSnapshot();
+    generateProceduralPortraitDataUrl(drawState.canvas);
+  }
+}
+
 function randomizeMyCharacter() {
   const sample = RANDOM_CHARACTERS[Math.floor(Math.random() * RANDOM_CHARACTERS.length)];
   document.getElementById('char-name-input').value = sample.name;
@@ -399,6 +431,7 @@ function randomizeMyCharacter() {
     saveCanvasSnapshot();
     generateProceduralPortraitDataUrl(drawState.canvas);
   }
+  renderCharCreateScreen();
 }
 
 function submitMyCharacter() {

@@ -230,6 +230,28 @@ function renderCharCreateScreen() {
   document.getElementById('char-form-box').classList.toggle('hidden', isReady);
   document.getElementById('char-waiting-box').classList.toggle('hidden', !isReady);
 
+  const step = app.charCreateStep === 2 ? 2 : 1;
+  const stage1El = document.getElementById('char-stage-1');
+  const stage2El = document.getElementById('char-stage-2');
+  const stepBtn1 = document.getElementById('char-step-btn-1');
+  const stepBtn2 = document.getElementById('char-step-btn-2');
+  if (stage1El) stage1El.classList.toggle('hidden', step !== 1);
+  if (stage2El) stage2El.classList.toggle('hidden', step !== 2);
+  if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
+  if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
+
+  const summaryBanner = document.getElementById('char-stage2-summary');
+  if (summaryBanner) {
+    const nameVal = (document.getElementById('char-name-input')?.value || '').trim() || 'Your Hero';
+    const roleVal = (document.getElementById('char-role-input')?.value || '').trim();
+    summaryBanner.innerHTML = `🎨 Drawing: <strong>${escapeHtml(nameVal)}</strong>${roleVal ? ` <span class="text-muted small">(${escapeHtml(roleVal)})</span>` : ''}`;
+  }
+
+  const rosterCard = document.getElementById('char-roster-card');
+  if (rosterCard) {
+    rosterCard.classList.toggle('mobile-hide-while-editing', !isReady);
+  }
+
   const statusEl = document.getElementById('char-ready-list');
   statusEl.innerHTML = app.state.players.map(p => {
     const ready = Boolean(p.character && p.character.ready);

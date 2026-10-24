@@ -230,6 +230,10 @@ function clientJoinRoom() {
         const prevPhase = app.state.phase;
         const prevReveal = app.state.revealStep;
         app.state = msg.state;
+        if (prevPhase !== 'CHAR_CREATE' && app.state.phase === 'CHAR_CREATE') {
+          app.charCreateStep = 1;
+          clearCharacterCanvas(false);
+        }
         if (prevPhase !== app.state.phase || prevReveal !== app.state.revealStep) {
           sfx.stepReveal();
         }
