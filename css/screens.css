@@ -33,7 +33,7 @@
   letter-spacing: 2px;
   color: var(--accent-gold);
   -webkit-text-stroke: 2.5px var(--ink);
-  text-shadow: 4px 4px 0px var(--ink), 7px 7px 0px var(--primary-dark);
+  text-shadow: none;
   margin-bottom: 6px;
   line-height: 1.05;
   animation: sketchBoil 2.2s infinite ease-in-out;
