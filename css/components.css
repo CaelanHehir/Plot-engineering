@@ -345,7 +345,7 @@
   border: 2.5px solid var(--ink);
   outline: 2px solid var(--cream-polaroid);
   box-shadow: 3px 3px 0px var(--ink);
-  background: #181a2c;
+  background: #ffffff;
   flex-shrink: 0;
   transform: rotate(-1.5deg);
 }
@@ -358,7 +358,7 @@
   border: 3px solid var(--ink);
   outline: 2.5px solid var(--accent-gold);
   box-shadow: 4px 4px 0px var(--ink);
-  background: #181a2c;
+  background: #ffffff;
   flex-shrink: 0;
   transform: rotate(-2deg);
 }
@@ -371,7 +371,7 @@
   border: 2px solid var(--ink);
   outline: 1.5px solid var(--cream-polaroid);
   box-shadow: 2px 2px 0px var(--ink);
-  background: #181a2c;
+  background: #ffffff;
   vertical-align: middle;
   flex-shrink: 0;
   transform: rotate(-1.5deg);

@@ -143,7 +143,7 @@ function syncCanvasToContainer() {
   canvas.height = targetH;
 
   const ctx = drawState.ctx;
-  ctx.fillStyle = '#181a2c';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, targetW, targetH);
 
   // Rescale and center old artwork into the new dimensions
@@ -201,14 +201,14 @@ function undoCanvasStroke() {
 }
 
 /**
- * Clears the drawing canvas back to dark chalkboard slate.
+ * Clears the drawing canvas back to white paper.
  * @param {boolean} recordUndo - Whether to record snapshot before wiping
  */
 function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
   if (recordUndo) saveCanvasSnapshot();
   const ctx = drawState.ctx;
-  ctx.fillStyle = '#181a2c';
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, drawState.canvas.width, drawState.canvas.height);
 }
 
@@ -224,7 +224,7 @@ function exportCompactAvatar(sourceCanvas) {
   out.width = 240;
   out.height = 240;
   const outCtx = out.getContext('2d');
-  outCtx.fillStyle = '#181a2c';
+  outCtx.fillStyle = '#ffffff';
   outCtx.fillRect(0, 0, 240, 240);
 
   const scale = Math.min(240 / sourceCanvas.width, 240 / sourceCanvas.height);

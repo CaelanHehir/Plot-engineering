@@ -569,25 +569,15 @@ function hostForceStartFirstRound() {
  */
 function setCharCreateStep(step) {
   app.charCreateStep = step === 2 ? 2 : 1;
+  sfx.stepReveal();
   renderCharCreateScreen();
 }
 
 /**
- * Validates Stage 1 inputs (Name and Role) and advances to Stage 2 (Sketchpad canvas).
+ * Advances to Stage 2 (Portrait sketchpad canvas).
+ * Allows transitioning before bio is completed so players can draw first.
  */
 function goToCharPortraitStage() {
-  const name = (document.getElementById('char-name-input')?.value || '').trim();
-  const role = (document.getElementById('char-role-input')?.value || '').trim();
-  if (!name) {
-    showToast('Give your character a name first!', 'error');
-    document.getElementById('char-name-input')?.focus();
-    return;
-  }
-  if (!role) {
-    showToast("Describe your character's role or vibe first!", 'error');
-    document.getElementById('char-role-input')?.focus();
-    return;
-  }
   app.charCreateStep = 2;
   sfx.stepReveal();
   renderCharCreateScreen();
@@ -604,10 +594,14 @@ function submitMyCharacter() {
 
   if (!name) {
     showToast('Give your character a name!', 'error');
+    setCharCreateStep(1);
+    document.getElementById('char-name-input')?.focus();
     return;
   }
   if (!role) {
     showToast("Describe your character's role, class, or vibe!", 'error');
+    setCharCreateStep(1);
+    document.getElementById('char-role-input')?.focus();
     return;
   }
 
