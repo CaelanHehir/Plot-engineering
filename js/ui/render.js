@@ -368,7 +368,7 @@ function renderCharCreateScreen() {
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
 
   if (step === 2 && !isReady && typeof syncCanvasToContainer === 'function') {
-    requestAnimationFrame(() => syncCanvasToContainer());
+    requestAnimationFrame(() => syncCanvasToContainer(true));
   }
 
   const statusEl = document.getElementById('char-ready-list');

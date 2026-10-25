@@ -121,22 +121,30 @@ function initDrawingCanvas() {
 /**
  * Dynamically resizes the HTML5 canvas resolution to match its CSS display box
  * while copying existing artwork so drawings are preserved across rotations/resizes.
+ * 
+ * @param {boolean} [forceRepaint=false] - Force re-initialization and fill with white
  */
-function syncCanvasToContainer() {
+function syncCanvasToContainer(forceRepaint = false) {
   const canvas = drawState.canvas;
   if (!canvas) return;
   const rect = canvas.getBoundingClientRect();
   const targetW = Math.round(rect.width);
   const targetH = Math.round(rect.height);
   if (targetW < 40 || targetH < 40) return;
-  if (Math.abs(canvas.width - targetW) <= 2 && Math.abs(canvas.height - targetH) <= 2) return;
 
-  // Snapshot current artwork to temporary off-screen canvas
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = canvas.width;
-  tempCanvas.height = canvas.height;
-  const tempCtx = tempCanvas.getContext('2d');
-  tempCtx.drawImage(canvas, 0, 0);
+  const sizeChanged = Math.abs(canvas.width - targetW) > 2 || Math.abs(canvas.height - targetH) > 2;
+  if (!sizeChanged && !forceRepaint) return;
+
+  // Snapshot current artwork if canvas has valid dimensions and history
+  const hasHistory = drawState.history.length > 0;
+  let tempCanvas = null;
+  if (hasHistory && canvas.width > 0 && canvas.height > 0) {
+    tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width;
+    tempCanvas.height = canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.drawImage(canvas, 0, 0);
+  }
 
   // Update canvas resolution to match new container dimensions
   canvas.width = targetW;
@@ -146,13 +154,15 @@ function syncCanvasToContainer() {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, targetW, targetH);
 
-  // Rescale and center old artwork into the new dimensions
-  const scale = Math.min(targetW / tempCanvas.width, targetH / tempCanvas.height);
-  const drawW = tempCanvas.width * scale;
-  const drawH = tempCanvas.height * scale;
-  const offsetX = (targetW - drawW) / 2;
-  const offsetY = (targetH - drawH) / 2;
-  ctx.drawImage(tempCanvas, offsetX, offsetY, drawW, drawH);
+  // Rescale and center old artwork into the new dimensions if exists
+  if (tempCanvas) {
+    const scale = Math.min(targetW / tempCanvas.width, targetH / tempCanvas.height);
+    const drawW = tempCanvas.width * scale;
+    const drawH = tempCanvas.height * scale;
+    const offsetX = (targetW - drawW) / 2;
+    const offsetY = (targetH - drawH) / 2;
+    ctx.drawImage(tempCanvas, offsetX, offsetY, drawW, drawH);
+  }
 }
 
 /**

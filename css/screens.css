@@ -564,7 +564,7 @@
   border-radius: 14px 10px 0 0;
   overflow: hidden;
   border: 3px solid var(--ink);
-  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.08);
   background: #ffffff;
   touch-action: none;
 }
@@ -575,6 +575,7 @@
   display: block;
   cursor: crosshair;
   touch-action: none;
+  background-color: #ffffff;
 }
 
 .sketchpad-footer-bar {
