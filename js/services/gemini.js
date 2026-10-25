@@ -3,7 +3,7 @@
  * 
  * Handles:
  * 1. API Key storage and validation against Google's Models API (v1beta).
- * 2. Model Auto-Discovery with priority ranking (e.g. gemini-2.5-flash, gemini-2.0-flash).
+ * 2. Model Auto-Discovery with priority ranking (always gemini 3 flash, never 2.5).
  * 3. AI Campaign Generation: creates 3-4 act comedy stories with scenarios & hidden comedic hooks.
  * 4. AI Story Judging & Narration: evaluates player moves based on Coordination, Coherence,
  *    and Humor, ensuring funny/unrealistic moves succeed when they fit together, and
@@ -13,6 +13,10 @@
 
 /** Cached name of the active, verified Gemini text model */
 let cachedModelName = localStorage.getItem('chaos_coop_gemini_model') || '';
+if (cachedModelName.includes('2.5') || cachedModelName.includes('2-5')) {
+  cachedModelName = '';
+  localStorage.removeItem('chaos_coop_gemini_model');
+}
 
 /** Flag tracking whether the stored API key has been verified against Google's endpoint */
 let isApiKeyVerified = false;
@@ -80,6 +84,7 @@ async function validateAndDiscoverModels(apiKey) {
       const name = (m.name || '').toLowerCase();
       if (!methods.includes('generateContent')) return false;
       if (!name.includes('gemini')) return false;
+      if (name.includes('2.5') || name.includes('2-5')) return false;
       if (
         name.includes('tts') ||
         name.includes('image') ||
@@ -100,16 +105,10 @@ async function validateAndDiscoverModels(apiKey) {
   }
 
   const preferredOrder = [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-preview',
-    'gemini-3-flash-preview',
     'gemini-3-flash',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-001',
-    'gemini-flash-latest',
-    'gemini-2.5-flash-lite',
-    'gemini-2.5-pro',
-    'gemini-pro-latest'
+    'gemini-3-flash-preview',
+    'gemini-3.0-flash',
+    'gemini-3.0-flash-preview'
   ];
 
   const sorted = [];
@@ -122,7 +121,21 @@ async function validateAndDiscoverModels(apiKey) {
     if (partial) sorted.push(partial);
   }
   for (const s of supported) {
-    if (!sorted.includes(s)) sorted.push(s);
+    const lower = s.toLowerCase();
+    if (
+      !lower.includes('2.5') &&
+      !lower.includes('2-5') &&
+      (lower.includes('gemini-3') || lower.includes('gemini-3.0')) &&
+      lower.includes('flash') &&
+      !sorted.includes(s)
+    ) {
+      sorted.push(s);
+    }
+  }
+
+  // Always ensure gemini-3-flash is available as first choice
+  if (!sorted.includes('gemini-3-flash')) {
+    sorted.unshift('gemini-3-flash');
   }
 
   cachedModelName = sorted[0];
@@ -146,10 +159,15 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
     throw new Error('No Gemini API key provided.');
   }
 
-  const candidateModels = await validateAndDiscoverModels(cleanKey);
+  const candidateModels = (await validateAndDiscoverModels(cleanKey))
+    .filter(m => !m.includes('2.5') && !m.includes('2-5'));
+  if (candidateModels.length === 0) {
+    candidateModels.push('gemini-3-flash');
+  }
   const errors = [];
 
   for (const model of candidateModels.slice(0, 4)) {
+    if (model.includes('2.5') || model.includes('2-5')) continue;
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
       const fullPrompt = `${systemInstruction}\n\nIMPORTANT: Return ONLY valid JSON with no extra commentary.\n\nINPUT:\n${userPrompt}`;

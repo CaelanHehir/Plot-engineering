@@ -211,7 +211,11 @@ function closeSettingsModal() {
  */
 function updateApiKeyBadge(verified = isApiKeyVerified) {
   const badge = document.getElementById('api-key-status-badge');
-  const activeModel = localStorage.getItem('chaos_coop_gemini_model') || '';
+  let activeModel = localStorage.getItem('chaos_coop_gemini_model') || '';
+  if (activeModel.includes('2.5') || activeModel.includes('2-5')) {
+    activeModel = '';
+    localStorage.removeItem('chaos_coop_gemini_model');
+  }
   if (badge) {
     const isOk = Boolean(verified && getStoredApiKey());
     badge.className = 'badge ' + (isOk ? 'badge-success' : 'badge-warn');
