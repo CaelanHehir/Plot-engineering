@@ -217,11 +217,7 @@ function handleClientMessageOnHost(conn, msg) {
   if (msg.type === 'SUBMIT_ACTION') {
     if (app.state.phase === 'SCENARIO') {
       app.state.submissions[msg.playerId] = (msg.action || '').trim();
-      if (msg.hideAction) {
-        app.state.hiddenSubmissions[msg.playerId] = true;
-      } else {
-        delete app.state.hiddenSubmissions[msg.playerId];
-      }
+      app.state.hiddenSubmissions[msg.playerId] = true;
       sfx.lockIn();
       broadcastState();
       checkAllActionsSubmitted();
@@ -357,19 +353,24 @@ function stripCampaignSecrets(campaign) {
 
 /**
  * Returns a sanitized copy of the authoritative game state safe for client broadcast.
- * Masks in-progress action submissions as '__LOCKED_IN__' so teammates cannot peek.
+ * Masks in-progress action submissions as '__LOCKED_IN__' so teammates cannot peek,
+ * and ensures actions remain hidden from other players during reveal.
  * 
+ * @param {string|null} [forPlayerId] - ID of the recipient peer
  * @returns {object} Public game state payload
  */
-function getPublicState() {
+function getPublicState(forPlayerId = null) {
   const maskedSubmissions = {};
   for (const pid of Object.keys(app.state.submissions)) {
     if (app.state.phase === 'SCENARIO') {
-      maskedSubmissions[pid] = '__LOCKED_IN__';
-    } else if (app.state.hiddenSubmissions && app.state.hiddenSubmissions[pid]) {
-      maskedSubmissions[pid] = '__SECRET_ACTION__';
+      maskedSubmissions[pid] = (pid === forPlayerId) ? app.state.submissions[pid] : '__LOCKED_IN__';
     } else {
-      maskedSubmissions[pid] = app.state.submissions[pid];
+      // Actions are always hidden from other players
+      if (pid === forPlayerId) {
+        maskedSubmissions[pid] = app.state.submissions[pid];
+      } else {
+        maskedSubmissions[pid] = '__SECRET_ACTION__';
+      }
     }
   }
 
@@ -386,12 +387,11 @@ function getPublicState() {
  */
 function broadcastState() {
   if (!app.isHost) return;
-  const pubState = getPublicState();
   for (const pid of Object.keys(app.clientConns)) {
     const conn = app.clientConns[pid];
     if (conn && conn.open) {
       try {
-        conn.send({ type: 'STATE_UPDATE', state: pubState });
+        conn.send({ type: 'STATE_UPDATE', state: getPublicState(pid) });
       } catch (e) {
         console.warn('Error broadcasting to client:', e);
       }

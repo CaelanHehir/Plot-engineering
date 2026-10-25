@@ -730,8 +730,6 @@ function startScenarioRound(roundIndex) {
 
   const actionInput = document.getElementById('scenario-action-input');
   if (actionInput) actionInput.value = '';
-  const hideCheck = document.getElementById('scenario-hide-action');
-  if (hideCheck) hideCheck.checked = false;
 
   app.state.players.forEach(p => {
     const deadMod = getPlayerMetaMod(p, 'DEAD');
@@ -798,9 +796,7 @@ function submitMyAction() {
   }
 
   const input = document.getElementById('scenario-action-input');
-  const hideCheck = document.getElementById('scenario-hide-action');
   const action = (input ? input.value : '').trim();
-  const hideAction = Boolean(hideCheck && hideCheck.checked);
 
   if (!action) {
     showToast('Write what your character does first!', 'error');
@@ -818,25 +814,18 @@ function submitMyAction() {
 
   if (app.isHost) {
     app.state.submissions[app.myId] = action;
-    if (hideAction) {
-      app.state.hiddenSubmissions[app.myId] = true;
-    } else {
-      delete app.state.hiddenSubmissions[app.myId];
-    }
+    app.state.hiddenSubmissions[app.myId] = true;
     sfx.lockIn();
     broadcastState();
     checkAllActionsSubmitted();
   } else if (app.hostConn && app.hostConn.open) {
     app.state.submissions[app.myId] = '__LOCKED_IN__';
-    if (hideAction) {
-      app.state.hiddenSubmissions[app.myId] = true;
-    }
+    app.state.hiddenSubmissions[app.myId] = true;
     renderState();
     app.hostConn.send({
       type: 'SUBMIT_ACTION',
       playerId: app.myId,
-      action,
-      hideAction
+      action
     });
   }
 }

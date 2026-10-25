@@ -580,13 +580,12 @@ function renderRevealScreen() {
   // 1. Populate "What Everyone Decided To Do" as Cartoon Speech Bubbles & Censor Tape
   const actionsGrid = document.getElementById('reveal-actions-grid');
   actionsGrid.innerHTML = app.state.players.map((p, idx) => {
-    const isHidden = Boolean(
-      (app.state.hiddenSubmissions && app.state.hiddenSubmissions[p.id]) ||
-      app.state.submissions[p.id] === '__SECRET_ACTION__'
-    );
+    const isMe = p.id === app.myId;
     const actionText = app.state.submissions[p.id] || '(Panicked and did nothing!)';
+    const isSpecialStatus = actionText.startsWith('(💀 DEAD') || actionText.startsWith('(⛓️ LOCKED OUT');
+    const isHidden = !isMe && !isSpecialStatus;
     const quoteHtml = isHidden
-      ? `<div class="action-quote-hidden">🕵️ TOP SECRET MOVE — Redacted by Player!</div>`
+      ? `<div class="action-quote-hidden">🕵️ SECRET MOVE — Hidden from others!</div>`
       : `<blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(actionText))}"</blockquote>`;
 
     return `
