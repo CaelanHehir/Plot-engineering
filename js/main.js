@@ -517,6 +517,8 @@ async function hostStartCampaign() {
   app.state.phase = 'CHAR_CREATE';
   app.charCreateStep = 1;
   clearCharacterCanvas(false);
+  const actionInput = document.getElementById('scenario-action-input');
+  if (actionInput) actionInput.value = '';
 
   clearInterval(app.timerInterval);
   if (app.state.settings.charCreateTimer > 0) {

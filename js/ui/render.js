@@ -444,6 +444,10 @@ function renderScenarioScreen() {
   if (app.scenarioPopupKey !== roundPopupKey) {
     app.scenarioPopupKey = roundPopupKey;
     app.scenarioPopupOpen = true;
+    const actionInput = document.getElementById('scenario-action-input');
+    if (actionInput && !app.state.submissions[app.myId]) {
+      actionInput.value = '';
+    }
   }
 
   const scenModal = document.getElementById('scenario-popup-modal');

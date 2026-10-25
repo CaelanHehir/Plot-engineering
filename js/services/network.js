@@ -292,11 +292,18 @@ function clientJoinRoom() {
         renderState();
       } else if (msg.type === 'STATE_UPDATE') {
         const prevPhase = app.state.phase;
+        const prevRound = app.state.currentRound;
         const prevReveal = app.state.revealStep;
         app.state = msg.state;
         if (prevPhase !== 'CHAR_CREATE' && app.state.phase === 'CHAR_CREATE') {
           app.charCreateStep = 1;
           clearCharacterCanvas(false);
+        }
+        if ((prevPhase !== 'SCENARIO' && app.state.phase === 'SCENARIO') || prevRound !== app.state.currentRound) {
+          const actionInput = document.getElementById('scenario-action-input');
+          if (actionInput && !app.state.submissions[app.myId]) {
+            actionInput.value = '';
+          }
         }
         if (prevPhase !== app.state.phase || prevReveal !== app.state.revealStep) {
           sfx.stepReveal();
