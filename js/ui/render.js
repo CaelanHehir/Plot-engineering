@@ -894,18 +894,18 @@ function renderGameOverScreen() {
         <div class="podium-pillar place-${placeNum}">
           <div class="podium-rank-tag">${label}</div>
           ${renderAvatarHtml(p.character?.avatar, 'avatar-img-lg')}
-          <h4 class="mt-1">${escapeHtml(p.character?.name || p.name)}</h4>
-          <div class="text-muted tiny">Played by ${escapeHtml(p.name)}</div>
-          <div class="text-muted tiny">${escapeHtml(p.character?.role || '')}</div>
+          <h4 class="podium-pillar-name mt-1">${escapeHtml(p.character?.name || p.name)}</h4>
+          <div class="podium-pillar-player text-muted tiny">Played by ${escapeHtml(p.name)}</div>
+          <div class="podium-pillar-role text-muted tiny">${escapeHtml(p.character?.role || '')}</div>
           <div class="podium-score">${p.score} PTS</div>
         </div>
       `;
     };
 
     podiumStageEl.innerHTML = `
-      ${renderPillar(second, 2, '🥈 2nd Place')}
-      ${renderPillar(first, 1, '👑 1st Place')}
-      ${renderPillar(third, 3, '🥉 3rd Place')}
+      ${renderPillar(second, 2, '🥈 2nd')}
+      ${renderPillar(first, 1, '👑 1st')}
+      ${renderPillar(third, 3, '🥉 3rd')}
     `;
   }
 

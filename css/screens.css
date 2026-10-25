@@ -1221,48 +1221,64 @@
   100% { transform: translateY(0) scaleY(1); opacity: 1; }
 }
 
+.podium-main-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .podium-stage {
   display: flex;
   justify-content: center;
   align-items: flex-end;
   gap: 12px;
-  margin: 8px 0 12px;
-  padding: 8px 4px 0;
+  margin: 6px 0 10px;
+  padding: 6px 4px 0;
   flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
   background: radial-gradient(ellipse at 50% 0%, rgba(255, 212, 38, 0.18) 0%, transparent 70%);
 }
 
 .podium-pillar {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
   background: var(--bg-input);
   border: 3.5px solid var(--ink);
   border-radius: 20px 14px 8px 8px;
   box-shadow: 4px 4px 0px var(--ink);
-  padding: 10px 8px;
+  padding: 8px 6px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
   transform-origin: bottom center;
   animation: podiumRise 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
 .podium-pillar.place-1 {
-  min-height: clamp(135px, 21dvh, 185px);
+  height: 250px;
+  min-height: 250px;
   outline: 3px solid var(--accent-gold);
   background: linear-gradient(180deg, #4b3918 0%, #241c3d 100%);
   animation-delay: 0.18s;
 }
 
 .podium-pillar.place-2 {
-  min-height: clamp(118px, 18dvh, 160px);
+  height: 210px;
+  min-height: 210px;
   outline: 2.5px solid #cfd8dc;
   background: linear-gradient(180deg, #2e3548 0%, #1e1a34 100%);
   animation-delay: 0.08s;
 }
 
 .podium-pillar.place-3 {
-  min-height: clamp(105px, 16dvh, 142px);
+  height: 175px;
+  min-height: 175px;
   outline: 2.5px solid #ffab91;
   background: linear-gradient(180deg, #3e2729 0%, #1e1a34 100%);
   animation-delay: 0s;
@@ -1270,19 +1286,20 @@
 
 .podium-rank-tag {
   font-family: var(--font-display);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  padding: 2px 10px;
+  padding: 2px 8px;
   border-radius: var(--wobbly-pill);
   border: 2px solid var(--ink);
   box-shadow: 2px 2px 0px var(--ink);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 .place-1 .podium-rank-tag {
   background: var(--accent-gold);
   color: var(--ink);
-  font-size: 0.96rem;
+  font-size: 0.92rem;
   transform: rotate(-2deg);
 }
 
@@ -1296,14 +1313,42 @@
   color: var(--ink);
 }
 
+.podium-pillar-name {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.92rem;
+  margin: 3px 0 1px;
+}
+
+.podium-pillar-player {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.podium-pillar-role {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
 .podium-score {
   margin-top: auto;
-  padding-top: 6px;
+  padding-top: 4px;
   font-family: var(--font-title);
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   letter-spacing: 1px;
   color: var(--accent-gold);
   text-shadow: 2px 2px 0px var(--ink);
+  white-space: nowrap;
 }
 
 .honorable-mention-banner {
@@ -1483,14 +1528,72 @@
     font-size: 0.82rem;
   }
 
+  .podium-main-card {
+    padding: 8px 10px;
+  }
+
   .podium-stage {
-    gap: 6px;
-    margin: 4px 0 8px;
-    padding: 4px 2px 0;
+    gap: 5px;
+    margin: 2px 0 6px;
+    padding: 2px 2px 0;
   }
 
   .podium-pillar {
-    padding: 6px 4px;
+    padding: 4px 2px;
+    border-width: 2px;
+    border-radius: 12px 10px 6px 6px;
+    box-shadow: 2px 2px 0px var(--ink);
+  }
+
+  .podium-pillar.place-1 {
+    height: 175px;
+    min-height: 175px;
+  }
+
+  .podium-pillar.place-2 {
+    height: 148px;
+    min-height: 148px;
+  }
+
+  .podium-pillar.place-3 {
+    height: 122px;
+    min-height: 122px;
+  }
+
+  .podium-pillar .avatar-img-lg {
+    width: 36px;
+    height: 36px;
+    border-width: 2px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 0px var(--ink);
+  }
+
+  .podium-rank-tag {
+    font-size: 0.68rem;
+    padding: 1px 5px;
+    margin-bottom: 2px;
+  }
+
+  .place-1 .podium-rank-tag {
+    font-size: 0.72rem;
+  }
+
+  .podium-pillar-name {
+    font-size: 0.78rem;
+    margin: 2px 0 0;
+  }
+
+  .podium-pillar-player {
+    font-size: 0.64rem;
+  }
+
+  .podium-pillar-role {
+    display: none;
+  }
+
+  .podium-score {
+    font-size: 0.88rem;
+    padding-top: 2px;
   }
 
   .finale-banner-title {
