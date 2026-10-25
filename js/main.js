@@ -669,15 +669,24 @@ function unlockMyCharacterToEdit() {
 
 /**
  * Checks if all connected players have submitted ready characters.
- * Automatically initiates Round 1 if everyone is ready.
+ * Stops the character creation timer and notifies connected players so the host can start the campaign.
  */
 function checkAllCharactersReady() {
   if (!app.isHost) return;
   const allReady = app.state.players.length > 0 && app.state.players.every(p => p.character && p.character.ready);
   if (allReady) {
     clearInterval(app.timerInterval);
-    startScenarioRound(0);
   }
+  broadcastState();
+}
+
+/**
+ * Host manually launches the campaign round 1 once all characters are locked in.
+ */
+function hostStartFirstRound() {
+  if (!app.isHost) return;
+  clearInterval(app.timerInterval);
+  startScenarioRound(0);
 }
 
 // --- Scenario Round & Action Submission Controllers ---

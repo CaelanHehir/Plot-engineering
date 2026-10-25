@@ -312,6 +312,9 @@
           <button id="btn-host-skip-char" type="button" class="btn-small hidden" onclick="hostForceStartFirstRound()">
             ⏭️ Force Start Round 1
           </button>
+          <button id="btn-host-start-campaign-top" type="button" class="btn btn-gold btn-small hidden" onclick="hostStartFirstRound()">
+            🎬 Start campaign
+          </button>
         </div>
       </div>
 
@@ -380,7 +383,12 @@
 
           <div id="char-waiting-box" class="hidden locked-stamp-box" style="margin:auto; text-align:center;">
             <div class="big-locked-stamp">🎨 HERO LOCKED IN!</div>
-            <p class="text-muted small mb-2">Admire the Polaroid gallery while the rest of the crew finishes doodling...</p>
+            <p id="char-waiting-text" class="text-muted small mb-2">Admire the Polaroid gallery while the rest of the crew finishes doodling...</p>
+            <div id="char-waiting-host-action" class="mb-2 hidden">
+              <button type="button" class="btn btn-gold btn-block" onclick="hostStartFirstRound()">
+                🎬 Start campaign
+              </button>
+            </div>
             <button type="button" class="btn btn-secondary" onclick="unlockMyCharacterToEdit()">
               ✏️ Re-Draw / Edit Hero
             </button>
@@ -396,6 +404,15 @@
             </button>
           </div>
           <div id="char-ready-list" class="polaroid-roster-grid panel-scroll mt-1"></div>
+          <div id="char-all-ready-host-action" class="mt-2 hidden" style="width:100%;">
+            <button id="btn-host-start-campaign" type="button" class="btn btn-gold btn-block" onclick="hostStartFirstRound()">
+              🎬 Start campaign
+            </button>
+          </div>
+          <div id="char-all-ready-client-wait" class="waiting-host-banner mt-2 hidden" style="width:100%; justify-content:center;">
+            <span class="waiting-pulse-dot"></span>
+            <span>All characters ready! Waiting for host to start campaign...</span>
+          </div>
         </div>
       </div>
     </section>
