@@ -38,7 +38,7 @@ The room host needs a [Google Gemini API Key](https://aistudio.google.com/app/ap
 ---
 
 ## Project Structure
-```python
+```bash
 Plot-engineering/
 ├── .gitignore
 ├── .nojekyll                 # Disables Jekyll processing on GitHub Pages
