@@ -33,8 +33,7 @@ Each game has a theme chosen by the host, and consists of multiple rounds. Each 
 ## Playing the game
 The game is hosted for free on GitHub Pages. You can play it in your web browser **[here](https://caelanhehir.github.io/Plot-engineering/)**!
 
-### Requirements
-- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one).
+The room host needs a [Google Gemini API Key](https://aistudio.google.com/app/apikey) for the game to work correctly.
 
 ---
 
