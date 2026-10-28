@@ -1,7 +1,4 @@
-# 🎭 Plot Engineering
-
-> **A Co-Op AI Comedy Scenario Party Game**
-> Doodle your hero, engineer chaotic multi-round adventures together in total silence, and let Google Gemini judge your team's coordination, coherence, and comedic genius!
+# Plot Engineering
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen?style=flat-square&logo=github)](https://caelanhehir.github.io/Plot-engineering/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
@@ -10,43 +7,52 @@
 
 ---
 
-## 🌟 Highlights
+> **A Multiplayer Storytelling Party Game!**
 
-- **🎨 In-Browser Doodle Canvas:** Draw and personalize your hero avatar with responsive touch & mouse drawing tools.
-- **🤫 The Silent Challenge:** Players must coordinate actions without speaking aloud to tackle wacky escalating story crises.
-- **🤖 Gemini AI Game Master:** Leverages Google's high-speed Gemini Flash model to evaluate team cohesion, calculate player scores, and narrate cinematic, side-splitting round recaps.
-- **🌐 Peer-to-Peer Multiplayer:** Free, frictionless room-code matchmaking powered by PeerJS WebRTC—no dedicated backend or login required.
-- **🔊 Procedural Audio System:** Built-in retro/party game sound synthesizer using the Web Audio API with zero external audio assets.
-- **📱 Fully Responsive:** Optimized layout with smooth animations, custom cartoon typography, and touch support across desktop and mobile.
+Plot engineering is a role-playing couch party game where players work together to get through different scenarios, and create a funny story along the way.
+
+Each game has a theme chosen by the host, and consists of multiple rounds. Every round, the group will be put in a tricky situation, and each player has to write out their plan **without communicating with the others**! The **Judge** will then paint a picture of what happened using each player's input. If everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail and the game ends.
 
 ---
 
-## 🚀 Live Demo & Play
+## Gameplay Features
+- **Character creation**: Players choose their character's name & occupation, and can even give them an item or ability to start with. Character traits have an impact on how the Judge evaluates them.
+- **Portrait Canvas**: A feature allowing players to draw their character's portrait before the game starts. This doesn't have any effect on the gameplay but I thought it was cool.
+- **Scoreboard**: After each round, players are ranked depending on how much they contributed to passing the level.
+- **Character traits**: Depending on what happens during a round, characters may gain positive or negative effects that will impact what they are able to do. Players must keep these in mind while choosing their actions!
+- **The Judge**: A system that analyzes the team's actions, plays out the scenario, and decides whether they passed or failed. It takes into account humour, coherence, and collaboration.
 
-Play immediately in your web browser:
-👉 **[https://caelanhehir.github.io/Plot-engineering/](https://caelanhehir.github.io/Plot-engineering/)**
 
-### Requirements to Host
-- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (Host only — joining players do not need an API key).
+## Technical Features
+- **AI Storytelling**: The game uses an LLM to analyze player input, generate the story, decide who contributed the most, whether the team succeeded or not, etc... It requires the player hosting the room to input a Gemini API key in order to work (check out the [Security](#security) section for privacy concerns).
+- **Peer-to-Peer Multiplayer**: Creating a room works using PeerJS WebRTC, which allows players themselves to host the room on their device. No backend is required to keep the game running.
+- **Procedural Audio System**: Sounds are generated using the the Web Audio API, meaning no external audio assets need to be loaded.
 
 ---
 
-## 📁 Project Structure
+## Playing the game
+The game is hosted for free on GitHub Pages. You can play it in your web browser **[here](https://caelanhehir.github.io/Plot-engineering/)**!
 
-```text
+### Requirements
+- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one).
+
+---
+
+## Project Structure
+```python
 Plot-engineering/
-├── .gitignore             # Standard git ignore definitions
-├── .nojekyll              # Bypasses Jekyll processing on GitHub Pages
-├── LICENSE                # MIT License
-├── README.md              # Project documentation
-├── index.html             # Application entrypoint & screen templates
+├── .gitignore
+├── .nojekyll                 # Disables Jekyll processing on GitHub Pages
+├── LICENSE                   # MIT License
+├── README.md                 # That's me!
+├── index.html                # Application entrypoint & screen templates
 └── assets/
     ├── css/
-    │   ├── base.css       # Design tokens, typography, and reset styles
-    │   ├── components.css # Cards, buttons, modals, badges, and HUD
-    │   └── screens.css    # Screen layouts, podiums, and animations
+    │   ├── base.css          # Design tokens, typography, and reset styles
+    │   ├── components.css    # Cards, buttons, modals, badges, and HUD
+    │   └── screens.css       # Screen layouts, podiums, and animations
     └── js/
-        ├── main.js        # App bootstrapping, routing, and event delegation
+        ├── main.js           # App bootstrapping, routing, and event delegation
         ├── data/
         │   └── campaigns.js  # Scenario library and campaign templates
         ├── features/
@@ -63,33 +69,30 @@ Plot-engineering/
 
 ---
 
-## 🛠️ Local Development
+## Local Development
+Plot Engineering uses zero build steps, which makes working on it really easy. You can run and modify it immediately using any local static file server.
 
-Because Plot Engineering is built with zero build steps or transpilation requirements, you can run and modify it immediately using any local static file server:
-
-### Option 1: Python
+### Example 1: Python
 ```bash
 python -m http.server 8000
 ```
 Then visit `http://localhost:8000` in your browser.
 
-### Option 2: Node.js (npx)
+### Example 2: Node.js (npx)
 ```bash
 npx serve .
 ```
 
-### Option 3: VS Code Live Server
+### Example 3: VS Code Live Server
 Right-click `index.html` and click **"Open with Live Server"**.
 
 ---
 
-## 🔒 Privacy & Security
-
-- **Client-Side Only:** Your Gemini API key is stored securely in your browser's `localStorage` and is never sent to any external server other than Google's official Gemini endpoint (`generativelanguage.googleapis.com`).
-- **P2P Multiplayer:** Game state and doodles are synchronized directly between player browsers using end-to-end WebRTC peer connections.
+## Security
+- **Client-Side Only:** User Gemini API keys are stored securely in their browser's `localStorage` and are never sent to any external server other than Google's official Gemini endpoint.
+- **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
 
 ---
 
-## 📜 License
-
+## License
 Distributed under the MIT License. See [LICENSE](LICENSE) for full details.
