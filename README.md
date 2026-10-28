@@ -9,9 +9,9 @@
 
 > **A Multiplayer Storytelling Party Game!**
 
-Plot engineering is a role-playing couch party game where players work together to get through different scenarios, and create a funny story along the way.
+Plot engineering is a role-playing couch party game where players work together to get through different scenarios, creating a funny story along the way.
 
-Each game has a theme chosen by the host, and consists of multiple rounds. Every round, the group will be put in a tricky situation, and each player has to write out their plan **without communicating with the others**! The **Judge** will then paint a picture of what happened using each player's input. If everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail and the game ends.
+Each game has a theme chosen by the host, and consists of multiple rounds. Each round, the group will be put in a tricky situation, and the players have to write out their plans **without communicating with each other**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
 
 ---
 
