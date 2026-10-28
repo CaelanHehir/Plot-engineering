@@ -2,7 +2,7 @@
  * WebRTC Internet Multiplayer Service (PeerJS Host & Client Room Sync)
  * 
  * Architecture:
- * - Star topology: The host is the authoritative central node with Peer ID "chaos-coop-v1-{ROOM_CODE}".
+ * - Star topology: The host is the authoritative central node with Peer ID "plot-engineering-{ROOM_CODE}".
  * - Free PeerJS Cloud Broker is used strictly for initial WebRTC signaling (SDP handshake).
  * - After connection, all state synchronization, action submissions, and judging broadcasts
  *   flow directly peer-to-peer via DataChannels without central server costs or limits.
@@ -14,7 +14,7 @@
  */
 
 /** Shared PeerJS ID namespace prefix */
-const PEER_PREFIX = 'chaos-coop-v1-';
+const PEER_PREFIX = 'plot-engineering-';
 
 /**
  * Generates an uppercase 4-letter alphanumeric room code, excluding ambiguous characters (I, O, 1, 0).
@@ -31,7 +31,7 @@ function generateRoomCode() {
 
 /**
  * Initializes a new multiplayer room as the Host.
- * Connects to the PeerJS signaling broker using the deterministic ID "chaos-coop-v1-{CODE}".
+ * Connects to the PeerJS signaling broker using the deterministic ID "plot-engineering-{CODE}".
  */
 function hostCreateRoom() {
   const hostNameInput = document.getElementById('host-player-name').value.trim();
