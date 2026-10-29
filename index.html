@@ -74,10 +74,9 @@
         <!-- Create Room (Host) -->
         <div id="home-host-card" class="card card-highlight wobbly-card tilt-left" style="justify-content: space-between;">
           <div>
-            <div class="card-ribbon ribbon-gold">👑 HOST STAGE</div>
             <h2>Host a New Game</h2>
             <p class="text-muted small mb-2">
-              Spin up a 4-letter Room Code for your friends! Only the Host needs a Gemini API key (or play right away in Demo Mode).
+              Create a room and share the 4-letter code. Only the host needs an AI key. No key? Demo mode works without one.
             </p>
             <div class="form-group">
               <label for="host-player-name">Your Nickname</label>
@@ -86,14 +85,13 @@
             </div>
           </div>
           <button type="button" class="btn btn-gold btn-block" onclick="hostCreateRoom()">
-            ✨ Create Room &amp; Get Code!
+            Create room
           </button>
         </div>
 
         <!-- Join Room (Player) -->
         <div id="home-join-card" class="card wobbly-card tilt-right" style="justify-content: space-between;">
           <div>
-            <div class="card-ribbon ribbon-cyan">📲 VIP PLAYER ENTRY</div>
             <h2>Join a Room</h2>
             <div id="rejoin-room-banner" class="invite-detected-banner hidden" style="cursor:pointer;" onclick="rejoinStoredRoom()">
               🔄 Rejoin room <strong id="rejoin-room-code"></strong>?
@@ -102,7 +100,7 @@
               🎟️ Invite Link Ready! Just enter your nickname below!
             </div>
             <p class="text-muted small mb-2">
-              Punch in your friend's 4-letter Room Code below to hop onto the stage!
+              Enter the 4-letter code from your host.
             </p>
             <div class="join-inputs-grid">
               <div class="form-group">
@@ -118,7 +116,7 @@
             </div>
           </div>
           <button type="button" class="btn btn-primary btn-block" onclick="clientJoinRoom()">
-            🚀 Enter Room!
+            Join room
           </button>
         </div>
       </div>
