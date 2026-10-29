@@ -474,6 +474,14 @@ function getPublicState(forPlayerId = null) {
   const maskedSubmissions = {};
   const submissionKinds = {};
 
+  // D1: Reveal other players' moves after judging / story when the House Rule is enabled
+  const canRevealMoves = Boolean(
+    app.state.settings?.revealMovesAfterStory && (
+      (app.state.phase === 'REVEAL' && app.state.revealStep >= 2 && !app.state.isJudging) ||
+      app.state.phase === 'GAME_OVER'
+    )
+  );
+
   // B11: Compute explicit submissionKinds map so eliminated/locked players render consistently on host and guests
   for (const p of app.state.players) {
     const pid = p.id;
@@ -489,7 +497,7 @@ function getPublicState(forPlayerId = null) {
     } else if (p.disconnected) {
       submissionKinds[pid] = 'away';
       maskedSubmissions[pid] = '(Was away)';
-    } else if (pid === forPlayerId || app.isHost) {
+    } else if (pid === forPlayerId || app.isHost || canRevealMoves) {
       submissionKinds[pid] = 'text';
       maskedSubmissions[pid] = app.state.submissions[pid] || '';
     } else {
@@ -498,10 +506,25 @@ function getPublicState(forPlayerId = null) {
     }
   }
 
+  const sanitizedHistory = (app.state.roundHistory || []).map(h => {
+    if (app.isHost || app.state.settings?.revealMovesAfterStory) {
+      return h;
+    }
+    const safeSubmissions = {};
+    if (h.submissions && forPlayerId && h.submissions[forPlayerId]) {
+      safeSubmissions[forPlayerId] = h.submissions[forPlayerId];
+    }
+    return {
+      ...h,
+      submissions: safeSubmissions
+    };
+  });
+
   return {
     ...app.state,
     activeCampaign: stripCampaignSecrets(app.state.activeCampaign),
     customCampaign: stripCampaignSecrets(app.state.customCampaign),
+    roundHistory: sanitizedHistory,
     submissions: maskedSubmissions,
     submissionKinds
   };

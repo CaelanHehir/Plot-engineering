@@ -1354,6 +1354,17 @@
   gap: 0.35rem;
 }
 
+.rank-move-quote {
+  margin: 0.45rem 0 0.35rem;
+}
+
+.rank-move-quote .action-quote {
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 0.4rem 0.65rem;
+  margin-top: 0.2rem;
+}
+
 /* ==================== SCREEN 6: GAME OVER ==================== */
 .finale-banner-title {
   font-family: var(--font-title);

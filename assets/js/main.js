@@ -90,7 +90,8 @@ const app = {
       strictness: 'balanced',
       allowStartingQuirk: true,
       maxModifiers: 4,
-      pointsMultiplier: 1
+      pointsMultiplier: 1,
+      revealMovesAfterStory: true
     },
 
     timeLeft: 0,
@@ -467,6 +468,8 @@ async function initUI() {
     if (keyInput) keyInput.value = '';
     updateApiKeyBadge(false);
   }
+
+  renderState();
 }
 
 // --- Navigation & Timer Helpers ---
@@ -1412,7 +1415,8 @@ async function evaluateCurrentRound() {
   app.state.roundHistory.push({
     roundIndex,
     roundTitle: roundObj.title,
-    judgment
+    judgment,
+    submissions: { ...app.state.submissions }
   });
 
   broadcastState();

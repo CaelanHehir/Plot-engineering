@@ -55,16 +55,16 @@ function renderState() {
     }
   }
 
-  // House Rules button visibility (host-only, hidden on HOME) (U1)
+  // House Rules button visibility (available on HOME, and in-game for host)
   const settingsBtn = document.getElementById('btn-top-settings');
   if (settingsBtn) {
-    settingsBtn.classList.toggle('hidden', !app.isHost || phase === 'HOME');
+    settingsBtn.classList.toggle('hidden', phase !== 'HOME' && !app.isHost);
   }
 
-  // AI Key menu button visibility (host-only) (U1)
+  // AI Key menu button visibility (available on HOME, and in-game for host)
   const aiKeyBtn = document.getElementById('menu-ai-key-btn');
   if (aiKeyBtn) {
-    aiKeyBtn.classList.toggle('hidden', !app.isHost);
+    aiKeyBtn.classList.toggle('hidden', phase !== 'HOME' && !app.isHost);
   }
 
   // Top header room code permanent pill (U1)
@@ -658,8 +658,11 @@ function renderRevealScreen() {
 
   // Populate rankings list for Step 2
   const listEl = document.getElementById('reveal-rankings-list');
+  const showMoves = Boolean(app.state.settings?.revealMovesAfterStory || app.isHost);
   listEl.innerHTML = j.rankings.map((r, i) => {
     const p = app.state.players.find(pl => pl.id === r.playerId) || { name: 'Player' };
+    const playerMove = app.state.submissions ? app.state.submissions[p.id] : '';
+    const hasReadableMove = showMoves && playerMove && !playerMove.startsWith('(') && playerMove !== '__SECRET_ACTION__' && playerMove !== '__LOCKED_IN__';
     const medal = i === 0 ? '1st MVP' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `#${i + 1}`));
     const modsAddedHtml = (r.modifiersAdded || []).map(m => {
       const { prefix, chipClass } = getModifierDisplayMeta(m);
@@ -686,6 +689,12 @@ function renderRevealScreen() {
             <div class="tiny text-muted">Total ${(p.score || 0).toLocaleString()}</div>
           </div>
         </div>
+        ${hasReadableMove ? `
+          <div class="rank-move-quote">
+            <span class="tiny text-muted">Move:</span>
+            <blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(playerMove))}"</blockquote>
+          </div>
+        ` : ''}
         <p class="rank-eval">${escapeHtml(r.evaluation)}</p>
         ${modsAddedHtml ? `<div class="new-mods-row">${modsAddedHtml}</div>` : ''}
       </div>
@@ -1013,6 +1022,7 @@ function renderGameOverScreen() {
   }
 
   const recapEl = document.getElementById('final-campaign-recap-list');
+  const showRecapMoves = Boolean(app.state.settings?.revealMovesAfterStory || app.isHost);
   if (recapEl) {
     recapEl.innerHTML = app.state.roundHistory.map((h, idx) => {
       const out = h.judgment?.outcome || 'FLYING_COLORS';
@@ -1021,6 +1031,16 @@ function renderGameOverScreen() {
         ? 'Flying Colors'
         : (out === 'BARELY_PASSED' ? 'Barely Passed' : 'Wiped Out');
       const cleanTitle = (h.roundTitle || '').replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
+      const roundMoves = showRecapMoves && h.submissions ? app.state.players.map(p => {
+        const move = h.submissions[p.id];
+        if (!move || move.startsWith('(') || move === '__SECRET_ACTION__' || move === '__LOCKED_IN__') return '';
+        return `
+          <div class="tiny text-muted mt-tight">
+            <strong>${escapeHtml(p.character?.name || p.name)}:</strong> "${escapeHtml(hyphenateLongWords(move))}"
+          </div>
+        `;
+      }).filter(Boolean).join('') : '';
+
       return `
         <div class="summary-round-item">
           <div class="row-between mb-1">
@@ -1033,6 +1053,12 @@ function renderGameOverScreen() {
           <p class="text-muted small">
             ${escapeHtml(hyphenateLongWords((h.judgment?.storyParagraphs || []).join(' ')))}
           </p>
+          ${roundMoves ? `
+            <div class="mt-1">
+              <span class="tiny text-muted"><strong>Crew moves:</strong></span>
+              ${roundMoves}
+            </div>
+          ` : ''}
         </div>
       `;
     }).join('');

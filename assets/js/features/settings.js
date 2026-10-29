@@ -92,6 +92,15 @@ const HOST_SETTINGS_SCHEMA = [
     desc: 'Allow custom starting trait.',
     type: 'checkbox',
     checkboxLabel: 'Allow Starting Trait'
+  },
+  {
+    key: 'revealMovesAfterStory',
+    idBase: 'setting-reveal-moves',
+    label: 'Reveal Moves After Story',
+    defaultTag: 'On',
+    desc: 'Show all player moves once the story plays out.',
+    type: 'checkbox',
+    checkboxLabel: 'Reveal all player moves after judging'
   }
 ];
 
@@ -172,7 +181,7 @@ function updateHostSetting(key, value) {
     app.state.settings[key] = parseInt(value, 10) || 0;
   } else if (key === 'pointsMultiplier') {
     app.state.settings[key] = parseFloat(value) || 1;
-  } else if (key === 'allowStartingQuirk') {
+  } else if (key === 'allowStartingQuirk' || key === 'revealMovesAfterStory') {
     app.state.settings[key] = Boolean(value);
   } else {
     app.state.settings[key] = value;
