@@ -697,6 +697,17 @@ function renderRevealScreen() {
   if (step1View) step1View.classList.add('hidden');
   if (step2View) step2View.classList.remove('hidden');
 
+  // B12: Show notice above story if demo judge was used as fallback
+  const noticeEl = document.getElementById('reveal-judge-notice');
+  if (noticeEl) {
+    if (j.judgeNotice) {
+      noticeEl.textContent = j.judgeNotice;
+      noticeEl.classList.remove('hidden');
+    } else {
+      noticeEl.classList.add('hidden');
+    }
+  }
+
   const roundKey = `${app.state.currentRound}-${j.headline}`;
   if (app.typewriter.activeKey !== roundKey) {
     app.revealWindow = 'story';

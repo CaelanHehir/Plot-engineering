@@ -1012,12 +1012,38 @@ async function evaluateCurrentRound() {
       });
       updateApiKeyBadge(true);
     } catch (err) {
-      showToast('Gemini API Error (' + err.message + '). Falling back to Demo Judge.', 'warn');
-      judgment = mockJudgeRound({
-        players: app.state.players,
-        submissions: app.state.submissions,
-        settings: app.state.settings
-      });
+      console.warn('Initial AI judging error:', err);
+      // B12: Retry once with short delay on rate limit or 503
+      const isRetryable = err?.message?.includes('429') || err?.message?.includes('503') || err?.code === 'RATE';
+      if (isRetryable) {
+        await new Promise(r => setTimeout(r, 1500));
+        try {
+          judgment = await judgeRoundWithAI({
+            campaign,
+            roundIndex,
+            totalRounds: campaign.rounds.length,
+            scenarioText: roundObj.scenario,
+            scenarioSecrets: roundObj.secrets || '',
+            storySoFar: app.state.storySoFar,
+            players: app.state.players,
+            submissions: app.state.submissions,
+            settings: app.state.settings,
+            apiKey
+          });
+          updateApiKeyBadge(true);
+        } catch (retryErr) {
+          console.warn('Retry AI judging error:', retryErr);
+        }
+      }
+
+      if (!judgment) {
+        judgment = mockJudgeRound({
+          players: app.state.players,
+          submissions: app.state.submissions,
+          settings: app.state.settings
+        });
+        judgment.judgeNotice = 'The AI judge was unavailable, so a demo judge decided this round.';
+      }
     }
   } else {
     await new Promise(r => setTimeout(r, 1500));
