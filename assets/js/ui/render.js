@@ -175,8 +175,8 @@ function renderLobbyScreen() {
   const waitDeskTxt = document.getElementById('client-lobby-waiting-text');
   const waitMobTxt = document.getElementById('client-lobby-waiting-mobile-text');
   const waitMsg = hasSetupStarted
-    ? 'Waiting for the Host to start the show...'
-    : 'Wait for host to set up the campaign';
+    ? 'Waiting for the host to start.'
+    : 'Waiting for the host to choose a campaign...';
   if (waitDeskTxt) waitDeskTxt.textContent = waitMsg;
   if (waitMobTxt) waitMobTxt.textContent = waitMsg;
 
@@ -255,9 +255,9 @@ function renderLobbyScreen() {
     if (hasSetupStarted) {
       snippetEl.innerHTML = `🎬 Campaign: <strong>${campIcon} ${escapeHtml(campTitle)}</strong>`;
     } else if (app.isHost) {
-      snippetEl.innerHTML = `<span class="text-muted small">🎬 Configure campaign settings below</span>`;
+      snippetEl.innerHTML = `<span class="text-muted small">Configure campaign settings below</span>`;
     } else {
-      snippetEl.innerHTML = `<span class="text-muted small">⏳ Wait for host to set up the campaign</span>`;
+      snippetEl.innerHTML = `<span class="text-muted small">Waiting for the host to choose a campaign...</span>`;
     }
   }
 }
