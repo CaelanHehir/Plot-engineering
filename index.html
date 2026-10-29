@@ -191,36 +191,26 @@
       <!-- VIEW 2: Campaign Settings Section (Shown when Host clicks 'Set up campaign') -->
       <div id="lobby-view-campaign" class="card card-highlight wobbly-card hidden" style="flex:1; min-height:0; justify-content:space-between;">
         <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
-          <div class="row-between mb-1" style="border-bottom: 2.5px dashed rgba(255,255,255,0.14); padding-bottom: 0.5rem;">
-            <div class="row-gap">
-              <button type="button" class="btn-small btn-secondary" onclick="closeLobbyCampaignSetup()">
-                Back to cast
-              </button>
-              <div class="lobby-main-tabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;">
-                <button type="button" class="lobby-tab-btn active" data-tab="campaign" onclick="switchLobbyTab('campaign')">
-                  Campaign
-                </button>
-                <button type="button" class="lobby-tab-btn" data-tab="settings" onclick="switchLobbyTab('settings')">
-                  House Rules
-                </button>
-              </div>
-            </div>
+          <div class="mb-1" style="border-bottom: 2px dashed rgba(255,255,255,0.14); padding-bottom: 0.5rem;">
+            <button type="button" class="btn-small btn-secondary" onclick="closeLobbyCampaignSetup()">
+              Back to cast
+            </button>
           </div>
 
-          <!-- LOBBY TAB 1: CAMPAIGN SELECTION -->
-          <div id="lobby-tab-campaign" class="panel-scroll" style="flex:1;">
-            <div class="campaign-tabs">
-              <button type="button" class="campaign-tab-btn active" data-mode="premade" onclick="setCampaignMode('premade')">
-                Pre-made
-              </button>
-              <button type="button" class="campaign-tab-btn" data-mode="ai" onclick="setCampaignMode('ai')">
-                AI plot generator
-              </button>
-              <button type="button" class="campaign-tab-btn" data-mode="custom" onclick="setCampaignMode('custom')">
-                Custom
-              </button>
-            </div>
+          <!-- Single tab row for campaign source (U5) -->
+          <div class="campaign-tabs mb-2">
+            <button type="button" class="campaign-tab-btn active" data-mode="premade" onclick="setCampaignMode('premade')">
+              Pre-made
+            </button>
+            <button type="button" class="campaign-tab-btn" data-mode="ai" onclick="setCampaignMode('ai')">
+              AI plot generator
+            </button>
+            <button type="button" class="campaign-tab-btn" data-mode="custom" onclick="setCampaignMode('custom')">
+              Custom
+            </button>
+          </div>
 
+          <div class="panel-scroll" style="flex:1;">
             <!-- Sub-Tab: Premade -->
             <div id="panel-premade">
               <div id="premade-campaign-grid" class="campaign-grid"></div>
@@ -270,11 +260,14 @@
               <div id="custom-rounds-list"></div>
               <button type="button" class="btn-small mt-1" onclick="addCustomRound()">+ Add Another Round</button>
             </div>
-          </div>
 
-          <!-- LOBBY TAB 2: HOST GAME SETTINGS -->
-          <div id="lobby-tab-settings" class="panel-scroll hidden" style="flex:1;">
-            <div id="lobby-settings-grid" class="settings-grid"></div>
+            <!-- House Rules in collapsed details below in same view (U5) -->
+            <details id="lobby-house-rules-details" class="mt-2" style="background:rgba(0,0,0,0.18); border:2px solid rgba(255,255,255,0.14); border-radius:var(--wobbly-box); padding:0.75rem;">
+              <summary style="cursor:pointer; font-weight:700; color:var(--accent-gold); font-size:1rem; user-select:none;">
+                House Rules (optional adjustments)
+              </summary>
+              <div id="lobby-settings-grid" class="settings-grid mt-2"></div>
+            </details>
           </div>
         </div>
 

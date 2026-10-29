@@ -321,6 +321,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow-wrap: normal;
+  hyphens: none;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .campaign-tab-btn.active {
