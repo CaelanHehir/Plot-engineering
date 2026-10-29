@@ -233,7 +233,7 @@ function renderAvatarHtml(avatarData, sizeClass = 'avatar-img') {
   if (safeAvatar) {
     return `<img src="${escapeHtml(safeAvatar)}" class="${sizeClass}" alt="Character Portrait" />`;
   }
-  return `<div class="${sizeClass}" style="display:inline-flex;align-items:center;justify-content:center;font-size:1.5rem;">🎨</div>`;
+  return `<div class="${sizeClass}" style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg-card);"><svg width="60%" height="60%" viewBox="0 0 24 24" fill="currentColor" opacity="0.4"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg></div>`;
 }
 
 /**

@@ -16,7 +16,7 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'roundTimer',
     idBase: 'setting-round-timer',
-    label: '⏱️ Round Action Timer',
+    label: 'Round Action Timer',
     desc: 'Time per round to write actions (default 2m).',
     type: 'select',
     options: [
@@ -32,7 +32,7 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'charCreateTimer',
     idBase: 'setting-char-timer',
-    label: '🎨 Character Timer',
+    label: 'Character Timer',
     desc: 'Time limit for drawing characters.',
     type: 'select',
     options: [
@@ -45,7 +45,7 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'strictness',
     idBase: 'setting-strictness',
-    label: '🎭 AI Judge Vibe',
+    label: 'Judge Strictness',
     desc: 'How strictly the Judge scores coordination, coherence & humor.',
     type: 'select',
     options: [
@@ -57,8 +57,8 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'maxModifiers',
     idBase: 'setting-max-mods',
-    label: '🤕 Max Active Modifiers',
-    desc: 'Max active modifiers per player.',
+    label: 'Max Active Traits',
+    desc: 'Max active traits per player.',
     type: 'select',
     options: [
       { value: '3', text: 'Up to 3 Modifiers' },
@@ -70,7 +70,7 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'pointsMultiplier',
     idBase: 'setting-points-mult',
-    label: '🏆 Points Multiplier',
+    label: 'Points Multiplier',
     desc: 'Scale round points.',
     type: 'select',
     options: [
@@ -82,10 +82,10 @@ const HOST_SETTINGS_SCHEMA = [
   {
     key: 'allowStartingQuirk',
     idBase: 'setting-start-quirk',
-    label: '🎒 Starting Quirk / Item',
-    desc: 'Allow custom starting perk.',
+    label: 'Starting Trait',
+    desc: 'Allow custom starting trait.',
     type: 'checkbox',
-    checkboxLabel: 'Allow Starting Quirk'
+    checkboxLabel: 'Allow Starting Trait'
   }
 ];
 
@@ -254,7 +254,7 @@ async function saveApiKeyFromModal() {
     return;
   }
 
-  setLoadingOverlay(true, '🔑 Verifying Gemini API Key...');
+  setLoadingOverlay(true, 'Verifying API key...');
   try {
     const models = await validateAndDiscoverModels(val);
     setLoadingOverlay(false);
@@ -262,7 +262,7 @@ async function saveApiKeyFromModal() {
     isApiKeyVerified = true;
     updateApiKeyBadge(true);
     closeApiKeyModal();
-    showToast(`✅ Gemini API Key verified! Active model: ${models[0]}`, 'success');
+    showToast(`API key verified! Active model: ${models[0]}`, 'success');
   } catch (err) {
     setLoadingOverlay(false);
     if (err.code === 'INVALID') {
@@ -274,7 +274,7 @@ async function saveApiKeyFromModal() {
         inputEl.focus();
       }
       updateApiKeyBadge(false);
-      showToast('❌ Invalid API Key refused: ' + err.message, 'error');
+      showToast('Invalid API key: ' + err.message, 'error');
     } else {
       // B4: Network timeout or rate limit: restore previous key and do not wipe it
       setStoredApiKey(prevKey);

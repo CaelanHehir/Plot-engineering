@@ -20,7 +20,6 @@ const PREMADE_CAMPAIGNS = [
   {
     id: 'casino-heist',
     title: 'The Midnight Casino Heist',
-    icon: '🎰',
     genre: 'Crime / Comedy',
     description: 'An allegedly "foolproof" plan to rob the Golden Kraken Casino during its billionaire gala. None of you rehearsed together.',
     rounds: [
@@ -49,7 +48,6 @@ const PREMADE_CAMPAIGNS = [
   {
     id: 'zombie-mall',
     title: 'Black Friday of the Dead',
-    icon: '🧟',
     genre: 'Zombie Comedy',
     description: 'Trapped inside the MegaPlex Mall at midnight as a zombie outbreak turns bargain hunters into brain hunters.',
     rounds: [
@@ -78,7 +76,6 @@ const PREMADE_CAMPAIGNS = [
   {
     id: 'space-meltdown',
     title: 'SS Disaster: Orbital Meltdown',
-    icon: '🚀',
     genre: 'Sci-Fi Chaos',
     description: 'Your bargain-budget deep space cargo ship has been struck by a micrometeorite, and the ship\'s AI is having an existential crisis.',
     rounds: [
@@ -107,7 +104,6 @@ const PREMADE_CAMPAIGNS = [
   {
     id: 'petty-lich',
     title: 'Dungeon of the Petty Lich',
-    icon: '🧙‍♂️',
     genre: 'Fantasy Comedy',
     description: 'You are a ragtag party of adventurers hired to reclaim a stolen village relic from Malakor the Petty, a lich who loves bureaucratic traps.',
     rounds: [

@@ -122,7 +122,7 @@ function renderLobbyScreen() {
 
   const joinUrlPill = document.getElementById('lobby-join-url-pill');
   if (joinUrlPill) {
-    joinUrlPill.innerHTML = `🌐 JOIN AT: <strong>${escapeHtml(getShortDisplayJoinUrl())}</strong>`;
+    joinUrlPill.innerHTML = `Join at: <strong>${escapeHtml(getShortDisplayJoinUrl())}</strong>`;
   }
 
   const qrImg = document.getElementById('lobby-qr-img');
@@ -149,7 +149,7 @@ function renderLobbyScreen() {
       return `
         <div class="player-pill ${isMe ? 'is-me-pill' : ''}">
           <div class="row-gap" style="gap:0.4rem; min-width:0;">
-            <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎭')}</span>
+            ${p.isBot ? '<span class="badge">Bot</span>' : (p.isHost ? '<span class="badge">Host</span>' : '')}
             <span class="player-pill-name" title="${escapeHtml(p.name)}">
               ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''} ${p.disconnected ? '<small style="color:var(--accent-red);">(offline)</small>' : ''}
             </span>
@@ -197,17 +197,14 @@ function renderLobbyScreen() {
 
   // Populate preview box
   let campTitle = '';
-  let campIcon = '🎭';
   const mode = app.state.campaignMode || 'premade';
   if (mode === 'premade') {
     const camp = PREMADE_CAMPAIGNS.find(c => c.id === app.state.selectedPremadeId) || PREMADE_CAMPAIGNS[0];
     campTitle = camp.title;
-    campIcon = camp.icon || '🎭';
     const previewEl = document.getElementById('client-campaign-preview');
     if (previewEl) {
       previewEl.innerHTML = `
         <div class="campaign-card-header">
-          <span class="campaign-icon">${camp.icon}</span>
           <div>
             <h3>${escapeHtml(camp.title)}</h3>
             <span class="badge badge-genre">${escapeHtml(camp.genre)} • ${camp.rounds.length} Rounds</span>
@@ -218,14 +215,12 @@ function renderLobbyScreen() {
     }
   } else if (mode === 'ai') {
     campTitle = 'AI-Generated Custom Campaign';
-    campIcon = '✨';
     const rounds = app.state.aiRoundCount || 4;
     const promptSnippet = (app.state.aiPrompt || '').trim();
     const previewEl = document.getElementById('client-campaign-preview');
     if (previewEl) {
       previewEl.innerHTML = `
         <div class="campaign-card-header">
-          <span class="campaign-icon">✨</span>
           <div>
             <h3>AI-Generated Custom Campaign</h3>
             <span class="badge badge-warn">AI-generated • ${rounds} rounds</span>
@@ -237,13 +232,11 @@ function renderLobbyScreen() {
   } else {
     const custom = app.state.customCampaign || {};
     campTitle = custom.title || 'Custom campaign';
-    campIcon = '✍️';
     const roundCount = Array.isArray(custom.rounds) ? custom.rounds.length : 3;
     const previewEl = document.getElementById('client-campaign-preview');
     if (previewEl) {
       previewEl.innerHTML = `
         <div class="campaign-card-header">
-          <span class="campaign-icon">✍️</span>
           <div>
             <h3>${escapeHtml(custom.title || 'Custom campaign')}</h3>
             <span class="badge badge-genre">Director's Cut • ${roundCount} Rounds</span>
@@ -270,7 +263,7 @@ function renderLobbyScreen() {
   const snippetEl = document.getElementById('lobby-cast-preview-snippet');
   if (snippetEl) {
     if (hasSetupStarted) {
-      snippetEl.innerHTML = `🎬 Campaign: <strong>${campIcon} ${escapeHtml(campTitle)}</strong>`;
+      snippetEl.innerHTML = `Campaign: <strong>${escapeHtml(campTitle)}</strong>`;
     } else if (app.isHost) {
       snippetEl.innerHTML = `<span class="text-muted small">Configure campaign settings below</span>`;
     } else {
@@ -300,7 +293,6 @@ function renderCampaignSelector() {
       return `
         <div class="campaign-card ${selected ? 'selected' : ''}" onclick="selectPremadeCampaign('${c.id}')">
           <div class="campaign-card-header">
-            <span class="campaign-icon">${c.icon}</span>
             <div>
               <h4>${escapeHtml(c.title)}</h4>
               <span class="badge badge-genre">${escapeHtml(c.genre)} • ${c.rounds.length} Rounds</span>
@@ -319,7 +311,7 @@ function renderCampaignSelector() {
     container.innerHTML = app.state.customCampaign.rounds.map((r, i) => `
       <div class="custom-round-box">
         <div class="row-between">
-          <strong>🎬 Round ${i + 1}</strong>
+          <strong>Round ${i + 1}</strong>
           ${app.state.customCampaign.rounds.length > 1 ? `<button type="button" class="btn-small btn-danger" onclick="removeCustomRound(${i})">Remove</button>` : ''}
         </div>
         <input type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
@@ -346,7 +338,7 @@ function renderCharCreateScreen() {
   const camp = app.state.activeCampaign;
   if (!camp) return;
 
-  document.getElementById('char-camp-title').textContent = `${camp.icon || '🎭'} ${camp.title}`;
+  document.getElementById('char-camp-title').textContent = camp.title;
   document.getElementById('char-camp-desc').textContent = camp.description;
 
   const quirkGroup = document.getElementById('char-quirk-group');
@@ -358,7 +350,7 @@ function renderCharCreateScreen() {
   if (charTimerEl) {
     if (app.state.settings.charCreateTimer > 0) {
       charTimerEl.classList.remove('hidden');
-      charTimerEl.textContent = `⏱️ ${formatSeconds(app.state.timeLeft)}`;
+      charTimerEl.textContent = formatSeconds(app.state.timeLeft);
     } else {
       charTimerEl.classList.add('hidden');
     }
@@ -402,7 +394,7 @@ function renderCharCreateScreen() {
       const safeAvatar = ready && p.character?.avatar ? sanitizeAvatar(p.character.avatar) : '';
       const photoContent = safeAvatar
         ? `<img src="${escapeHtml(safeAvatar)}" alt="${escapeHtml(p.character.name)}" />`
-        : `<span style="font-size:2.4rem;">🎨</span>`;
+        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-card);"><svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" opacity="0.3"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg></div>`;
       return `
         <div class="polaroid-card ${ready ? 'is-ready' : ''}">
           <div class="polaroid-photo-frame">
@@ -411,7 +403,7 @@ function renderCharCreateScreen() {
           <div class="polaroid-name">${escapeHtml(ready ? p.character.name : p.name)}</div>
           <div class="polaroid-role">${ready ? escapeHtml(p.character.role) : 'Sketching hero...'}</div>
           <div class="polaroid-status-tag">
-            <span class="badge ${p.disconnected ? 'badge-warn' : (ready ? 'badge-success' : 'badge-warn')}">${p.disconnected ? '⚠️ Offline' : (ready ? '✅ Ready!' : '✏️ Drawing')}</span>
+            <span class="badge ${p.disconnected ? 'badge-warn' : (ready ? 'badge-success' : 'badge-warn')}">${p.disconnected ? 'Offline' : (ready ? 'Ready' : 'Drawing')}</span>
           </div>
         </div>
       `;
@@ -497,7 +489,7 @@ function renderScenarioScreen() {
       .split(/\s+/)
       .map((w, i) => (i % 2 === 1 ? '█████' : w))
       .join(' ');
-    sceneDesc = `🕶️ [BLINDED BY "${myBlindedMod.name}"] ${redacted}`;
+    sceneDesc = `[BLINDED BY "${myBlindedMod.name}"] ${redacted}`;
   }
   document.getElementById('scenario-description').textContent = sceneDesc;
 
@@ -509,7 +501,7 @@ function renderScenarioScreen() {
   const inlineBridge = document.getElementById('scenario-inline-bridge');
   if (roundIdx > 0 && app.state.roundHistory.length > 0) {
     const prev = app.state.roundHistory[app.state.roundHistory.length - 1];
-    const bridgeHtml = `<strong>🎞️ Previously:</strong> ${escapeHtml(prev.judgment?.continuityBridge || prev.judgment?.headline || '')}`;
+    const bridgeHtml = `<strong>Previously:</strong> ${escapeHtml(prev.judgment?.continuityBridge || prev.judgment?.headline || '')}`;
     bridgeBox.classList.remove('hidden');
     bridgeBox.innerHTML = bridgeHtml;
     if (inlineBridge) {
@@ -525,7 +517,7 @@ function renderScenarioScreen() {
   const addTimeBtn = document.getElementById('btn-host-add-time');
   if (app.state.settings.roundTimer > 0) {
     timerEl.classList.remove('hidden');
-    timerEl.textContent = `⏱️ ${formatSeconds(app.state.timeLeft)}`;
+    timerEl.textContent = formatSeconds(app.state.timeLeft);
     timerEl.classList.toggle('timer-urgent', app.state.timeLeft <= 20);
     if (addTimeBtn) addTimeBtn.classList.toggle('hidden', !app.isHost);
   } else {
@@ -554,7 +546,7 @@ function renderScenarioScreen() {
   const actionInput = document.getElementById('scenario-action-input');
   if (actionInput) {
     actionInput.placeholder = myWordLimitMod
-      ? `😶 "${myWordLimitMod.name}" active: You may only type up to 5 words this round!`
+      ? `"${myWordLimitMod.name}" active: You may only type up to 5 words this round!`
       : 'Write your character\'s move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!';
   }
 
@@ -572,20 +564,20 @@ function renderScenarioScreen() {
     if (hasSubmitted) {
       if (myDeadMod) {
         lockedArea.innerHTML = `
-          <div class="big-locked-stamp" style="background:var(--accent-red); color:#fff;">💀 ELIMINATED!</div>
+          <div class="big-locked-stamp" style="background:var(--accent-red); color:#fff;">ELIMINATED</div>
           <p class="text-muted small">Your character met an untimely demise and is spectating the survivors.</p>
         `;
       } else if (mySkipMod) {
         lockedArea.innerHTML = `
-          <div class="big-locked-stamp" style="background:var(--accent-gold); color:var(--ink);">⛓️ ${escapeHtml(mySkipMod.name)}!</div>
+          <div class="big-locked-stamp" style="background:var(--accent-gold); color:var(--ink);">${escapeHtml(mySkipMod.name)}</div>
           <p class="text-muted small">${escapeHtml(mySkipMod.description || 'You cannot act this round unless a teammate rescues you!')}</p>
         `;
       } else {
         lockedArea.innerHTML = `
-          <div class="big-locked-stamp">🔒 MOVE LOCKED IN!</div>
+          <div class="big-locked-stamp">MOVE LOCKED IN</div>
           <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
           <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
-            ✏️ Change My Move
+            Change my move
           </button>
         `;
       }
@@ -623,13 +615,13 @@ function renderRevealScreen() {
 
     let quoteHtml = '';
     if (kind === 'dead') {
-      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-red); font-weight:700;">💀 Eliminated from the campaign</div>`;
+      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-red); font-weight:700;">Eliminated from the campaign</div>`;
     } else if (kind === 'locked') {
-      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-gold); font-weight:700;">⛓️ Locked out this round</div>`;
+      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-gold); font-weight:700;">Locked out this round</div>`;
     } else if (kind === 'away') {
-      quoteHtml = `<div class="action-quote-status text-muted">💤 Away during this round</div>`;
+      quoteHtml = `<div class="action-quote-status text-muted">Away during this round</div>`;
     } else if (kind === 'secret' && !isMe) {
-      quoteHtml = `<div class="action-quote-hidden">🕵️ SECRET MOVE — Hidden from others!</div>`;
+      quoteHtml = `<div class="action-quote-hidden">Secret move — Hidden from others</div>`;
     } else {
       quoteHtml = `<blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(actionText))}"</blockquote>`;
     }
@@ -667,7 +659,7 @@ function renderRevealScreen() {
   const listEl = document.getElementById('reveal-rankings-list');
   listEl.innerHTML = j.rankings.map((r, i) => {
     const p = app.state.players.find(pl => pl.id === r.playerId) || { name: 'Player' };
-    const medal = i === 0 ? '🥇 #1 MVP' : (i === 1 ? '🥈 #2' : (i === 2 ? '🥉 #3' : `#${i + 1}`));
+    const medal = i === 0 ? '1st MVP' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `#${i + 1}`));
     const modsAddedHtml = (r.modifiersAdded || []).map(m => {
       const { prefix, chipClass } = getModifierDisplayMeta(m);
       return `
@@ -685,7 +677,7 @@ function renderRevealScreen() {
             ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
             <div>
               <strong>${escapeHtml(p.character?.name || p.name)}</strong>
-              <span class="award-title-badge">🏅 ${escapeHtml(r.title)}</span>
+              <span class="award-title-badge">${escapeHtml(r.title)}</span>
             </div>
           </div>
           <div class="rank-points">
@@ -772,7 +764,7 @@ function startStoryWordByWord(roundKey, judgment) {
   // B22: Show Skip to everyone for their own view
   if (skipBtn) skipBtn.classList.remove('hidden');
   waitMsg.classList.remove('hidden');
-  waitMsg.textContent = '📖 The scenario is unfolding...';
+  waitMsg.textContent = 'The scenario is unfolding...';
 
   const paragraphs = Array.isArray(judgment.storyParagraphs) && judgment.storyParagraphs.length > 0
     ? judgment.storyParagraphs
@@ -859,15 +851,15 @@ function showPostStoryVerdictAndLeaderboard(j) {
   if (verdictBox.classList.contains('hidden')) {
     if (j.outcome === 'FLYING_COLORS') {
       verdictBox.className = 'verdict-banner verdict-flying-colors';
-      document.getElementById('verdict-stamp').textContent = '🌟 PASSED WITH FLYING COLORS!';
+      document.getElementById('verdict-stamp').textContent = 'PASSED WITH FLYING COLORS!';
       sfx.verdictFlyingColors();
     } else if (j.outcome === 'BARELY_PASSED') {
       verdictBox.className = 'verdict-banner verdict-barely-passed';
-      document.getElementById('verdict-stamp').textContent = '😅 PASSED (BUT JUST BARELY!)';
+      document.getElementById('verdict-stamp').textContent = 'PASSED (BUT JUST BARELY!)';
       sfx.verdictBarely();
     } else {
       verdictBox.className = 'verdict-banner verdict-fail';
-      document.getElementById('verdict-stamp').textContent = '💥 SCENARIO FAILED — GAME OVER!';
+      document.getElementById('verdict-stamp').textContent = 'SCENARIO FAILED — GAME OVER!';
       sfx.verdictFail();
     }
     document.getElementById('verdict-headline').textContent = j.headline;
@@ -942,8 +934,8 @@ function renderGameOverScreen() {
   const mainTitleEl = document.getElementById('finale-main-title');
   if (mainTitleEl) {
     mainTitleEl.textContent = endedByFailure
-      ? '💥 Campaign Ended in Disaster!'
-      : '🏆 Campaign Complete!';
+      ? 'Campaign ended in disaster!'
+      : 'Campaign complete!';
   }
 
   document.getElementById('finale-campaign-summary').textContent = endedByFailure
@@ -971,9 +963,9 @@ function renderGameOverScreen() {
     };
 
     podiumStageEl.innerHTML = `
-      ${renderPillar(second, 2, '🥈 2nd')}
-      ${renderPillar(first, 1, '👑 1st')}
-      ${renderPillar(third, 3, '🥉 3rd')}
+      ${renderPillar(second, 2, '2nd')}
+      ${renderPillar(first, 1, '1st')}
+      ${renderPillar(third, 3, '3rd')}
     `;
   }
 
@@ -985,7 +977,7 @@ function renderGameOverScreen() {
       honorableEl.innerHTML = `
         <div class="row-between">
           <div class="rank-player-info">
-            <span class="badge badge-genre">🎖️ 4TH PLACE HONORABLE MENTION</span>
+            <span class="badge badge-genre">4th place honorable mention</span>
             ${renderAvatarHtml(fourth.character?.avatar, 'avatar-img')}
             <div>
               <strong>${escapeHtml(fourth.character?.name || fourth.name)}</strong>
@@ -1004,7 +996,7 @@ function renderGameOverScreen() {
   const leaderboardEl = document.getElementById('final-leaderboard-list');
   if (leaderboardEl) {
     leaderboardEl.innerHTML = sorted.map((p, i) => {
-      const rankLabel = i === 0 ? '👑 #1' : (i === 1 ? '🥈 #2' : (i === 2 ? '🥉 #3' : (i === 3 ? '🎖️ #4' : `#${i + 1}`)));
+      const rankLabel = i === 0 ? '1st' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `${i + 1}th`));
       return `
         <div class="podium-card ${i === 0 ? 'podium-winner' : ''}">
           <div class="row-between">
@@ -1033,13 +1025,13 @@ function renderGameOverScreen() {
       const out = h.judgment?.outcome || 'FLYING_COLORS';
       const badgeClass = out === 'FLYING_COLORS' ? 'badge-success' : (out === 'BARELY_PASSED' ? 'badge-warn' : 'badge-danger');
       const badgeText = out === 'FLYING_COLORS'
-        ? '🌟 Flying Colors'
-        : (out === 'BARELY_PASSED' ? '😅 Barely Passed' : '💥 Wiped Out');
+        ? 'Flying Colors'
+        : (out === 'BARELY_PASSED' ? 'Barely Passed' : 'Wiped Out');
       const cleanTitle = (h.roundTitle || '').replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
       return `
         <div class="summary-round-item">
           <div class="row-between mb-1">
-            <strong>🎬 Round ${idx + 1}: ${escapeHtml(cleanTitle)}</strong>
+            <strong>Round ${idx + 1}: ${escapeHtml(cleanTitle)}</strong>
             <span class="badge ${badgeClass}">${badgeText}</span>
           </div>
           <div style="font-family: var(--font-display); font-weight:700; color: var(--accent-gold); margin-bottom:0.35rem;">

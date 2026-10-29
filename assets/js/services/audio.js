@@ -119,7 +119,7 @@ const sfx = new SoundManager();
 function updateMuteButton() {
   const btn = document.getElementById('btn-mute');
   if (btn) {
-    btn.textContent = sfx.muted ? '🔇 Muted' : '🔊 Sound On';
+    btn.textContent = sfx.muted ? 'Muted' : 'Sound On';
   }
 }
 

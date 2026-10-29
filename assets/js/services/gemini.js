@@ -415,7 +415,6 @@ PART 3: MULTI-ROUND ARC & ESCALATION
 Return ONLY valid JSON matching this exact structure:
 {
   "title": "Campaign Title",
-  "icon": "Single relevant emoji",
   "genre": "Short comedy/genre tag",
   "description": "1 short sentence describing who the players are and their overarching goal.",
   "rounds": [
@@ -459,7 +458,6 @@ Remember:
   return {
     id: 'ai-' + Date.now(),
     title: result.title || 'AI Plot Engineering Campaign',
-    icon: result.icon || '🎬',
     genre: result.genre || 'Co-Op Comedy Adventure',
     description: result.description || promptText,
     rounds: rawRounds.map((r, i) => ({

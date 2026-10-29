@@ -60,7 +60,6 @@ const app = {
     customCampaign: {
       id: 'custom-1',
       title: 'Custom campaign',
-      icon: '🎭',
       genre: 'Custom Story',
       description: 'A custom multi-round campaign created by the Host.',
       rounds: [
@@ -192,7 +191,7 @@ async function initUI() {
     const inviteBanner = document.getElementById('invite-room-banner');
     if (inviteBanner) {
       inviteBanner.classList.remove('hidden');
-      inviteBanner.innerHTML = `🎟️ Invite to Room <strong>${escapeHtml(cleanCode)}</strong>! Enter your nickname below!`;
+      inviteBanner.innerHTML = `Joining room <strong>${escapeHtml(cleanCode)}</strong>. Enter your nickname below.`;
     }
     const joinCard = document.getElementById('home-join-card');
     if (joinCard) joinCard.classList.add('card-highlight');
@@ -317,7 +316,7 @@ function updateTimerDisplay() {
   // B8: Update only timer elements directly rather than re-rendering whole screen
   const charTimerEl = document.getElementById('char-create-timer');
   if (charTimerEl && app.state.phase === 'CHAR_CREATE') {
-    charTimerEl.textContent = `⏱️ ${formatSeconds(secondsLeft)}`;
+    charTimerEl.textContent = formatSeconds(secondsLeft);
     // B21: Warning toast at 10 seconds for character creation timer
     if (secondsLeft <= 10 && secondsLeft > 0 && !app.charTimerWarned10s) {
       app.charTimerWarned10s = true;
@@ -326,7 +325,7 @@ function updateTimerDisplay() {
   }
   const scenTimerEl = document.getElementById('scenario-timer');
   if (scenTimerEl && app.state.phase === 'SCENARIO') {
-    scenTimerEl.textContent = `⏱️ ${formatSeconds(secondsLeft)}`;
+    scenTimerEl.textContent = formatSeconds(secondsLeft);
     scenTimerEl.classList.toggle('timer-urgent', secondsLeft <= 20);
   }
 
@@ -896,9 +895,9 @@ function startScenarioRound(roundIndex) {
     const deadMod = getPlayerMetaMod(p, 'DEAD');
     const skipMod = getPlayerMetaMod(p, 'SKIP_TURN');
     if (deadMod) {
-      app.state.submissions[p.id] = '(💀 DEAD — Eliminated from the campaign)';
+      app.state.submissions[p.id] = '(DEAD — Eliminated from the campaign)';
     } else if (skipMod) {
-      app.state.submissions[p.id] = `(⛓️ LOCKED OUT THIS TURN [${skipMod.name}] — Cannot act unless rescued by a teammate!)`;
+      app.state.submissions[p.id] = `(LOCKED OUT THIS TURN [${skipMod.name}] — Cannot act unless rescued by a teammate!)`;
     } else if (p.disconnected) {
       // B3: Auto-fill move for disconnected players so the round can proceed
       app.state.submissions[p.id] = '(Was away)';
@@ -954,7 +953,7 @@ function submitMyAction() {
   if (wordLimitMod) {
     const wordCount = action.split(/\s+/).filter(Boolean).length;
     if (wordCount > 5) {
-      showToast(`😶 "${wordLimitMod.name}" active! You can only use up to 5 words (you wrote ${wordCount})!`, 'error');
+      showToast(`"${wordLimitMod.name}" active: you can only use up to 5 words (you wrote ${wordCount}).`, 'error');
       return;
     }
   }
