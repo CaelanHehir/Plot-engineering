@@ -188,7 +188,9 @@ function handleClientMessageOnHost(conn, msg) {
       return;
     }
 
-    const playerId = msg.playerId || ('p-' + Math.random().toString(36).slice(2, 9));
+    // B2: Host assigns IDs: accept client ID only if it matches safe regex, else generate
+    const rawId = typeof msg.playerId === 'string' ? msg.playerId.trim() : '';
+    const playerId = /^[a-z0-9-]{3,24}$/i.test(rawId) ? rawId : ('p-' + Math.random().toString(36).slice(2, 9));
     conn.playerId = playerId;
     app.clientConns[playerId] = conn;
 
@@ -220,19 +222,27 @@ function handleClientMessageOnHost(conn, msg) {
 
   // Character submitted during Character Creation stage
   if (msg.type === 'SUBMIT_CHARACTER') {
-    const p = app.state.players.find(pl => pl.id === msg.playerId);
-    if (p) {
+    const senderId = conn.playerId; // B2: Use conn.playerId as sender identity
+    if (!senderId) return;
+    const p = app.state.players.find(pl => pl.id === senderId);
+    if (p && msg.character) {
+      let safeStartMod = null;
+      if (msg.character.startMod && app.state.settings.allowStartingQuirk) {
+        // B2: Sanitize starting trait fields to prevent self-assignment of meta statuses
+        safeStartMod = {
+          name: String(msg.character.startMod.name || 'Quirk').slice(0, 32),
+          description: String(msg.character.startMod.description || '').slice(0, 80),
+          type: 'neutral',
+          metaEffect: 'NONE'
+        };
+      }
       p.character = {
-        name: (msg.character.name || p.name).slice(0, 30),
-        role: (msg.character.role || 'Adventurer').slice(0, 80),
-        avatar: msg.character.avatar || '',
+        name: String(msg.character.name || p.name).slice(0, 30),
+        role: String(msg.character.role || 'Adventurer').slice(0, 80),
+        avatar: sanitizeAvatar(msg.character.avatar || ''),
         ready: true
       };
-      if (msg.character.startMod && app.state.settings.allowStartingQuirk) {
-        p.modifiers = [msg.character.startMod];
-      } else {
-        p.modifiers = [];
-      }
+      p.modifiers = safeStartMod ? [safeStartMod] : [];
       sfx.lockIn();
       checkAllCharactersReady();
       broadcastState();
@@ -241,7 +251,9 @@ function handleClientMessageOnHost(conn, msg) {
 
   // Character unlocked to edit
   if (msg.type === 'UNLOCK_CHARACTER') {
-    const p = app.state.players.find(pl => pl.id === msg.playerId);
+    const senderId = conn.playerId; // B2: Use conn.playerId
+    if (!senderId) return;
+    const p = app.state.players.find(pl => pl.id === senderId);
     if (p && p.character) {
       p.character.ready = false;
       broadcastState();
@@ -250,9 +262,12 @@ function handleClientMessageOnHost(conn, msg) {
 
   // Round move submitted during Scenario stage
   if (msg.type === 'SUBMIT_ACTION') {
+    const senderId = conn.playerId; // B2: Use conn.playerId
+    if (!senderId) return;
     if (app.state.phase === 'SCENARIO') {
-      app.state.submissions[msg.playerId] = (msg.action || '').trim();
-      app.state.hiddenSubmissions[msg.playerId] = true;
+      // B2: Cap action text to 400 characters on host
+      app.state.submissions[senderId] = String(msg.action || '').slice(0, 400).trim();
+      app.state.hiddenSubmissions[senderId] = true;
       sfx.lockIn();
       broadcastState();
       checkAllActionsSubmitted();
@@ -261,9 +276,11 @@ function handleClientMessageOnHost(conn, msg) {
 
   // Round move unlocked to edit
   if (msg.type === 'UNLOCK_ACTION') {
+    const senderId = conn.playerId; // B2: Use conn.playerId
+    if (!senderId) return;
     if (app.state.phase === 'SCENARIO') {
-      delete app.state.submissions[msg.playerId];
-      delete app.state.hiddenSubmissions[msg.playerId];
+      delete app.state.submissions[senderId];
+      delete app.state.hiddenSubmissions[senderId];
       broadcastState();
     }
   }

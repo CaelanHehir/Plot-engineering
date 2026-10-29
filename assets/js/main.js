@@ -202,6 +202,14 @@ async function initUI() {
   renderCampaignSelector();
   renderSettingsGrids();
 
+  // B2: Delegated click listener for kicking players safely without inline JS injection
+  document.getElementById('lobby-player-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remove-player');
+    if (btn && btn.dataset.playerId) {
+      removePlayer(btn.dataset.playerId);
+    }
+  });
+
   const savedKey = getStoredApiKey();
   const keyInput = document.getElementById('api-key-input');
   if (savedKey) {

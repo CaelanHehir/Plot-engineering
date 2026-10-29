@@ -126,6 +126,19 @@ function showToast(message, type = 'info') {
 }
 
 /**
+ * Sanitizes base64 avatar data URLs to prevent script injection (B2).
+ * Only permits valid webp, png, or jpeg base64 data URIs up to 60,000 characters.
+ * 
+ * @param {string} url - Raw avatar string
+ * @returns {string} Validated data URL or empty string
+ */
+function sanitizeAvatar(url) {
+  if (!url || typeof url !== 'string' || url.length > 60000) return '';
+  const match = url.match(/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/);
+  return match ? url : '';
+}
+
+/**
  * Renders an avatar image element from a data URL or falls back to an emoji placeholder.
  * 
  * @param {string} avatarData - Canvas data URL (image/webp or image/png)
@@ -133,8 +146,9 @@ function showToast(message, type = 'info') {
  * @returns {string} HTML string
  */
 function renderAvatarHtml(avatarData, sizeClass = 'avatar-img') {
-  if (avatarData && avatarData.startsWith('data:image/')) {
-    return `<img src="${avatarData}" class="${sizeClass}" alt="Character Portrait" />`;
+  const safeAvatar = sanitizeAvatar(avatarData);
+  if (safeAvatar) {
+    return `<img src="${escapeHtml(safeAvatar)}" class="${sizeClass}" alt="Character Portrait" />`;
   }
   return `<div class="${sizeClass}" style="display:inline-flex;align-items:center;justify-content:center;font-size:1.5rem;">🎨</div>`;
 }

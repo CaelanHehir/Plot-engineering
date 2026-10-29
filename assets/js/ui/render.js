@@ -136,7 +136,7 @@ function renderLobbyScreen() {
               ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''}
             </span>
           </div>
-          ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove" title="Remove" onclick="removePlayer('${p.id}')">✕</button>` : ''}
+          ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove btn-remove-player" title="Remove" data-player-id="${escapeHtml(p.id)}">✕</button>` : ''}
         </div>
       `;
     }).join('');
@@ -379,8 +379,9 @@ function renderCharCreateScreen() {
     statusEl.setAttribute('data-roster-sig', rosterSig);
     statusEl.innerHTML = app.state.players.map(p => {
       const ready = Boolean(p.character && p.character.ready);
-      const photoContent = ready && p.character?.avatar && p.character.avatar.startsWith('data:image/')
-        ? `<img src="${p.character.avatar}" alt="${escapeHtml(p.character.name)}" />`
+      const safeAvatar = ready && p.character?.avatar ? sanitizeAvatar(p.character.avatar) : '';
+      const photoContent = safeAvatar
+        ? `<img src="${escapeHtml(safeAvatar)}" alt="${escapeHtml(p.character.name)}" />`
         : `<span style="font-size:2.4rem;">🎨</span>`;
       return `
         <div class="polaroid-card ${ready ? 'is-ready' : ''}">
