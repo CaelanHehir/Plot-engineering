@@ -213,12 +213,12 @@ function openSettingsModal() {
     return;
   }
   syncSettingsUI();
-  document.getElementById('settings-modal').classList.remove('hidden');
+  openAccessibleModal('settings-modal');
 }
 
 /** Closes the floating House Rules modal */
 function closeSettingsModal() {
-  document.getElementById('settings-modal').classList.add('hidden');
+  closeAccessibleModal('settings-modal');
 }
 
 /**
@@ -244,12 +244,12 @@ function updateApiKeyBadge(verified = isApiKeyVerified) {
 /** Opens the Gemini API Key configuration modal */
 function openApiKeyModal() {
   document.getElementById('api-key-input').value = isApiKeyVerified ? getStoredApiKey() : '';
-  document.getElementById('api-key-modal').classList.remove('hidden');
+  openAccessibleModal('api-key-modal', '#api-key-input');
 }
 
 /** Closes the Gemini API Key configuration modal */
 function closeApiKeyModal() {
-  document.getElementById('api-key-modal').classList.add('hidden');
+  closeAccessibleModal('api-key-modal');
 }
 
 /**

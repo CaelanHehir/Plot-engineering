@@ -568,10 +568,10 @@
   </main>
 
   <!-- ==================== QR CODE INVITE POPUP MODAL ==================== -->
-  <div id="qr-popup-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeQrPopup()">
+  <div id="qr-popup-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="qr-popup-title" onclick="if(event.target===this) closeQrPopup()">
     <div class="modal-card wobbly-card" style="max-width:22.5rem; text-align:center;">
       <div class="row-between mb-1 modal-header-bar">
-        <h3>Scan to join room</h3>
+        <h3 id="qr-popup-title">Scan to join room</h3>
         <button type="button" class="btn-small" onclick="closeQrPopup()">✕ Close</button>
       </div>
       <div style="display:flex; flex-direction:column; align-items:center; padding: 0.65rem 0;">
@@ -583,7 +583,7 @@
   </div>
 
   <!-- ==================== SCENARIO DETAILS POPUP MODAL ==================== -->
-  <div id="scenario-popup-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeScenarioPopup()">
+  <div id="scenario-popup-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="scenario-title" onclick="if(event.target===this) closeScenarioPopup()">
     <div class="modal-card wobbly-card scenario-modal-card">
       <div class="row-between mb-1 modal-header-bar">
         <div class="row-gap">
@@ -604,10 +604,10 @@
   </div>
 
   <!-- ==================== HOST GAME SETTINGS MODAL ==================== -->
-  <div id="settings-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeSettingsModal()">
+  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" onclick="if(event.target===this) closeSettingsModal()">
     <div class="modal-card wobbly-card settings-modal-card">
       <div class="row-between mb-1 modal-header-bar">
-        <h3>House Rules</h3>
+        <h3 id="settings-modal-title">House Rules</h3>
         <button type="button" class="btn-small btn-danger" onclick="closeSettingsModal()">✕ Close</button>
       </div>
       <div id="modal-settings-grid" class="settings-grid modal-settings-grid"></div>
@@ -618,10 +618,10 @@
   </div>
 
   <!-- ==================== GEMINI API KEY MODAL ==================== -->
-  <div id="api-key-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeApiKeyModal()">
+  <div id="api-key-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="api-key-modal-title" onclick="if(event.target===this) closeApiKeyModal()">
     <div class="modal-card wobbly-card" style="max-width:30rem;">
       <div class="row-between mb-1 modal-header-bar">
-        <h3>Gemini API Key (Host only)</h3>
+        <h3 id="api-key-modal-title">Gemini API Key (Host only)</h3>
         <button type="button" class="btn-small" onclick="closeApiKeyModal()">✕ Close</button>
       </div>
       <p class="text-muted small mb-2">

@@ -411,13 +411,16 @@ function fallbackCopyText(text, onSuccess) {
 function toggleLobbyQrCode() {
   const modal = document.getElementById('qr-popup-modal');
   if (!modal) return;
-  modal.classList.toggle('hidden');
+  if (modal.classList.contains('hidden')) {
+    openAccessibleModal('qr-popup-modal');
+  } else {
+    closeAccessibleModal('qr-popup-modal');
+  }
 }
 
 /** Closes the QR code modal */
 function closeQrPopup() {
-  const modal = document.getElementById('qr-popup-modal');
-  if (modal) modal.classList.add('hidden');
+  closeAccessibleModal('qr-popup-modal');
 }
 
 // --- Multi-Window Switcher Controllers ---
@@ -852,15 +855,13 @@ function hostStartFirstRound() {
 /** Opens the full scenario description popup modal */
 function openScenarioPopup() {
   app.scenarioPopupOpen = true;
-  const modal = document.getElementById('scenario-popup-modal');
-  if (modal) modal.classList.remove('hidden');
+  openAccessibleModal('scenario-popup-modal');
 }
 
 /** Closes the full scenario description popup modal */
 function closeScenarioPopup() {
   app.scenarioPopupOpen = false;
-  const modal = document.getElementById('scenario-popup-modal');
-  if (modal) modal.classList.add('hidden');
+  closeAccessibleModal('scenario-popup-modal');
 }
 
 /**

@@ -175,6 +175,55 @@ function setLoadingOverlay(visible, text = 'Loading...', onCancel = null) {
   if (el) el.classList.toggle('hidden', !visible);
 }
 
+// A1: Accessible modal stack, focus return, and Tab trapping
+const activeModalFocusStack = [];
+
+function openAccessibleModal(modalId, initialFocusSelector) {
+  const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+  if (!modal) return;
+  const previouslyFocused = document.activeElement;
+  activeModalFocusStack.push({ modal, returnTo: previouslyFocused });
+  modal.classList.remove('hidden');
+  const target = initialFocusSelector
+    ? modal.querySelector(initialFocusSelector)
+    : modal.querySelector('button:not([disabled]):not(.hidden), input:not([disabled]):not(.hidden), select:not([disabled]):not(.hidden), textarea:not([disabled]):not(.hidden), [tabindex="0"]');
+  if (target) {
+    requestAnimationFrame(() => target.focus());
+  }
+}
+
+function closeAccessibleModal(modalId) {
+  const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
+  if (!modal) return;
+  modal.classList.add('hidden');
+  const recordIdx = activeModalFocusStack.findIndex(entry => entry.modal === modal);
+  if (recordIdx !== -1) {
+    const record = activeModalFocusStack.splice(recordIdx, 1)[0];
+    if (record.returnTo && typeof record.returnTo.focus === 'function') {
+      requestAnimationFrame(() => record.returnTo.focus());
+    }
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab' && activeModalFocusStack.length > 0) {
+    const current = activeModalFocusStack[activeModalFocusStack.length - 1];
+    const modal = current.modal;
+    const focusable = modal.querySelectorAll('button:not([disabled]):not(.hidden), input:not([disabled]):not(.hidden), select:not([disabled]):not(.hidden), textarea:not([disabled]):not(.hidden), [tabindex="0"]');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     const el = document.getElementById('loading-overlay');
