@@ -79,6 +79,7 @@ function initDrawingCanvas() {
     saveCanvasSnapshot();
     drawState.isDrawing = true;
     drawState.hasDrawn = true;
+    if (typeof updateCharCreateStepProgress === 'function') updateCharCreateStepProgress();
     const pos = getPos(e);
     drawState.lastX = pos.x;
     drawState.lastY = pos.y;
@@ -245,6 +246,7 @@ function undoCanvasStroke() {
   if (drawState.history.length === 0) {
     drawState.hasDrawn = false;
   }
+  if (typeof updateCharCreateStepProgress === 'function') updateCharCreateStepProgress();
   const img = new Image();
   img.onload = () => {
     drawState.ctx.clearRect(0, 0, drawState.canvas.width, drawState.canvas.height);
@@ -260,6 +262,7 @@ function undoCanvasStroke() {
 function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
   drawState.hasDrawn = false;
+  if (typeof updateCharCreateStepProgress === 'function') updateCharCreateStepProgress();
   if (recordUndo) {
     saveCanvasSnapshot();
   } else {

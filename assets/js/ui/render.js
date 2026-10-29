@@ -318,6 +318,30 @@ function renderCampaignSelector() {
  * 2. Stage 2: Full-sketchpad drawing canvas with undo, colors, and brush sizes.
  * Once submitted, displays the crew polaroid status grid.
  */
+/**
+ * Updates the completion checkmarks on the Character Creation step pill buttons.
+ */
+function updateCharCreateStepProgress() {
+  const stepBtn1 = document.getElementById('char-step-btn-1');
+  const stepBtn2 = document.getElementById('char-step-btn-2');
+  if (!stepBtn1 || !stepBtn2) return;
+
+  const me = app.state.players.find(p => p.id === app.myId);
+  const nameInput = document.getElementById('char-name-input');
+  const roleInput = document.getElementById('char-role-input');
+
+  const nameVal = (nameInput?.value || me?.character?.name || '').trim();
+  const roleVal = (roleInput?.value || me?.character?.role || '').trim();
+  const bioDone = Boolean(nameVal && roleVal);
+  const sketchDone = Boolean((typeof drawState !== 'undefined' && drawState.hasDrawn) || (me?.character?.avatar && me.character.ready));
+
+  stepBtn1.innerHTML = `1. Bio${bioDone ? ' <span class="char-step-check" title="Complete">✓</span>' : ''}`;
+  stepBtn1.classList.toggle('is-complete', bioDone);
+
+  stepBtn2.innerHTML = `2. Portrait${sketchDone ? ' <span class="char-step-check" title="Complete">✓</span>' : ''}`;
+  stepBtn2.classList.toggle('is-complete', sketchDone);
+}
+
 function renderCharCreateScreen() {
   const camp = app.state.activeCampaign;
   if (!camp) return;
@@ -366,6 +390,7 @@ function renderCharCreateScreen() {
   if (stage2El) stage2El.classList.toggle('hidden', step !== 2);
   if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
+  updateCharCreateStepProgress();
 
   const statusEl = document.getElementById('char-ready-list');
   const rosterSig = app.state.players

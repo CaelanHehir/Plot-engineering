@@ -327,6 +327,11 @@ function setupDelegatedEventListeners() {
         updateScenarioWordCount();
       }
     }
+    if (e.target && (e.target.id === 'char-name-input' || e.target.id === 'char-role-input')) {
+      if (typeof updateCharCreateStepProgress === 'function') {
+        updateCharCreateStepProgress();
+      }
+    }
     const bindEl = e.target.closest('[data-bind]');
     if (!bindEl) return;
     const bind = bindEl.dataset.bind;
