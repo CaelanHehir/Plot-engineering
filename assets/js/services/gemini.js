@@ -560,7 +560,7 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - Only use quotation marks when a character is speaking actual dialogue out loud.
 
 4. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
-   - INCOHERENCE / ANTI-COORDINATION: Players directly working against each other, attacking/sabotaging teammates, or doing completely incompatible things that ruin each other's moves (e.g., Player A tries tosweet-talk the guard while Player B tackles the guard down the stairs).
+   - INCOHERENCE / ANTI-COORDINATION: Players directly working against each other, attacking/sabotaging teammates, or doing completely incompatible things that ruin each other's moves (e.g., Player A tries to sweet-talk the guard while Player B tackles the guard down the stairs).
    - LAZY / VAGUE NON-ANSWERS: Generic filler that isn't a real action or story beat (e.g., "I solve the problem", "I win the round", "I do something cool", or leaving it blank). Lazy non-answers accomplish nothing and rank at the bottom!
    - IGNORING ACTIVE MODIFIERS: If a player has an active injury/restriction (e.g., "Broken Arm", "Handcuffed") and lazily ignores it without a funny workaround, have it backfire comedically.
 
