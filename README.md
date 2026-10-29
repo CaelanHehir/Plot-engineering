@@ -7,9 +7,9 @@
 
 ---
 
-> **A Multiplayer Storytelling Party Game!**
+> **A silent co-op storytelling game.**
 
-Plot engineering is a role-playing couch party game where players work together to get through different scenarios, creating a funny story along the way.
+Plot Engineering is a silent co-op storytelling game where players work together to get through different scenes, creating a funny story along the way.
 
 Each game has a theme chosen by the host, and consists of multiple rounds. Each round, the group will be put in a tricky situation, and the players have to write out their plans **without communicating with each other**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
 
@@ -95,3 +95,4 @@ Right-click `index.html` and click **"Open with Live Server"**.
 
 ## License
 Distributed under the MIT License. See [LICENSE](LICENSE) for full details.
+
