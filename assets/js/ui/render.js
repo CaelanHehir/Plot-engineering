@@ -297,13 +297,14 @@ function renderCampaignSelector() {
           <strong>Round ${i + 1}</strong>
           ${app.state.customCampaign.rounds.length > 1 ? `<button type="button" class="btn-small btn-danger" onclick="removeCustomRound(${i})">Remove</button>` : ''}
         </div>
-        <input type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
+        <label for="custom-round-title-${i}" class="tiny text-muted">Round Title:</label>
+        <input id="custom-round-title-${i}" type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
           oninput="app.state.customCampaign.rounds[${i}].title = this.value" />
-        <label class="tiny text-muted" style="margin-top:0.15rem;">1. Scene Setup (Shown to Players — set the stage without spoiling!):</label>
+        <label for="custom-round-scenario-${i}" class="tiny text-muted" style="margin-top:0.15rem;">1. Scene Setup (Shown to Players — set the stage without spoiling!):</label>
         <textarea id="custom-round-scenario-${i}" class="input-field" rows="2" placeholder="e.g., A massive troll in a clip-on tie blocks the bridge and glares at the party."
           oninput="app.state.customCampaign.rounds[${i}].scenario = this.value">${escapeHtml(r.scenario || '')}</textarea>
-        <label class="tiny text-muted" style="margin-top:0.15rem;">2. Comedic Hooks &amp; Quirks (Shown to AI Judge — fun personalities &amp; improv fuel!):</label>
-        <textarea class="input-field" rows="2" placeholder="e.g., The troll is super insecure about his tie and loves dramatic flattery or slapstick combos!"
+        <label for="custom-round-secrets-${i}" class="tiny text-muted" style="margin-top:0.15rem;">2. Comedic Hooks &amp; Quirks (Shown to AI Judge — fun personalities &amp; improv fuel!):</label>
+        <textarea id="custom-round-secrets-${i}" class="input-field" rows="2" placeholder="e.g., The troll is super insecure about his tie and loves dramatic flattery or slapstick combos!"
           oninput="app.state.customCampaign.rounds[${i}].secrets = this.value">${escapeHtml(r.secrets || '')}</textarea>
       </div>
     `).join('');
