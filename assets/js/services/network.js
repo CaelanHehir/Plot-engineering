@@ -32,8 +32,9 @@ function generateRoomCode() {
 /**
  * Initializes a new multiplayer room as the Host.
  * Connects to the PeerJS signaling broker using the deterministic ID "plot-engineering-{CODE}".
+ * @param {number} [retryCount=0] - Collision retry counter (max 5)
  */
-function hostCreateRoom() {
+function hostCreateRoom(retryCount = 0) {
   const hostNameInput = document.getElementById('host-player-name').value.trim();
   const hostName = hostNameInput || 'Host Player';
   const code = generateRoomCode();
@@ -45,12 +46,15 @@ function hostCreateRoom() {
 
   setLoadingOverlay(true, 'Creating multiplayer room ' + code + '...');
 
+  let opened = false; // B1: Track whether peer signaling has established
+
   try {
     const peerId = PEER_PREFIX + code;
     const peer = new Peer(peerId);
     app.peer = peer;
 
     peer.on('open', () => {
+      opened = true;
       setLoadingOverlay(false);
       initHostGameState(code, hostName);
       sfx.join();
@@ -60,20 +64,51 @@ function hostCreateRoom() {
       setupHostClientConnection(conn);
     });
 
+    peer.on('disconnected', () => {
+      // B1: Attempt seamless reconnect when signaling socket drops
+      try {
+        peer.reconnect();
+      } catch (e) {
+        console.warn('Peer reconnect failed:', e);
+      }
+    });
+
     peer.on('error', (err) => {
       console.error('PeerJS Host error:', err);
       setLoadingOverlay(false);
+
+      if (opened) {
+        // B1: Never wipe live game state after room has successfully opened
+        if (err.type === 'network' || err.type === 'disconnected') {
+          showToast('Connection lost, reconnecting...', 'warn');
+          try {
+            peer.reconnect();
+          } catch (e) {
+            console.warn('Peer reconnect failed:', e);
+          }
+        } else {
+          showToast('Network notice: ' + (err.message || err.type), 'warn');
+        }
+        return;
+      }
+
+      // Error occurred before open: handle collision with cap or report server failure
       if (err.type === 'unavailable-id') {
-        // Code collision: try again with fresh code
-        hostCreateRoom();
+        if (retryCount < 5) {
+          hostCreateRoom(retryCount + 1);
+        } else {
+          showToast('Room code collision. Please try again.', 'error');
+          showScreen('HOME');
+        }
       } else {
-        showToast('Running in local room mode.', 'warn');
-        initHostGameState(code, hostName);
+        showToast('Could not reach the matchmaking server. Check your connection.', 'error');
+        showScreen('HOME');
       }
     });
   } catch (e) {
     setLoadingOverlay(false);
-    initHostGameState(code, hostName);
+    showToast('Could not reach the matchmaking server. Check your connection.', 'error');
+    showScreen('HOME');
   }
 }
 
