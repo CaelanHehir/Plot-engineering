@@ -691,7 +691,7 @@ function renderRevealScreen() {
 
     if (app.isHost) {
       nextBtn.classList.remove('hidden');
-      nextBtn.textContent = '▶️ Play Out Scenario!';
+      nextBtn.textContent = 'Show what happened';
       waitMsg.classList.add('hidden');
     } else {
       nextBtn.classList.add('hidden');
@@ -873,12 +873,10 @@ function showPostStoryVerdictAndLeaderboard(j) {
 
   if (app.isHost) {
     nextBtn.classList.remove('hidden');
-    if (isFailed) {
-      nextBtn.textContent = '🏆 View Final Podium & Summary ➡️';
-    } else if (isLastRound) {
-      nextBtn.textContent = '🏆 View Grand Finale Podium ➡️';
+    if (isFailed || isLastRound) {
+      nextBtn.textContent = 'See results';
     } else {
-      nextBtn.textContent = `▶️ Next: Round ${app.state.currentRound + 2} ➡️`;
+      nextBtn.textContent = 'Next round';
     }
     waitMsg.classList.add('hidden');
   } else {
