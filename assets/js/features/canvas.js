@@ -52,7 +52,7 @@ function initDrawingCanvas() {
   if (paletteEl) {
     paletteEl.innerHTML = DRAW_COLORS.map(c => `
       <button type="button" class="color-swatch ${c === drawState.color ? 'active' : ''}"
-        style="background:${c};" aria-label="Color ${colorNames[c] || c}" onclick="selectDrawColor('${c}')"></button>
+        style="background:${c};" aria-label="Color ${colorNames[c] || c}" data-action="select-draw-color" data-color="${c}"></button>
     `).join('');
   }
 

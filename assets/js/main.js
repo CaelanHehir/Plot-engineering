@@ -123,6 +123,7 @@ const app = {
 window.addEventListener('DOMContentLoaded', () => {
   initUI();
   initDrawingCanvas();
+  setupDelegatedEventListeners();
 
   // Close top menu drawer on outside click
   document.addEventListener('click', (e) => {
@@ -146,6 +147,246 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+/**
+ * Sets up centralized delegated event listeners for data-action, data-bind, and data-on-enter.
+ */
+function setupDelegatedEventListeners() {
+  // Delegated Click Dispatcher
+  document.addEventListener('click', (e) => {
+    // Backdrop click dismissals
+    if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
+      const modalId = e.target.id;
+      if (modalId === 'qr-popup-modal') closeQrPopup();
+      else if (modalId === 'scenario-popup-modal') closeScenarioPopup();
+      else if (modalId === 'settings-modal') closeSettingsModal();
+      else if (modalId === 'api-key-modal') closeApiKeyModal();
+      return;
+    }
+
+    const actionEl = e.target.closest('[data-action]');
+    if (!actionEl) return;
+
+    const action = actionEl.dataset.action;
+    switch (action) {
+      case 'global-back':
+        handleGlobalBack();
+        break;
+      case 'copy-invite':
+        copyInviteLink();
+        break;
+      case 'toggle-top-menu':
+        toggleTopMenu(e);
+        break;
+      case 'toggle-sound':
+        toggleSound();
+        break;
+      case 'open-api-key-modal':
+        closeTopMenu();
+        openApiKeyModal();
+        break;
+      case 'open-settings-modal':
+        closeTopMenu();
+        openSettingsModal();
+        break;
+      case 'set-home-window':
+        if (actionEl.dataset.window) setHomeWindow(actionEl.dataset.window);
+        break;
+      case 'host-create-room':
+        hostCreateRoom();
+        break;
+      case 'rejoin-stored-room':
+        rejoinStoredRoom();
+        break;
+      case 'client-join-room':
+        clientJoinRoom();
+        break;
+      case 'toggle-lobby-qr':
+        toggleLobbyQrCode();
+        break;
+      case 'close-qr-popup':
+        closeQrPopup();
+        break;
+      case 'add-bot-player':
+        addBotPlayer();
+        break;
+      case 'remove-player':
+        if (actionEl.dataset.playerId) removePlayer(actionEl.dataset.playerId);
+        break;
+      case 'open-campaign-setup':
+        openLobbyCampaignSetup();
+        break;
+      case 'close-campaign-setup':
+        closeLobbyCampaignSetup();
+        break;
+      case 'set-campaign-mode':
+        if (actionEl.dataset.mode) setCampaignMode(actionEl.dataset.mode);
+        break;
+      case 'select-premade-campaign':
+        if (actionEl.dataset.campaignId) selectPremadeCampaign(actionEl.dataset.campaignId);
+        break;
+      case 'add-custom-round':
+        addCustomRound();
+        break;
+      case 'remove-custom-round':
+        if (actionEl.dataset.roundIndex !== undefined) {
+          removeCustomRound(parseInt(actionEl.dataset.roundIndex, 10));
+        }
+        break;
+      case 'host-start-campaign':
+        hostStartCampaign();
+        break;
+      case 'host-force-start-first-round':
+        hostForceStartFirstRound();
+        break;
+      case 'set-char-create-step':
+        if (actionEl.dataset.step) setCharCreateStep(parseInt(actionEl.dataset.step, 10));
+        break;
+      case 'go-to-char-portrait':
+        goToCharPortraitStage();
+        break;
+      case 'select-brush-size':
+        if (actionEl.dataset.size) selectBrushSize(parseInt(actionEl.dataset.size, 10));
+        break;
+      case 'toggle-eraser':
+        setEraserMode(!drawState.isEraser);
+        break;
+      case 'undo-canvas':
+        undoCanvasStroke();
+        break;
+      case 'clear-canvas':
+        clearCharacterCanvas(true);
+        break;
+      case 'select-draw-color':
+        if (actionEl.dataset.color) selectDrawColor(actionEl.dataset.color);
+        break;
+      case 'submit-character':
+        submitMyCharacter();
+        break;
+      case 'unlock-character-edit':
+        unlockMyCharacterToEdit();
+        break;
+      case 'host-start-first-round':
+        hostStartFirstRound();
+        break;
+      case 'open-scenario-popup':
+        openScenarioPopup();
+        break;
+      case 'close-scenario-popup':
+        closeScenarioPopup();
+        break;
+      case 'host-add-extra-time':
+        hostAddExtraTime(30);
+        break;
+      case 'host-force-evaluate-round':
+        hostForceEvaluateRound();
+        break;
+      case 'submit-action':
+        submitMyAction();
+        break;
+      case 'unlock-action-edit':
+        unlockMyActionToEdit();
+        break;
+      case 'skip-story':
+        skipStoryTypewriter();
+        break;
+      case 'host-next-reveal-step':
+        hostNextRevealStep();
+        break;
+      case 'set-reveal-window':
+        if (actionEl.dataset.window) setRevealWindow(actionEl.dataset.window);
+        break;
+      case 'host-back-lobby':
+        hostBackToLobby();
+        break;
+      case 'set-gameover-window':
+        if (actionEl.dataset.window) setGameOverWindow(actionEl.dataset.window);
+        break;
+      case 'close-settings-modal':
+        closeSettingsModal();
+        break;
+      case 'close-api-key-modal':
+        closeApiKeyModal();
+        break;
+      case 'toggle-api-key-visibility':
+        toggleApiKeyVisibility();
+        break;
+      case 'save-api-key':
+        saveApiKeyFromModal();
+        break;
+      default:
+        break;
+    }
+  });
+
+  // Delegated Input Dispatcher
+  document.addEventListener('input', (e) => {
+    const bindEl = e.target.closest('[data-bind]');
+    if (!bindEl) return;
+    const bind = bindEl.dataset.bind;
+    if (bind === 'ai-prompt') {
+      if (app.isHost) app.state.aiPrompt = bindEl.value;
+    } else if (bind === 'custom-campaign-title') {
+      if (app.isHost) app.state.customCampaign.title = bindEl.value;
+    } else if (bind === 'custom-campaign-description') {
+      if (app.isHost) app.state.customCampaign.description = bindEl.value;
+    } else if (bind === 'custom-round-title') {
+      if (app.isHost) {
+        const idx = parseInt(bindEl.dataset.roundIndex, 10);
+        if (app.state.customCampaign?.rounds?.[idx]) {
+          app.state.customCampaign.rounds[idx].title = bindEl.value;
+        }
+      }
+    } else if (bind === 'custom-round-scenario') {
+      if (app.isHost) {
+        const idx = parseInt(bindEl.dataset.roundIndex, 10);
+        if (app.state.customCampaign?.rounds?.[idx]) {
+          app.state.customCampaign.rounds[idx].scenario = bindEl.value;
+        }
+      }
+    } else if (bind === 'custom-round-secrets') {
+      if (app.isHost) {
+        const idx = parseInt(bindEl.dataset.roundIndex, 10);
+        if (app.state.customCampaign?.rounds?.[idx]) {
+          app.state.customCampaign.rounds[idx].secrets = bindEl.value;
+        }
+      }
+    }
+  });
+
+  // Delegated Change Dispatcher
+  document.addEventListener('change', (e) => {
+    const bindEl = e.target.closest('[data-bind]');
+    if (!bindEl) return;
+    const bind = bindEl.dataset.bind;
+    if (bind === 'ai-round-count') {
+      if (app.isHost) {
+        app.state.aiRoundCount = parseInt(bindEl.value, 10) || 4;
+        broadcastState();
+      }
+    } else if (bind === 'host-setting') {
+      const key = bindEl.dataset.settingKey;
+      if (key) {
+        const val = bindEl.type === 'checkbox' ? bindEl.checked : bindEl.value;
+        updateHostSetting(key, val);
+      }
+    }
+  });
+
+  // Delegated Enter Key Dispatcher
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const enterEl = e.target.closest('[data-on-enter]');
+    if (!enterEl) return;
+    e.preventDefault();
+    const action = enterEl.dataset.onEnter;
+    if (action === 'host-create-room') {
+      hostCreateRoom();
+    } else if (action === 'client-join-room') {
+      clientJoinRoom();
+    }
+  });
+}
 
 /** Toggles the top menu drawer popover */
 function toggleTopMenu(e) {
@@ -203,14 +444,6 @@ async function initUI() {
   renderHomeWindow();
   renderCampaignSelector();
   renderSettingsGrids();
-
-  // B2: Delegated click listener for kicking players safely without inline JS injection
-  document.getElementById('lobby-player-list')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.btn-remove-player');
-    if (btn && btn.dataset.playerId) {
-      removePlayer(btn.dataset.playerId);
-    }
-  });
 
   // B3: Display prompt to rejoin previously active room session if stored
   const storedRoom = sessionStorage.getItem('plot_engineering_room_code');

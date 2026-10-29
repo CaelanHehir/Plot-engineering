@@ -154,7 +154,7 @@ function renderLobbyScreen() {
               ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''} ${p.disconnected ? '<small style="color:var(--accent-red);">(offline)</small>' : ''}
             </span>
           </div>
-          ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove btn-remove-player" title="Remove" data-player-id="${escapeHtml(p.id)}">✕</button>` : ''}
+          ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove btn-remove-player" title="Remove" data-action="remove-player" data-player-id="${escapeHtml(p.id)}">✕</button>` : ''}
         </div>
       `;
     }).join('');
@@ -274,7 +274,7 @@ function renderCampaignSelector() {
     grid.innerHTML = PREMADE_CAMPAIGNS.map(c => {
       const selected = c.id === app.state.selectedPremadeId;
       return `
-        <button type="button" class="campaign-card ${selected ? 'selected' : ''}" onclick="selectPremadeCampaign('${c.id}')">
+        <button type="button" class="campaign-card ${selected ? 'selected' : ''}" data-action="select-premade-campaign" data-campaign-id="${escapeHtml(c.id)}">
           <div class="campaign-card-header">
             <div>
               <h4>${escapeHtml(c.title)}</h4>
@@ -295,17 +295,17 @@ function renderCampaignSelector() {
       <div class="custom-round-box">
         <div class="row-between">
           <strong>Round ${i + 1}</strong>
-          ${app.state.customCampaign.rounds.length > 1 ? `<button type="button" class="btn-small btn-danger" onclick="removeCustomRound(${i})">Remove</button>` : ''}
+          ${app.state.customCampaign.rounds.length > 1 ? `<button type="button" class="btn-small btn-danger" data-action="remove-custom-round" data-round-index="${i}">Remove</button>` : ''}
         </div>
         <label for="custom-round-title-${i}" class="tiny text-muted">Round Title:</label>
         <input id="custom-round-title-${i}" type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
-          oninput="app.state.customCampaign.rounds[${i}].title = this.value" />
+          data-bind="custom-round-title" data-round-index="${i}" />
         <label for="custom-round-scenario-${i}" class="tiny text-muted" style="margin-top:0.15rem;">1. Scene Setup (Shown to Players — set the stage without spoiling!):</label>
         <textarea id="custom-round-scenario-${i}" class="input-field" rows="2" placeholder="e.g., A massive troll in a clip-on tie blocks the bridge and glares at the party."
-          oninput="app.state.customCampaign.rounds[${i}].scenario = this.value">${escapeHtml(r.scenario || '')}</textarea>
+          data-bind="custom-round-scenario" data-round-index="${i}">${escapeHtml(r.scenario || '')}</textarea>
         <label for="custom-round-secrets-${i}" class="tiny text-muted" style="margin-top:0.15rem;">2. Comedic Hooks &amp; Quirks (Shown to AI Judge — fun personalities &amp; improv fuel!):</label>
         <textarea id="custom-round-secrets-${i}" class="input-field" rows="2" placeholder="e.g., The troll is super insecure about his tie and loves dramatic flattery or slapstick combos!"
-          oninput="app.state.customCampaign.rounds[${i}].secrets = this.value">${escapeHtml(r.secrets || '')}</textarea>
+          data-bind="custom-round-secrets" data-round-index="${i}">${escapeHtml(r.secrets || '')}</textarea>
       </div>
     `).join('');
   }
@@ -561,7 +561,7 @@ function renderScenarioScreen() {
         lockedArea.innerHTML = `
           <div class="big-locked-stamp">MOVE LOCKED IN</div>
           <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
-          <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
+          <button type="button" class="btn btn-secondary" data-action="unlock-action-edit">
             Change my move
           </button>
         `;

@@ -112,7 +112,7 @@ function buildSettingsGridHtml(suffix = '') {
           <div class="setting-desc">${item.desc}</div>
           <label style="display:flex;align-items:center;gap:0.5rem;color:#fff;cursor:pointer;margin-top:0.4rem;min-height:44px;">
             <input id="${id}" type="checkbox" checked style="width:1.25rem;height:1.25rem;cursor:pointer;"
-              onchange="updateHostSetting('${item.key}', this.checked)" />
+              data-bind="host-setting" data-setting-key="${item.key}" />
             <span>${item.checkboxLabel}</span>
           </label>
         </div>
@@ -123,7 +123,7 @@ function buildSettingsGridHtml(suffix = '') {
       <div class="setting-item">
         <label for="${id}">${item.label}${defaultBadge}</label>
         <div class="setting-desc">${item.desc}</div>
-        <select id="${id}" class="input-field" onchange="updateHostSetting('${item.key}', this.value)">
+        <select id="${id}" class="input-field" data-bind="host-setting" data-setting-key="${item.key}">
           ${optsHtml}
         </select>
       </div>
