@@ -554,8 +554,8 @@
 
 .char-header-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
   align-items: stretch;
 }
 
@@ -624,8 +624,9 @@
 
 .full-sketchpad-canvas-area {
   position: relative;
-  /* Width dynamically bounded by available height so square canvas always fits screen */
-  width: min(20rem, 100%, calc(100vh - 18rem), calc(100dvh - 18rem));
+  /* Fills card width up to a responsive square bounded by available height (U7) */
+  width: 100%;
+  max-width: min(100%, calc(100vh - 20rem), calc(100dvh - 20rem));
   aspect-ratio: 1 / 1;
   height: auto;
   margin: 0 auto;
@@ -653,7 +654,8 @@
 
 .sketchpad-footer-bar {
   flex-shrink: 0;
-  width: min(20rem, 100%, calc(100vh - 18rem), calc(100dvh - 18rem));
+  width: 100%;
+  max-width: min(100%, calc(100vh - 20rem), calc(100dvh - 20rem));
   margin: 0 auto;
   background: var(--cream-polaroid);
   color: var(--ink);

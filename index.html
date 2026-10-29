@@ -296,16 +296,13 @@
         <!-- Left: 2-Stage Character Creation (Stage 1: Name + Description, Stage 2: Full-Section Sketchpad) -->
         <div id="char-creator-card" class="card card-highlight wobbly-card char-creator-card">
           <div id="char-form-box" class="char-stage-container">
-            <!-- HEADER SECTION: Bio / Portrait / Submit -->
+            <!-- HEADER SECTION: 2 Step Tabs (U7) -->
             <div class="char-stage-header char-header-grid">
               <button id="char-step-btn-1" type="button" class="char-step-pill active" onclick="setCharCreateStep(1)">
                 1. Bio
               </button>
               <button id="char-step-btn-2" type="button" class="char-step-pill" onclick="setCharCreateStep(2)">
                 2. Portrait
-              </button>
-              <button id="char-submit-btn" type="button" class="char-step-pill char-submit-pill" onclick="submitMyCharacter()">
-                Submit
               </button>
             </div>
 
@@ -328,7 +325,7 @@
                 </div>
               </div>
 
-              <button type="button" class="btn btn-primary btn-block" onclick="goToCharPortraitStage()">
+              <button type="button" class="btn btn-primary btn-block mt-2" onclick="goToCharPortraitStage()">
                 Next: Draw portrait
               </button>
             </div>
@@ -352,6 +349,11 @@
                   <button type="button" class="brush-btn" title="Clear Canvas" onclick="clearCharacterCanvas(true)">Clear</button>
                 </div>
               </div>
+
+              <!-- Primary Lock In Character Button (U7) -->
+              <button id="char-lock-in-btn" type="button" class="btn btn-gold btn-block mt-2" onclick="submitMyCharacter()">
+                Lock in character
+              </button>
             </div>
           </div>
 
