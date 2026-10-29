@@ -352,18 +352,54 @@ function hostAddExtraTime(seconds = 30) {
 
 /**
  * Copies the full room invite link to the clipboard.
+ * B17: Guards against missing navigator.clipboard on insecure HTTP origins.
  */
 function copyInviteLink() {
   const inviteUrl = getRoomInviteUrl(app.state.roomCode);
-  navigator.clipboard.writeText(inviteUrl).then(() => {
+
+  const onCopySuccess = () => {
     if (isLocalhost()) {
       showToast('Invite link copied. Note: Friends cannot reach localhost; share your deployed URL or your LAN address.', 'info');
     } else {
       showToast('Invite link copied', 'success');
     }
-  }).catch(() => {
-    showToast(`Invite Link: ${inviteUrl}`, 'info');
-  });
+  };
+
+  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+    navigator.clipboard.writeText(inviteUrl)
+      .then(onCopySuccess)
+      .catch(() => fallbackCopyText(inviteUrl, onCopySuccess));
+  } else {
+    fallbackCopyText(inviteUrl, onCopySuccess);
+  }
+}
+
+/**
+ * Fallback copy using a temporary input element for non-secure HTTP / LAN origins (B17).
+ * @param {string} text
+ * @param {Function} [onSuccess]
+ */
+function fallbackCopyText(text, onSuccess) {
+  try {
+    const tempInput = document.createElement('textarea');
+    tempInput.value = text;
+    tempInput.setAttribute('readonly', '');
+    tempInput.style.position = 'fixed';
+    tempInput.style.left = '-9999px';
+    tempInput.style.opacity = '0';
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    tempInput.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    if (copied) {
+      if (onSuccess) onSuccess();
+      return;
+    }
+  } catch (err) {
+    console.warn('Fallback clipboard copy failed:', err);
+  }
+  showToast(`Invite Link: ${text}`, 'info');
 }
 
 /** Toggles the in-lobby QR code modal for mobile joining */
