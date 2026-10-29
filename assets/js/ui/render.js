@@ -413,8 +413,6 @@ function renderCharCreateScreen() {
   const allReady = app.state.players.length > 0 && app.state.players.every(p => p.character && p.character.ready);
 
   const startCampBtn = document.getElementById('btn-host-start-campaign');
-  const startCampBtnTop = document.getElementById('btn-host-start-campaign-top');
-  const startCampHostBox = document.getElementById('char-waiting-host-action');
   const allReadyHostAction = document.getElementById('char-all-ready-host-action');
   const allReadyClientWait = document.getElementById('char-all-ready-client-wait');
   const skipCharBtn = document.getElementById('btn-host-skip-char');
@@ -424,8 +422,6 @@ function renderCharCreateScreen() {
   const showClientWait = Boolean(!app.isHost && allReady);
 
   if (startCampBtn) startCampBtn.classList.toggle('hidden', !showHostStart);
-  if (startCampBtnTop) startCampBtnTop.classList.toggle('hidden', !showHostStart);
-  if (startCampHostBox) startCampHostBox.classList.toggle('hidden', !showHostStart);
   if (allReadyHostAction) allReadyHostAction.classList.toggle('hidden', !showHostStart);
   if (allReadyClientWait) allReadyClientWait.classList.toggle('hidden', !showClientWait);
 
@@ -435,8 +431,8 @@ function renderCharCreateScreen() {
 
   if (charWaitingText) {
     charWaitingText.textContent = allReady
-      ? (app.isHost ? 'All crew members are locked in! Click "Start campaign" below to begin.' : 'All crew members are locked in! Waiting for the Host to start the campaign...')
-      : 'Admire the Polaroid gallery while the rest of the crew finishes doodling...';
+      ? (app.isHost ? 'All crew members are locked in! Click "Start round 1" on the roster to begin.' : 'All crew members are locked in! Waiting for the host to start the campaign...')
+      : 'Waiting for the rest of the crew to finish...';
   }
 }
 
