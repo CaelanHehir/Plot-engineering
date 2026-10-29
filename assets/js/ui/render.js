@@ -225,7 +225,7 @@ function renderLobbyScreen() {
     }
   } else {
     const custom = app.state.customCampaign || {};
-    campTitle = custom.title || 'Host Custom Adventure';
+    campTitle = custom.title || 'Custom campaign';
     campIcon = '✍️';
     const roundCount = Array.isArray(custom.rounds) ? custom.rounds.length : 3;
     const previewEl = document.getElementById('client-campaign-preview');
@@ -234,7 +234,7 @@ function renderLobbyScreen() {
         <div class="campaign-card-header">
           <span class="campaign-icon">✍️</span>
           <div>
-            <h3>${escapeHtml(custom.title || 'Host Custom Adventure')}</h3>
+            <h3>${escapeHtml(custom.title || 'Custom campaign')}</h3>
             <span class="badge badge-genre">Director's Cut • ${roundCount} Rounds</span>
           </div>
         </div>
