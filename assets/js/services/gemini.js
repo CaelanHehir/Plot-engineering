@@ -296,7 +296,7 @@ PART 2: THE SECRETS ("secrets") — COMEDIC HOOKS FOR THE JUDGE LLM
 --------------------------------------------------------------------------------
 PART 3: MULTI-ROUND ARC & ESCALATION
 --------------------------------------------------------------------------------
-- Connect the rounds into an escalating comedic adventure from Act I (Setup) to the Final Act (Climax).
+- Connect the rounds into an escalating comedic storyline from the setup to the final climax.
 
 Return ONLY valid JSON matching this exact structure:
 {
@@ -306,7 +306,7 @@ Return ONLY valid JSON matching this exact structure:
   "description": "1 short sentence describing who the players are and their overarching goal.",
   "rounds": [
     {
-      "title": "Act I: Short Round Title",
+      "title": "Short Round Title (do not prefix with Act or Round)",
       "scenario": "Player-facing setup ONLY (2-3 sentences, max 50 words). Present the obstacle and fun moving parts WITHOUT giving away hints or solutions!",
       "secrets": "Judge-only comedic hooks (2-3 sentences). Fun quirks of the NPCs/props and how different creative, absurd, or coordinated actions can play out."
     }
@@ -331,7 +331,7 @@ Remember:
   const rawRounds = Array.isArray(result.rounds) && result.rounds.length > 0
     ? result.rounds
     : [{
-        title: 'Act I: The Chaos Begins',
+        title: 'The Chaos Begins',
         scenario: promptText,
         secrets: 'Reward any funny, coordinated, or coherent combination of player actions!'
       }];
@@ -343,7 +343,7 @@ Remember:
     genre: result.genre || 'Co-Op Comedy Adventure',
     description: result.description || promptText,
     rounds: rawRounds.map((r, i) => ({
-      title: r.title || `Act ${i + 1}`,
+      title: r.title ? r.title.replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '') : `Round ${i + 1}`,
       scenario: r.scenario || r.description || promptText,
       secrets: r.secrets || 'Reward funny, coordinated, and coherent player actions that play off each other!'
     }))

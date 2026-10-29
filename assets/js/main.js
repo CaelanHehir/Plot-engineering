@@ -1084,7 +1084,7 @@ async function evaluateCurrentRound() {
   const outcomeLabel = judgment.outcome === 'FLYING_COLORS'
     ? 'PASSED WITH FLYING COLORS'
     : (judgment.outcome === 'BARELY_PASSED' ? 'BARELY PASSED' : 'FAILED');
-  const summaryLine = `Act ${roundIndex + 1} (${outcomeLabel}): ${judgment.headline} ${judgment.continuityBridge || ''}`;
+  const summaryLine = `Round ${roundIndex + 1} (${outcomeLabel}): ${judgment.headline} ${judgment.continuityBridge || ''}`;
   app.state.storySoFar = app.state.storySoFar
     ? `${app.state.storySoFar}\n${summaryLine}`
     : summaryLine;

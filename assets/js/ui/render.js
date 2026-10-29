@@ -849,7 +849,7 @@ function showPostStoryVerdictAndLeaderboard(j) {
     } else if (isLastRound) {
       nextBtn.textContent = '🏆 View Grand Finale Podium ➡️';
     } else {
-      nextBtn.textContent = `▶️ Next Act: Round ${app.state.currentRound + 2} ➡️`;
+      nextBtn.textContent = `▶️ Next: Round ${app.state.currentRound + 2} ➡️`;
     }
     waitMsg.classList.add('hidden');
   } else {
@@ -991,10 +991,11 @@ function renderGameOverScreen() {
       const badgeText = out === 'FLYING_COLORS'
         ? '🌟 Flying Colors'
         : (out === 'BARELY_PASSED' ? '😅 Barely Passed' : '💥 Wiped Out');
+      const cleanTitle = (h.roundTitle || '').replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
       return `
         <div class="summary-round-item">
           <div class="row-between mb-1">
-            <strong>🎬 Act ${idx + 1}: ${escapeHtml(h.roundTitle)}</strong>
+            <strong>🎬 Round ${idx + 1}: ${escapeHtml(cleanTitle)}</strong>
             <span class="badge ${badgeClass}">${badgeText}</span>
           </div>
           <div style="font-family: var(--font-display); font-weight:700; color: var(--accent-gold); margin-bottom:0.35rem;">
