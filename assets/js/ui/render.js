@@ -505,20 +505,25 @@ function renderScenarioScreen() {
   }
 
   if (me) {
+    const modsCount = (me.modifiers || []).length;
     document.getElementById('my-char-banner').innerHTML = `
-      <div class="my-char-header">
-        ${renderAvatarHtml(me.character?.avatar, 'avatar-img-lg')}
-        <div>
+      <div class="my-char-header" style="flex:1; min-width:0;">
+        ${renderAvatarHtml(me.character?.avatar, 'avatar-img')}
+        <div style="min-width:0; flex:1;">
           <h4>${escapeHtml(me.character?.name || me.name)}</h4>
           <p class="text-muted small">${escapeHtml(me.character?.role || '')}</p>
         </div>
       </div>
-      <div class="modifiers-section">
-        <span class="mod-label">Your Active Perks &amp; Status Effects:</span>
-        <div class="modifier-chips">
-          ${renderModifierChips(me.modifiers)}
-        </div>
-      </div>
+      ${modsCount > 0 ? `
+        <details class="modifiers-section" style="cursor:pointer;">
+          <summary class="mod-label" style="outline:none; user-select:none; color:var(--accent-gold);">
+            Active traits (${modsCount})
+          </summary>
+          <div class="modifier-chips mt-1">
+            ${renderModifierChips(me.modifiers)}
+          </div>
+        </details>
+      ` : ''}
     `;
   }
 
