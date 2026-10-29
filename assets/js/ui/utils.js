@@ -138,10 +138,16 @@ function hyphenateLongWords(str) {
  * @param {number} sec - Duration in seconds
  * @returns {string} e.g. "1:30" or "45s"
  */
+/**
+ * Formats a duration in seconds consistently as m:ss (A8).
+ * @param {number} sec - Duration in seconds
+ * @returns {string} e.g. "0:59", "1:00", "2:30"
+ */
 function formatSeconds(sec) {
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+  const total = Math.max(0, Math.floor(Number(sec) || 0));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
 }
 
 let currentLoadingCancelHandler = null;
