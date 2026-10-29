@@ -716,7 +716,7 @@ function renderRevealScreen() {
             </div>
           </div>
           <div class="rank-points">
-            +${(r.pointsAwarded || 0).toLocaleString()} pts
+            <span class="rank-points-num" data-target-pts="${r.pointsAwarded || 0}">+${(r.pointsAwarded || 0).toLocaleString()} pts</span>
             <div class="tiny text-muted">Total ${(p.score || 0).toLocaleString()}</div>
           </div>
         </div>
@@ -873,6 +873,28 @@ function skipStoryTypewriter() {
  * 
  * @param {object} j - Judgment payload
  */
+function animateNumberCountUp(element, targetNum, duration = 600) {
+  if (!element) return;
+  if (targetNum <= 0) {
+    element.textContent = '+0 pts';
+    return;
+  }
+  const startTime = performance.now();
+  function step(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(targetNum * ease);
+    element.textContent = `+${current.toLocaleString()} pts`;
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      element.textContent = `+${targetNum.toLocaleString()} pts`;
+    }
+  }
+  requestAnimationFrame(step);
+}
+
 function showPostStoryVerdictAndLeaderboard(j) {
   const step2View = document.getElementById('reveal-step2-view');
   const revealSwitcher = document.getElementById('reveal-window-switcher');
@@ -885,10 +907,9 @@ function showPostStoryVerdictAndLeaderboard(j) {
   const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
 
-  if (step2View) step2View.classList.remove('story-centered');
-  if (revealSwitcher) revealSwitcher.classList.remove('hidden');
   if (skipBtn) skipBtn.classList.add('hidden');
 
+  // 1. Reveal Verdict Stamp FIRST - keep rankings hidden to never spoil the outcome
   if (verdictBox.classList.contains('hidden')) {
     if (j.outcome === 'FLYING_COLORS') {
       verdictBox.className = 'verdict-banner verdict-flying-colors';
@@ -910,32 +931,51 @@ function showPostStoryVerdictAndLeaderboard(j) {
     }
   }
 
-  rankingsBox.classList.remove('hidden');
-
-  const revWin = app.revealWindow === 'rankings' ? 'rankings' : 'story';
-  if (storyCard) storyCard.classList.toggle('mobile-window-hidden', revWin !== 'story');
-  if (rankingsBox) rankingsBox.classList.toggle('mobile-window-hidden', revWin !== 'rankings');
-  if (btnStory) btnStory.classList.toggle('active', revWin === 'story');
-  if (btnRankings) btnRankings.classList.toggle('active', revWin === 'rankings');
+  // Ensure rankings remain hidden while players absorb the verdict
+  rankingsBox.classList.add('hidden');
+  if (revealSwitcher) revealSwitcher.classList.add('hidden');
 
   const isFailed = j.outcome === 'FAILED';
   const isLastRound = (app.state.currentRound + 1) >= app.state.activeCampaign.rounds.length;
 
-  if (app.isHost) {
-    nextBtn.classList.remove('hidden');
-    if (isFailed || isLastRound) {
-      nextBtn.textContent = 'See results';
+  const revealStandings = () => {
+    if (app.state.phase !== 'REVEAL' || app.state.revealStep !== 2) return;
+
+    if (step2View) step2View.classList.remove('story-centered');
+    if (revealSwitcher) revealSwitcher.classList.remove('hidden');
+    rankingsBox.classList.remove('hidden');
+
+    const revWin = app.revealWindow === 'rankings' ? 'rankings' : 'story';
+    if (storyCard) storyCard.classList.toggle('mobile-window-hidden', revWin !== 'story');
+    if (rankingsBox) rankingsBox.classList.toggle('mobile-window-hidden', revWin !== 'rankings');
+    if (btnStory) btnStory.classList.toggle('active', revWin === 'story');
+    if (btnRankings) btnRankings.classList.toggle('active', revWin === 'rankings');
+
+    // Smooth count-up animation for points awarded
+    document.querySelectorAll('.rank-points-num[data-target-pts]').forEach(el => {
+      const targetPts = parseInt(el.getAttribute('data-target-pts'), 10) || 0;
+      animateNumberCountUp(el, targetPts, 600);
+    });
+
+    if (app.isHost) {
+      nextBtn.classList.remove('hidden');
+      if (isFailed || isLastRound) {
+        nextBtn.textContent = 'See results';
+      } else {
+        nextBtn.textContent = 'Next round';
+      }
+      waitMsg.classList.add('hidden');
     } else {
-      nextBtn.textContent = 'Next round';
+      nextBtn.classList.add('hidden');
+      waitMsg.classList.remove('hidden');
+      waitMsg.textContent = isFailed
+        ? 'Scenario Failed! Waiting for Host to open the Final Podium...'
+        : 'Waiting for Host to press Continue...';
     }
-    waitMsg.classList.add('hidden');
-  } else {
-    nextBtn.classList.add('hidden');
-    waitMsg.classList.remove('hidden');
-    waitMsg.textContent = isFailed
-      ? 'Scenario Failed! Waiting for Host to open the Final Podium...'
-      : 'Waiting for Host to press Continue...';
-  }
+  };
+
+  // 1.1s dramatic pause so the verdict is absorbed before standings appear
+  setTimeout(revealStandings, 1100);
 }
 
 /**

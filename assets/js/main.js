@@ -1128,6 +1128,7 @@ function closeScenarioPopup() {
 function startScenarioRound(roundIndex) {
   if (!app.isHost) return;
   stopTypewriter();
+  app.revealWindow = 'story';
   app.state.currentRound = roundIndex;
   app.state.submissions = {};
   app.state.hiddenSubmissions = {};

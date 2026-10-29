@@ -1354,6 +1354,34 @@
 .ranking-card.rank-1 {
   background: linear-gradient(145deg, #3b2d54, #221a3a);
   outline: 2.5px solid var(--accent-gold);
+  position: relative;
+  overflow: hidden;
+}
+
+.ranking-card.rank-1::after {
+  content: "★ MVP";
+  position: absolute;
+  top: 0.45rem;
+  right: 0.65rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  background: var(--accent-gold);
+  color: var(--ink);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--wobbly-pill);
+  border: 1.5px solid var(--ink);
+  box-shadow: 1.5px 1.5px 0px var(--ink);
+  transform: rotate(2.5deg);
+  animation: popBounceIn 0.35s ease;
+}
+
+.rank-points-num {
+  display: inline-block;
+  font-weight: 800;
+  color: var(--accent-gold);
+  transition: transform 0.15s ease;
 }
 
 .rank-player-info {
