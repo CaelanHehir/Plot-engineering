@@ -246,6 +246,7 @@ function closeSettingsModal() {
 function updateApiKeyBadge(verified = isApiKeyVerified) {
   const btn = document.getElementById('menu-ai-key-btn');
   const badge = document.getElementById('api-key-status-badge');
+  const homePill = document.getElementById('home-ai-key-btn');
   const isOk = Boolean(verified && getStoredApiKey());
   const label = isOk ? 'AI key: Ready' : 'AI key: Not set';
   if (btn) {
@@ -254,6 +255,12 @@ function updateApiKeyBadge(verified = isApiKeyVerified) {
   if (badge) {
     badge.className = 'badge ' + (isOk ? 'badge-success' : 'badge-warn');
     badge.textContent = label;
+  }
+  if (homePill) {
+    homePill.className = 'btn-small home-key-pill mb-2 ' + (isOk ? 'key-ready' : 'key-not-set');
+    homePill.innerHTML = isOk
+      ? '🔑 AI Key: <strong>Ready ✓</strong>'
+      : '🔑 AI Key: <strong>Not set (tap to enter)</strong>';
   }
 }
 
