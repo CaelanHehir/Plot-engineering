@@ -1262,6 +1262,14 @@
   align-items: stretch;
 }
 
+/* Guarantee standings and window switcher are strictly hidden until verdict is revealed */
+.reveal-step2-stage.story-centered #reveal-rankings-box,
+.reveal-step2-stage.story-centered #reveal-window-switcher,
+.reveal-step2-stage:not(.verdict-revealed) #reveal-rankings-box,
+.reveal-step2-stage:not(.verdict-revealed) #reveal-window-switcher {
+  display: none !important;
+}
+
 .reveal-step2-stage.story-centered .story-stage-card {
   max-width: 48.75rem;
   width: 100%;
@@ -1358,23 +1366,20 @@
   overflow: hidden;
 }
 
-.ranking-card.rank-1::after {
-  content: "★ MVP";
-  position: absolute;
-  top: 0.45rem;
-  right: 0.65rem;
+.rank-mvp-badge {
   font-family: var(--font-display);
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   background: var(--accent-gold);
   color: var(--ink);
-  padding: 0.15rem 0.5rem;
+  padding: 0.12rem 0.45rem;
   border-radius: var(--wobbly-pill);
   border: 1.5px solid var(--ink);
   box-shadow: 1.5px 1.5px 0px var(--ink);
-  transform: rotate(2.5deg);
-  animation: popBounceIn 0.35s ease;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  display: inline-block;
 }
 
 .rank-points-num {

@@ -439,7 +439,7 @@ body {
   }
 
   /* On large screens, both panels in multi-window layouts are displayed side-by-side */
-  .mobile-window-hidden {
+  .mobile-window-hidden:not(.hidden) {
     display: flex !important;
   }
 }

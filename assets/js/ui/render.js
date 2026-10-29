@@ -687,55 +687,16 @@ function renderRevealScreen() {
 
   if (aiGeneratingBox) aiGeneratingBox.classList.add('hidden');
 
-  // Populate rankings list for Step 2
-  const listEl = document.getElementById('reveal-rankings-list');
-  const showMoves = Boolean(app.state.settings?.revealMovesAfterStory || app.isHost);
-  listEl.innerHTML = j.rankings.map((r, i) => {
-    const p = app.state.players.find(pl => pl.id === r.playerId) || { name: 'Player' };
-    const playerMove = app.state.submissions ? app.state.submissions[p.id] : '';
-    const hasReadableMove = showMoves && playerMove && !playerMove.startsWith('(') && playerMove !== '__SECRET_ACTION__' && playerMove !== '__LOCKED_IN__';
-    const medal = i === 0 ? '1st MVP' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `#${i + 1}`));
-    const modsAddedHtml = (r.modifiersAdded || []).map(m => {
-      const { prefix, chipClass } = getModifierDisplayMeta(m);
-      return `
-        <span class="mod-chip mod-${chipClass}">
-          ${prefix ? `${escapeHtml(prefix)} ` : ''}<strong>${escapeHtml(m.name)}</strong>${m.description ? ` (${escapeHtml(m.description)})` : ''}
-        </span>
-      `;
-    }).join('');
-
-    return `
-      <div class="ranking-card rank-${i + 1}" style="animation-delay: ${i * 0.07}s;">
-        <div class="row-between">
-          <div class="rank-player-info">
-            <span class="rank-medal">${medal}</span>
-            ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
-            <div>
-              <strong>${escapeHtml(p.character?.name || p.name)}</strong>
-              <span class="award-title-badge">${escapeHtml(r.title)}</span>
-            </div>
-          </div>
-          <div class="rank-points">
-            <span class="rank-points-num" data-target-pts="${r.pointsAwarded || 0}">+${(r.pointsAwarded || 0).toLocaleString()} pts</span>
-            <div class="tiny text-muted">Total ${(p.score || 0).toLocaleString()}</div>
-          </div>
-        </div>
-        ${hasReadableMove ? `
-          <div class="rank-move-quote">
-            <span class="tiny text-muted">Move:</span>
-            <blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(playerMove))}"</blockquote>
-          </div>
-        ` : ''}
-        <p class="rank-eval">${escapeHtml(r.evaluation)}</p>
-        ${modsAddedHtml ? `<div class="new-mods-row">${modsAddedHtml}</div>` : ''}
-      </div>
-    `;
-  }).join('');
-
   if (step === 1) {
     stopTypewriter();
     if (step1View) step1View.classList.remove('hidden');
-    if (step2View) step2View.classList.add('hidden');
+    if (step2View) {
+      step2View.classList.add('hidden');
+      step2View.classList.remove('verdict-revealed');
+      step2View.classList.add('story-centered');
+    }
+    const listEl = document.getElementById('reveal-rankings-list');
+    if (listEl) listEl.innerHTML = '';
     if (revealSwitcher) revealSwitcher.classList.add('hidden');
     if (skipBtn) skipBtn.classList.add('hidden');
 
@@ -796,7 +757,12 @@ function startStoryWordByWord(roundKey, judgment) {
   const skipBtn = document.getElementById('btn-host-skip-story');
   const waitMsg = document.getElementById('client-reveal-wait');
 
-  if (step2View) step2View.classList.add('story-centered');
+  if (step2View) {
+    step2View.classList.remove('verdict-revealed');
+    step2View.classList.add('story-centered');
+  }
+  const listEl = document.getElementById('reveal-rankings-list');
+  if (listEl) listEl.innerHTML = '';
   if (revealSwitcher) revealSwitcher.classList.add('hidden');
   if (storyCard) storyCard.classList.remove('mobile-window-hidden');
   verdictBox.classList.add('hidden');
@@ -873,6 +839,59 @@ function skipStoryTypewriter() {
  * 
  * @param {object} j - Judgment payload
  */
+/**
+ * Populates the round standings leaderboard cards for Step 2.
+ * @param {object} j - Judgment payload
+ */
+function renderRevealRankingsList(j) {
+  const listEl = document.getElementById('reveal-rankings-list');
+  if (!listEl || !j || !Array.isArray(j.rankings)) return;
+
+  const showMoves = Boolean(app.state.settings?.revealMovesAfterStory || app.isHost);
+  listEl.innerHTML = j.rankings.map((r, i) => {
+    const p = app.state.players.find(pl => pl.id === r.playerId) || { name: 'Player' };
+    const playerMove = app.state.submissions ? app.state.submissions[p.id] : '';
+    const hasReadableMove = showMoves && playerMove && !playerMove.startsWith('(') && playerMove !== '__SECRET_ACTION__' && playerMove !== '__LOCKED_IN__';
+    const medal = i === 0 ? '1st' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `#${i + 1}`));
+    const modsAddedHtml = (r.modifiersAdded || []).map(m => {
+      const { prefix, chipClass } = getModifierDisplayMeta(m);
+      return `
+        <span class="mod-chip mod-${chipClass}">
+          ${prefix ? `${escapeHtml(prefix)} ` : ''}<strong>${escapeHtml(m.name)}</strong>${m.description ? ` (${escapeHtml(m.description)})` : ''}
+        </span>
+      `;
+    }).join('');
+
+    return `
+      <div class="ranking-card rank-${i + 1}" style="animation-delay: ${i * 0.07}s;">
+        <div class="row-between">
+          <div class="rank-player-info">
+            <span class="rank-medal">${medal}</span>
+            ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
+            <div>
+              <strong>${escapeHtml(p.character?.name || p.name)}</strong>
+              ${i === 0 ? '<span class="rank-mvp-badge">★ MVP</span>' : ''}
+              <span class="award-title-badge">${escapeHtml(r.title)}</span>
+            </div>
+          </div>
+          <div class="rank-points">
+            <span class="rank-points-num" data-target-pts="${r.pointsAwarded || 0}">+${(r.pointsAwarded || 0).toLocaleString()} pts</span>
+            <div class="tiny text-muted">Total ${(p.score || 0).toLocaleString()}</div>
+          </div>
+        </div>
+        ${hasReadableMove ? `
+          <div class="rank-move-quote">
+            <span class="tiny text-muted">Move:</span>
+            <blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(playerMove))}"</blockquote>
+          </div>
+        ` : ''}
+        <p class="rank-eval">${escapeHtml(r.evaluation)}</p>
+        ${modsAddedHtml ? `<div class="new-mods-row">${modsAddedHtml}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
 function animateNumberCountUp(element, targetNum, duration = 600) {
   if (!element) return;
   if (targetNum <= 0) {
@@ -931,19 +950,20 @@ function showPostStoryVerdictAndLeaderboard(j) {
     }
   }
 
-  // Ensure rankings remain hidden while players absorb the verdict
-  rankingsBox.classList.add('hidden');
-  if (revealSwitcher) revealSwitcher.classList.add('hidden');
-
   const isFailed = j.outcome === 'FAILED';
   const isLastRound = (app.state.currentRound + 1) >= app.state.activeCampaign.rounds.length;
 
   const revealStandings = () => {
     if (app.state.phase !== 'REVEAL' || app.state.revealStep !== 2) return;
 
-    if (step2View) step2View.classList.remove('story-centered');
+    if (step2View) {
+      step2View.classList.remove('story-centered');
+      step2View.classList.add('verdict-revealed');
+    }
     if (revealSwitcher) revealSwitcher.classList.remove('hidden');
     rankingsBox.classList.remove('hidden');
+
+    renderRevealRankingsList(j);
 
     const revWin = app.revealWindow === 'rankings' ? 'rankings' : 'story';
     if (storyCard) storyCard.classList.toggle('mobile-window-hidden', revWin !== 'story');
@@ -973,6 +993,16 @@ function showPostStoryVerdictAndLeaderboard(j) {
         : 'Waiting for Host to press Continue...';
     }
   };
+
+  const alreadyRevealed = step2View && step2View.classList.contains('verdict-revealed');
+  if (alreadyRevealed) {
+    revealStandings();
+    return;
+  }
+
+  // Ensure rankings remain hidden while players absorb the verdict
+  rankingsBox.classList.add('hidden');
+  if (revealSwitcher) revealSwitcher.classList.add('hidden');
 
   // 1.1s dramatic pause so the verdict is absorbed before standings appear
   setTimeout(revealStandings, 1100);
