@@ -17,72 +17,78 @@ const HOST_SETTINGS_SCHEMA = [
     key: 'roundTimer',
     idBase: 'setting-round-timer',
     label: 'Round Action Timer',
-    desc: 'Time per round to write actions (default 2m).',
+    defaultTag: '2 min',
+    desc: 'Time per round to write actions.',
     type: 'select',
     options: [
-      { value: '60', text: '1 Minute (60s)' },
-      { value: '90', text: '1.5 Minutes (90s)' },
-      { value: '120', text: '2 Minutes (120s - Default)' },
-      { value: '180', text: '3 Minutes (180s)' },
-      { value: '240', text: '4 Minutes (240s)' },
-      { value: '300', text: '5 Minutes (300s)' },
-      { value: '0', text: 'Unlimited (No Timer)' }
+      { value: '60', text: '1 min' },
+      { value: '90', text: '1.5 min' },
+      { value: '120', text: '2 min' },
+      { value: '180', text: '3 min' },
+      { value: '240', text: '4 min' },
+      { value: '300', text: '5 min' },
+      { value: '0', text: 'Unlimited' }
     ]
   },
   {
     key: 'charCreateTimer',
     idBase: 'setting-char-timer',
     label: 'Character Timer',
+    defaultTag: 'None',
     desc: 'Time limit for drawing characters.',
     type: 'select',
     options: [
-      { value: '0', text: 'No Timer' },
-      { value: '90', text: '1.5 Minutes (90s)' },
-      { value: '120', text: '2 Minutes (120s)' },
-      { value: '180', text: '3 Minutes (180s)' }
+      { value: '0', text: 'None' },
+      { value: '90', text: '1.5 min' },
+      { value: '120', text: '2 min' },
+      { value: '180', text: '3 min' }
     ]
   },
   {
     key: 'strictness',
     idBase: 'setting-strictness',
     label: 'Judge Strictness',
-    desc: 'How strictly the Judge scores coordination, coherence & humor.',
+    defaultTag: 'Balanced',
+    desc: 'How strictly the Judge scores moves.',
     type: 'select',
     options: [
-      { value: 'forgiving', text: 'Pure "Yes, And!" Improv' },
-      { value: 'balanced', text: 'Comedy & Synergy (Default)' },
-      { value: 'brutal', text: 'Tough Comedy Critic' }
+      { value: 'forgiving', text: 'Forgiving' },
+      { value: 'balanced', text: 'Balanced' },
+      { value: 'brutal', text: 'Tough Critic' }
     ]
   },
   {
     key: 'maxModifiers',
     idBase: 'setting-max-mods',
     label: 'Max Active Traits',
+    defaultTag: 'Up to 4',
     desc: 'Max active traits per player.',
     type: 'select',
     options: [
-      { value: '3', text: 'Up to 3 Modifiers' },
-      { value: '4', text: 'Up to 4 Modifiers (Default)' },
-      { value: '6', text: 'Up to 6 Modifiers' },
-      { value: '99', text: 'Unlimited Chaos' }
+      { value: '3', text: 'Up to 3' },
+      { value: '4', text: 'Up to 4' },
+      { value: '6', text: 'Up to 6' },
+      { value: '99', text: 'Unlimited' }
     ]
   },
   {
     key: 'pointsMultiplier',
     idBase: 'setting-points-mult',
     label: 'Points Multiplier',
+    defaultTag: '1x',
     desc: 'Scale round points.',
     type: 'select',
     options: [
-      { value: '1', text: '1x Standard Points' },
+      { value: '1', text: '1x Standard' },
       { value: '1.5', text: '1.5x High Stakes' },
-      { value: '2', text: '2x Double Jeopardy' }
+      { value: '2', text: '2x Double' }
     ]
   },
   {
     key: 'allowStartingQuirk',
     idBase: 'setting-start-quirk',
     label: 'Starting Trait',
+    defaultTag: 'Off',
     desc: 'Allow custom starting trait.',
     type: 'checkbox',
     checkboxLabel: 'Allow Starting Trait'
@@ -98,10 +104,11 @@ const HOST_SETTINGS_SCHEMA = [
 function buildSettingsGridHtml(suffix = '') {
   return HOST_SETTINGS_SCHEMA.map(item => {
     const id = `${item.idBase}${suffix}`;
+    const defaultBadge = item.defaultTag ? ` <small class="text-muted" style="font-size:0.75rem;font-weight:normal;">(default: ${escapeHtml(item.defaultTag)})</small>` : '';
     if (item.type === 'checkbox') {
       return `
         <div class="setting-item">
-          <label>${item.label}</label>
+          <label for="${id}">${item.label}${defaultBadge}</label>
           <div class="setting-desc">${item.desc}</div>
           <label style="display:flex;align-items:center;gap:0.5rem;color:#fff;cursor:pointer;margin-top:0.4rem;min-height:44px;">
             <input id="${id}" type="checkbox" checked style="width:1.25rem;height:1.25rem;cursor:pointer;"
@@ -114,7 +121,7 @@ function buildSettingsGridHtml(suffix = '') {
     const optsHtml = item.options.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
     return `
       <div class="setting-item">
-        <label for="${id}">${item.label}</label>
+        <label for="${id}">${item.label}${defaultBadge}</label>
         <div class="setting-desc">${item.desc}</div>
         <select id="${id}" class="input-field" onchange="updateHostSetting('${item.key}', this.value)">
           ${optsHtml}
@@ -190,10 +197,19 @@ function switchLobbyTab(tabName) {
   syncSettingsUI();
 }
 
-/** Opens the floating House Rules modal (host only) */
+/** Opens the House Rules editor (host only) */
 function openSettingsModal() {
   if (!app.isHost && app.state.phase !== 'HOME') {
     showToast('Only the Room Host can change game settings.', 'info');
+    return;
+  }
+  if (app.state.phase === 'LOBBY') {
+    openLobbyCampaignSetup();
+    const details = document.getElementById('lobby-house-rules-details');
+    if (details) {
+      details.open = true;
+      setTimeout(() => details.scrollIntoView({ behavior: 'smooth' }), 50);
+    }
     return;
   }
   syncSettingsUI();
