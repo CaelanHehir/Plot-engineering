@@ -246,8 +246,14 @@ function renderLobbyScreen() {
   const s = app.state.settings;
   const summaryEl = document.getElementById('client-settings-summary');
   if (summaryEl) {
-    const timerTxt = s.roundTimer > 0 ? `${s.roundTimer}s (${Math.round(s.roundTimer / 60 * 10) / 10}m)` : 'Unlimited';
-    summaryEl.innerHTML = `⏱️ Timer: <strong>${timerTxt}</strong> &bull; ⚖️ Judge: <strong>${s.strictness.toUpperCase()}</strong> &bull; 🏆 Multiplier: <strong>${s.pointsMultiplier}x</strong>`;
+    const timerTxt = s.roundTimer > 0 ? (s.roundTimer >= 60 ? `${Math.round(s.roundTimer / 60)} min` : `${s.roundTimer}s`) : 'Unlimited';
+    const strictnessLabels = {
+      forgiving: 'Forgiving',
+      balanced: 'Balanced',
+      brutal: 'Tough Critic'
+    };
+    const judgeLabel = strictnessLabels[s.strictness] || 'Balanced';
+    summaryEl.innerHTML = `Round timer: <strong>${timerTxt}</strong> &bull; Judge: <strong>${judgeLabel}</strong> &bull; Points: <strong>${s.pointsMultiplier}x</strong>`;
   }
 
   const snippetEl = document.getElementById('lobby-cast-preview-snippet');
