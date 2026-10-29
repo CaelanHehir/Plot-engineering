@@ -661,7 +661,7 @@ function renderRevealScreen() {
       const { prefix, chipClass } = getModifierDisplayMeta(m);
       return `
         <span class="mod-chip mod-${chipClass}">
-          ${prefix} <strong>${escapeHtml(m.name)}</strong> (${escapeHtml(m.description)})
+          ${prefix ? `${escapeHtml(prefix)} ` : ''}<strong>${escapeHtml(m.name)}</strong>${m.description ? ` (${escapeHtml(m.description)})` : ''}
         </span>
       `;
     }).join('');

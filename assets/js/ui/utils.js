@@ -224,18 +224,19 @@ function getPlayerMetaMod(player, metaType) {
 }
 
 /**
- * Returns icon, CSS class, and prefix label for modifier chips based on their effect type.
+ * Returns CSS class and clean prefix label for modifier chips based on their effect type (T10).
+ * Drops internal jargon prefixes and uses clear words for Eliminated and Lockout.
  * 
  * @param {object} m - Modifier object
  * @returns {{icon: string, chipClass: string, prefix: string}}
  */
 function getModifierDisplayMeta(m) {
-  if (m.metaEffect === 'DEAD') return { icon: '💀', chipClass: 'meta', prefix: '💀 +ELIMINATED:' };
-  if (m.metaEffect === 'SKIP_TURN') return { icon: '⛓️', chipClass: 'meta', prefix: '⛓️ +1-Turn Lockout:' };
-  if (m.metaEffect && m.metaEffect !== 'NONE') return { icon: '⚠️', chipClass: 'meta', prefix: '⚠️ +Meta Status:' };
-  if (m.type === 'buff') return { icon: '🟢', chipClass: 'buff', prefix: '🟢 +Perk/Item:' };
-  if (m.type === 'debuff') return { icon: '🔴', chipClass: 'debuff', prefix: '🔴 +Condition:' };
-  return { icon: '🟣', chipClass: 'neutral', prefix: '🟣 +Modifier:' };
+  if (m.metaEffect === 'DEAD') return { icon: '', chipClass: 'meta', prefix: 'Eliminated:' };
+  if (m.metaEffect === 'SKIP_TURN') return { icon: '', chipClass: 'meta', prefix: 'Locked out for one round:' };
+  if (m.metaEffect && m.metaEffect !== 'NONE') return { icon: '', chipClass: 'meta', prefix: '' };
+  if (m.type === 'buff') return { icon: '', chipClass: 'buff', prefix: '' };
+  if (m.type === 'debuff') return { icon: '', chipClass: 'debuff', prefix: '' };
+  return { icon: '', chipClass: 'neutral', prefix: '' };
 }
 
 /**
@@ -246,15 +247,15 @@ function getModifierDisplayMeta(m) {
  */
 function renderModifierChips(modifiers) {
   if (!modifiers || modifiers.length === 0) {
-    return `<span class="mod-chip mod-none">✨ No active status effects</span>`;
+    return `<span class="mod-chip mod-none">No active traits</span>`;
   }
   return modifiers.map(m => {
-    const { icon, chipClass } = getModifierDisplayMeta(m);
+    const { prefix, chipClass } = getModifierDisplayMeta(m);
+    const prefixText = prefix ? `${prefix} ` : '';
     return `
       <span class="mod-chip mod-${chipClass}" title="${escapeHtml(m.description || '')}">
-        ${icon} <strong>${escapeHtml(m.name)}</strong>
-        ${m.description ? `<small>— ${escapeHtml(m.description)}</small>` : ''}
+        ${prefixText}<strong>${escapeHtml(m.name)}</strong>${m.description ? `<small> — ${escapeHtml(m.description)}</small>` : ''}
       </span>
     `;
-  }).join('');
+  }).join(' ');
 }
