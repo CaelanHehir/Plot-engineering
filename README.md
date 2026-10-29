@@ -21,6 +21,7 @@ Each game has a theme chosen by the host, and consists of multiple rounds. Each 
 - **Scoreboard**: After each round, players are ranked depending on how much they contributed to passing the level.
 - **Character traits**: Depending on what happens during a round, characters may gain positive or negative effects that will impact what they are able to do. Players must keep these in mind while choosing their actions!
 - **The Judge**: A system that analyzes the team's actions, plays out the scenario, and decides whether they passed or failed. It takes into account humour, coherence, and collaboration.
+- **8-Player Capacity**: Rooms support up to 8 players.
 
 
 ## Technical Features
@@ -28,7 +29,6 @@ Each game has a theme chosen by the host, and consists of multiple rounds. Each 
 - **Peer-to-Peer Multiplayer**: Creating a room works using PeerJS WebRTC, which allows players themselves to host the room on their device. No backend is required to keep the game running.
 - **Procedural Audio System**: Sounds are generated using the Web Audio API, meaning no external audio assets need to be loaded.
 - **Demo Mode**: Play immediately without an API key using the built-in offline comedy judge.
-- **8-Player Capacity**: Rooms support up to 8 players (including bots and human teammates).
 
 ---
 
