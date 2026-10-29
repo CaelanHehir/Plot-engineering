@@ -244,7 +244,12 @@ function undoCanvasStroke() {
  */
 function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
-  if (recordUndo) saveCanvasSnapshot();
+  if (recordUndo) {
+    saveCanvasSnapshot();
+  } else {
+    // B15: Reset undo history when canvas is cleared without recording undo (e.g. new game)
+    drawState.history = [];
+  }
   const ctx = drawState.ctx;
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, drawState.canvas.width, drawState.canvas.height);
