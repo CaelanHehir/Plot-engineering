@@ -287,6 +287,7 @@ function hostBackToLobby() {
  */
 function startTimer(seconds) {
   stopTimer();
+  app.charTimerWarned10s = false;
   if (seconds <= 0) {
     app.state.remainingMs = 0;
     app.state.timeLeft = 0;
@@ -317,6 +318,11 @@ function updateTimerDisplay() {
   const charTimerEl = document.getElementById('char-create-timer');
   if (charTimerEl && app.state.phase === 'CHAR_CREATE') {
     charTimerEl.textContent = `⏱️ ${formatSeconds(secondsLeft)}`;
+    // B21: Warning toast at 10 seconds for character creation timer
+    if (secondsLeft <= 10 && secondsLeft > 0 && !app.charTimerWarned10s) {
+      app.charTimerWarned10s = true;
+      showToast('10 seconds left! Unfinished characters will be auto-filled.', 'warn');
+    }
   }
   const scenTimerEl = document.getElementById('scenario-timer');
   if (scenTimerEl && app.state.phase === 'SCENARIO') {
