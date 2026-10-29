@@ -17,6 +17,7 @@ const drawState = {
   /** @type {CanvasRenderingContext2D|null} */
   ctx: null,
   isDrawing: false,
+  isEraser: false,
   color: '#00e5ff',
   brushSize: 6,
   /** @type {Array<string>} History snapshots for undo */
@@ -71,9 +72,13 @@ function initDrawingCanvas() {
     drawState.lastY = pos.y;
 
     const ctx = drawState.ctx;
-    ctx.fillStyle = drawState.color;
+    const isEraser = drawState.isEraser;
+    const strokeColor = isEraser ? '#ffffff' : drawState.color;
+    const strokeSize = isEraser ? Math.max(drawState.brushSize * 2.5, 18) : drawState.brushSize;
+
+    ctx.fillStyle = strokeColor;
     ctx.beginPath();
-    ctx.arc(pos.x, pos.y, drawState.brushSize / 2, 0, Math.PI * 2);
+    ctx.arc(pos.x, pos.y, strokeSize / 2, 0, Math.PI * 2);
     ctx.fill();
   };
 
@@ -83,8 +88,12 @@ function initDrawingCanvas() {
     e.preventDefault();
     const pos = getPos(e);
     const ctx = drawState.ctx;
-    ctx.strokeStyle = drawState.color;
-    ctx.lineWidth = drawState.brushSize;
+    const isEraser = drawState.isEraser;
+    const strokeColor = isEraser ? '#ffffff' : drawState.color;
+    const strokeSize = isEraser ? Math.max(drawState.brushSize * 2.5, 18) : drawState.brushSize;
+
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = strokeSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
@@ -167,13 +176,31 @@ function syncCanvasToContainer(forceRepaint = false) {
 }
 
 /**
- * Selects active drawing color from the palette.
+ * Selects active drawing color from the palette and disables eraser mode.
  * @param {string} color - Hex color code
  */
 function selectDrawColor(color) {
   drawState.color = color;
+  drawState.isEraser = false;
+  const eraserBtn = document.getElementById('draw-eraser-btn');
+  if (eraserBtn) eraserBtn.classList.remove('active');
   document.querySelectorAll('.color-swatch').forEach(el => {
     el.classList.toggle('active', el.getAttribute('onclick')?.includes(color));
+  });
+}
+
+/**
+ * Toggles or sets dedicated eraser mode with a wider brush.
+ * @param {boolean} [active=true]
+ */
+function setEraserMode(active = true) {
+  drawState.isEraser = Boolean(active);
+  const eraserBtn = document.getElementById('draw-eraser-btn');
+  if (eraserBtn) {
+    eraserBtn.classList.toggle('active', drawState.isEraser);
+  }
+  document.querySelectorAll('.color-swatch').forEach(el => {
+    el.classList.toggle('active', !drawState.isEraser && el.getAttribute('onclick')?.includes(drawState.color));
   });
 }
 

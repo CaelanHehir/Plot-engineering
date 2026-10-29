@@ -376,7 +376,7 @@
                   <button type="button" class="brush-btn brush-size-btn" data-size="3" onclick="selectBrushSize(3)">✏️ Thin</button>
                   <button type="button" class="brush-btn brush-size-btn active" data-size="6" onclick="selectBrushSize(6)">🖌️ Med</button>
                   <button type="button" class="brush-btn brush-size-btn" data-size="12" onclick="selectBrushSize(12)">🖍️ Thick</button>
-                  <button type="button" class="brush-btn" title="Eraser" onclick="selectDrawColor('#ffffff')">🧽 Eraser</button>
+                  <button type="button" id="draw-eraser-btn" class="brush-btn" title="Eraser" onclick="setEraserMode(!drawState.isEraser)">🧽 Eraser</button>
                   <button type="button" class="brush-btn" title="Undo Stroke" onclick="undoCanvasStroke()">↩️ Undo</button>
                   <button type="button" class="brush-btn" title="Clear Canvas" onclick="clearCharacterCanvas(true)">🗑️ Clear</button>
                 </div>

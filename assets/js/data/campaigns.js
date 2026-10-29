@@ -156,7 +156,6 @@ const RANDOM_CHARACTERS = [
  * Palette of vibrant drawing colors for the HTML5 Character Sketchpad canvas.
  */
 const DRAW_COLORS = [
-  '#ffffff', // White
   '#ffca28', // Cartoon Gold
   '#ff5252', // Cherry Red
   '#ff7043', // Neon Orange
