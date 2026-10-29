@@ -147,23 +147,11 @@
               </div>
               <div id="lobby-player-list" class="player-pill-list"></div>
             </div>
-
-            <!-- Mobile-only Campaign Info Snippet & Action at bottom of Cast card -->
-            <div class="compact-only-inline" style="flex-direction:column; width:100%; margin-top:0.5rem; border-top:2px dashed rgba(255,255,255,0.12); padding-top:0.5rem;">
-              <div id="lobby-cast-preview-snippet" class="text-muted small mb-1"></div>
-              <button id="btn-host-setup-campaign-mobile" type="button" class="btn btn-gold btn-block hidden" onclick="openLobbyCampaignSetup()">
-                Set up campaign
-              </button>
-              <div id="client-lobby-waiting-mobile" class="waiting-host-banner hidden" style="width:100%; justify-content:center;">
-                <span class="waiting-pulse-dot"></span>
-                <span id="client-lobby-waiting-mobile-text">Waiting for the host to choose a campaign...</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- Right Column: Stage Preview & Action Button (Desktop) -->
-        <div id="lobby-right-col" class="mobile-window-hidden" style="display:flex; flex-direction:column; min-height:0; flex:1;">
+        <!-- Right Column: Stage Preview & Action Button -->
+        <div id="lobby-right-col" style="display:flex; flex-direction:column; min-height:0; flex:1;">
           <div class="card wobbly-card" style="justify-content:space-between; align-items:center; text-align:center; flex:1; min-height:0;">
             <div class="waiting-stage-preview" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
               <!-- Before host clicks 'Set up campaign' (Host View): Prompt to configure -->

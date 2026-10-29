@@ -164,14 +164,10 @@ function renderLobbyScreen() {
   if (addBotBtn) addBotBtn.classList.toggle('hidden', !app.isHost);
 
   // Toggle "Set up campaign" vs "Waiting for host..." buttons
-  const setupBtnDesk = document.getElementById('btn-host-setup-campaign');
-  const setupBtnMob = document.getElementById('btn-host-setup-campaign-mobile');
-  const waitBannerDesk = document.getElementById('client-lobby-waiting');
-  const waitBannerMob = document.getElementById('client-lobby-waiting-mobile');
-  if (setupBtnDesk) setupBtnDesk.classList.toggle('hidden', !app.isHost);
-  if (setupBtnMob) setupBtnMob.classList.toggle('hidden', !app.isHost);
-  if (waitBannerDesk) waitBannerDesk.classList.toggle('hidden', app.isHost);
-  if (waitBannerMob) waitBannerMob.classList.toggle('hidden', app.isHost);
+  const setupBtn = document.getElementById('btn-host-setup-campaign');
+  const waitBanner = document.getElementById('client-lobby-waiting');
+  if (setupBtn) setupBtn.classList.toggle('hidden', !app.isHost);
+  if (waitBanner) waitBanner.classList.toggle('hidden', app.isHost);
 
   const hasSetupStarted = Boolean(app.state.campaignSetupStarted);
 
@@ -183,13 +179,11 @@ function renderLobbyScreen() {
   if (clientPreSetupBox) clientPreSetupBox.classList.toggle('hidden', hasSetupStarted || app.isHost);
   if (postSetupBox) postSetupBox.classList.toggle('hidden', !hasSetupStarted);
 
-  const waitDeskTxt = document.getElementById('client-lobby-waiting-text');
-  const waitMobTxt = document.getElementById('client-lobby-waiting-mobile-text');
+  const waitTxt = document.getElementById('client-lobby-waiting-text');
   const waitMsg = hasSetupStarted
     ? 'Waiting for the host to start.'
     : 'Waiting for the host to choose a campaign...';
-  if (waitDeskTxt) waitDeskTxt.textContent = waitMsg;
-  if (waitMobTxt) waitMobTxt.textContent = waitMsg;
+  if (waitTxt) waitTxt.textContent = waitMsg;
 
   if (isCampaignSetup) {
     renderCampaignSelector();
@@ -258,17 +252,6 @@ function renderLobbyScreen() {
     };
     const judgeLabel = strictnessLabels[s.strictness] || 'Balanced';
     summaryEl.innerHTML = `Round timer: <strong>${timerTxt}</strong> &bull; Judge: <strong>${judgeLabel}</strong> &bull; Points: <strong>${s.pointsMultiplier}x</strong>`;
-  }
-
-  const snippetEl = document.getElementById('lobby-cast-preview-snippet');
-  if (snippetEl) {
-    if (hasSetupStarted) {
-      snippetEl.innerHTML = `Campaign: <strong>${escapeHtml(campTitle)}</strong>`;
-    } else if (app.isHost) {
-      snippetEl.innerHTML = `<span class="text-muted small">Configure campaign settings below</span>`;
-    } else {
-      snippetEl.innerHTML = `<span class="text-muted small">Waiting for the host to choose a campaign...</span>`;
-    }
   }
 }
 
