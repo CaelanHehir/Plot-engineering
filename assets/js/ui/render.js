@@ -1016,7 +1016,7 @@ function renderGameOverScreen() {
   if (recapEl) {
     recapEl.innerHTML = app.state.roundHistory.map((h, idx) => {
       const out = h.judgment?.outcome || 'FLYING_COLORS';
-      const badgeClass = out === 'FLYING_COLORS' ? 'badge-success' : (out === 'BARELY_PASSED' ? 'badge-warn' : 'btn-danger');
+      const badgeClass = out === 'FLYING_COLORS' ? 'badge-success' : (out === 'BARELY_PASSED' ? 'badge-warn' : 'badge-danger');
       const badgeText = out === 'FLYING_COLORS'
         ? '🌟 Flying Colors'
         : (out === 'BARELY_PASSED' ? '😅 Barely Passed' : '💥 Wiped Out');

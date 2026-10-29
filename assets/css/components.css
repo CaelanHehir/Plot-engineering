@@ -301,6 +301,11 @@
   color: var(--ink);
 }
 
+.badge-danger {
+  background: var(--accent-red);
+  color: #ffffff;
+}
+
 .badge-genre {
   background: var(--accent-cyan);
   color: var(--ink);
