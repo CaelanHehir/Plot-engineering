@@ -42,8 +42,8 @@ const app = {
   scenarioPopupKey: '',
   /** Active sub-window on REVEAL screen: 'story' | 'rankings' */
   revealWindow: 'story',
-  /** Active sub-window on GAME_OVER screen: 'podium' | 'recap' */
-  gameOverWindow: 'podium',
+  /** Active sub-window on GAME_OVER screen: 'results' | 'recap' (U10) */
+  gameOverWindow: 'results',
 
   // Authoritative State (managed by Host, synchronized to Clients)
   state: {
@@ -472,14 +472,10 @@ function setRevealWindow(win) {
 
 /**
  * Switches the active sub-window on the GAME_OVER screen on mobile.
- * @param {'podium'|'players'|'recap'} win
+ * @param {'results'|'recap'} win
  */
 function setGameOverWindow(win) {
-  if (win === 'recap' || win === 'players' || win === 'podium') {
-    app.gameOverWindow = win;
-  } else {
-    app.gameOverWindow = 'podium';
-  }
+  app.gameOverWindow = (win === 'recap') ? 'recap' : 'results';
   renderGameOverScreen();
 }
 

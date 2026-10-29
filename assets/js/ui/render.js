@@ -906,25 +906,40 @@ function showPostStoryVerdictAndLeaderboard(j) {
  * 4. Act-by-act multi-round campaign synopsis.
  */
 function renderGameOverScreen() {
-  const goWin = (app.gameOverWindow === 'recap' || app.gameOverWindow === 'players')
-    ? app.gameOverWindow
-    : 'podium';
-  const podiumCard = document.getElementById('gameover-podium-card');
-  const playersCard = document.getElementById('gameover-players-card');
+  const goWin = app.gameOverWindow === 'recap' ? 'recap' : 'results';
+  const resultsCard = document.getElementById('gameover-results-card');
   const recapCard = document.getElementById('gameover-recap-card');
-  const btnPodium = document.getElementById('gameover-win-btn-podium');
-  const btnPlayers = document.getElementById('gameover-win-btn-players');
+  const btnResults = document.getElementById('gameover-win-btn-results');
   const btnRecap = document.getElementById('gameover-win-btn-recap');
 
-  if (podiumCard) podiumCard.classList.toggle('mobile-window-hidden', goWin !== 'podium');
-  if (playersCard) playersCard.classList.toggle('mobile-window-hidden', goWin !== 'players');
+  if (resultsCard) resultsCard.classList.toggle('mobile-window-hidden', goWin !== 'results');
   if (recapCard) recapCard.classList.toggle('mobile-window-hidden', goWin !== 'recap');
 
-  if (btnPodium) btnPodium.classList.toggle('active', goWin === 'podium');
-  if (btnPlayers) btnPlayers.classList.toggle('active', goWin === 'players');
+  if (btnResults) btnResults.classList.toggle('active', goWin === 'results');
   if (btnRecap) btnRecap.classList.toggle('active', goWin === 'recap');
 
-  const sorted = [...app.state.players].sort((a, b) => b.score - a.score);
+  const sorted = [...app.state.players].sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  // U10: Standard competition tie ranking
+  const ranks = [];
+  let currentRank = 1;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0 && (sorted[i].score || 0) < (sorted[i - 1].score || 0)) {
+      currentRank = i + 1;
+    }
+    ranks.push(currentRank);
+  }
+  const rankCounts = {};
+  ranks.forEach(r => { rankCounts[r] = (rankCounts[r] || 0) + 1; });
+
+  const getRankLabel = (idx) => {
+    if (idx < 0 || idx >= ranks.length) return '';
+    const r = ranks[idx];
+    const isTie = rankCounts[r] > 1;
+    const base = r === 1 ? '1st' : (r === 2 ? '2nd' : (r === 3 ? '3rd' : `${r}th`));
+    return isTie ? `${base} (tie)` : base;
+  };
+
   const lastRound = app.state.roundHistory[app.state.roundHistory.length - 1];
   const endedByFailure = lastRound?.judgment?.outcome === 'FAILED';
 
@@ -963,49 +978,26 @@ function renderGameOverScreen() {
     };
 
     podiumStageEl.innerHTML = `
-      ${renderPillar(second, 2, '2nd')}
-      ${renderPillar(first, 1, '1st')}
-      ${renderPillar(third, 3, '3rd')}
+      ${renderPillar(second, 2, getRankLabel(1))}
+      ${renderPillar(first, 1, getRankLabel(0))}
+      ${renderPillar(third, 3, getRankLabel(2))}
     `;
-  }
-
-  const honorableEl = document.getElementById('final-honorable-mention');
-  if (honorableEl) {
-    if (sorted.length >= 4) {
-      const fourth = sorted[3];
-      honorableEl.classList.remove('hidden');
-      honorableEl.innerHTML = `
-        <div class="row-between">
-          <div class="rank-player-info">
-            <span class="badge badge-genre">4th place honorable mention</span>
-            ${renderAvatarHtml(fourth.character?.avatar, 'avatar-img')}
-            <div>
-              <strong>${escapeHtml(fourth.character?.name || fourth.name)}</strong>
-              <span class="text-muted small"> (${escapeHtml(fourth.name)})</span>
-              <div class="text-muted tiny">${escapeHtml(fourth.character?.role || '')}</div>
-            </div>
-          </div>
-          <div class="final-score-box">${(fourth.score || 0).toLocaleString()} pts</div>
-        </div>
-      `;
-    } else {
-      honorableEl.classList.add('hidden');
-    }
   }
 
   const leaderboardEl = document.getElementById('final-leaderboard-list');
   if (leaderboardEl) {
     leaderboardEl.innerHTML = sorted.map((p, i) => {
-      const rankLabel = i === 0 ? '1st' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `${i + 1}th`));
+      const rankLabel = getRankLabel(i);
+      const isWinner = ranks[i] === 1;
       return `
-        <div class="podium-card ${i === 0 ? 'podium-winner' : ''}">
+        <div class="podium-card ${isWinner ? 'podium-winner' : ''}">
           <div class="row-between">
-            <div class="rank-player-info">
+            <div class="rank-player-info" style="min-width:0; flex:1;">
               <span class="rank-medal">${rankLabel}</span>
               ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
-              <div>
-                <h4>${escapeHtml(p.character?.name || p.name)}</h4>
-                <div class="text-muted small">Played by ${escapeHtml(p.name)} • ${escapeHtml(p.character?.role || '')}</div>
+              <div style="min-width:0; flex:1; overflow-wrap:break-word; word-break:break-word;">
+                <h4 style="white-space:normal; overflow-wrap:break-word; word-break:break-word;">${escapeHtml(p.character?.name || p.name)}</h4>
+                <div class="text-muted small" style="white-space:normal; overflow-wrap:break-word; word-break:break-word;">Played by ${escapeHtml(p.name)} • ${escapeHtml(p.character?.role || '')}</div>
               </div>
             </div>
             <div class="final-score-box">${(p.score || 0).toLocaleString()} pts</div>
@@ -1045,5 +1037,8 @@ function renderGameOverScreen() {
     }).join('');
   }
 
-  document.getElementById('btn-host-play-again').classList.toggle('hidden', !app.isHost);
+  const playAgainBtn = document.getElementById('btn-host-play-again');
+  const clientWait = document.getElementById('client-gameover-waiting');
+  if (playAgainBtn) playAgainBtn.classList.toggle('hidden', !app.isHost);
+  if (clientWait) clientWait.classList.toggle('hidden', app.isHost);
 }

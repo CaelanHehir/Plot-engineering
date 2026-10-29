@@ -527,48 +527,38 @@
           <span id="finale-main-title" class="finale-banner-title">Campaign complete</span>
           <span id="finale-campaign-summary" class="text-muted small"></span>
         </div>
-        <button id="btn-host-play-again" type="button" class="btn btn-gold" onclick="hostBackToLobby()">
-          Back to lobby
-        </button>
+        <div class="row-gap">
+          <span id="client-gameover-waiting" class="text-muted small hidden">Waiting for host to return to lobby...</span>
+          <button id="btn-host-play-again" type="button" class="btn btn-gold" onclick="hostBackToLobby()">
+            Back to lobby
+          </button>
+        </div>
       </div>
 
-      <!-- Mobile/Compact Window Switcher for Game Over (Split: Podium, Player List, Story Recap) -->
+      <!-- Mobile/Compact Window Switcher for Game Over (U10: 2 Tabs: Results, Story recap) -->
       <div id="gameover-window-switcher" class="window-switcher-bar compact-only-switcher">
-        <button id="gameover-win-btn-podium" type="button" class="window-tab-btn active" onclick="setGameOverWindow('podium')">
-          Podium
-        </button>
-        <button id="gameover-win-btn-players" type="button" class="window-tab-btn" onclick="setGameOverWindow('players')">
-          Player results
+        <button id="gameover-win-btn-results" type="button" class="window-tab-btn active" onclick="setGameOverWindow('results')">
+          Results
         </button>
         <button id="gameover-win-btn-recap" type="button" class="window-tab-btn" onclick="setGameOverWindow('recap')">
-          Episode recap
+          Story recap
         </button>
       </div>
 
-      <div class="dashboard-3col gameover-cards-grid">
-        <!-- Window 1: Celebratory Podium + 4th Place Honorable Mention -->
-        <div id="gameover-podium-card" class="card wobbly-card podium-main-card">
+      <div class="dashboard-equal gameover-cards-grid">
+        <!-- Window 1: Results (Podium + Standings in one view) (U10) -->
+        <div id="gameover-results-card" class="card wobbly-card podium-main-card">
           <div class="row-between mb-1">
-            <h3>Podium</h3>
-            <span class="badge badge-warn">Top 3</span>
+            <h3>Results</h3>
           </div>
-          <div id="final-podium-stage" class="podium-stage"></div>
-          <div id="final-honorable-mention" class="honorable-mention-banner hidden"></div>
-        </div>
-
-        <!-- Window 2: Player Standings with Description, Points, and Modifiers -->
-        <div id="gameover-players-card" class="card wobbly-card podium-players-card">
-          <div class="row-between mb-1">
-            <h3>Player standings</h3>
-            <span class="badge badge-genre">All players</span>
-          </div>
+          <div id="final-podium-stage" class="podium-stage mb-2"></div>
           <div id="final-leaderboard-list" class="panel-scroll" style="flex:1;"></div>
         </div>
 
-        <!-- Window 3: Act-by-Act Campaign Story Summary -->
+        <!-- Window 2: Act-by-Act Campaign Story Summary -->
         <div id="gameover-recap-card" class="card wobbly-card podium-recap-card">
           <div class="row-between mb-1">
-            <h3>Episode recap</h3>
+            <h3>Story recap</h3>
           </div>
           <div id="final-campaign-recap-list" class="panel-scroll mt-1" style="flex:1;"></div>
         </div>
