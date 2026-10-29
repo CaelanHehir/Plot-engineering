@@ -28,7 +28,6 @@ Each game has a theme chosen by the host, and consists of multiple rounds. Each 
 - **AI Storytelling**: The game uses an LLM to analyze player input, generate the story, decide who contributed the most, whether the team succeeded or not, etc... It requires the player hosting the room to input a Gemini API key in order to work (check out the [Security](#security) section for privacy concerns).
 - **Peer-to-Peer Multiplayer**: Creating a room works using PeerJS WebRTC, which allows players themselves to host the room on their device. No backend is required to keep the game running.
 - **Procedural Audio System**: Sounds are generated using the Web Audio API, meaning no external audio assets need to be loaded.
-- **Demo Mode**: Play immediately without an API key using the built-in offline comedy judge.
 
 ---
 
@@ -36,7 +35,7 @@ Each game has a theme chosen by the host, and consists of multiple rounds. Each 
 The game is hosted for free on GitHub Pages. You can play it in your web browser **[here](https://caelanhehir.github.io/Plot-engineering/)**!
 
 ### Requirements
-- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one). No key? Demo mode works without one. Rooms support up to 8 players.
+- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one).
 
 ---
 
