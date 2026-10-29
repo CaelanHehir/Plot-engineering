@@ -486,14 +486,20 @@ function setGameOverWindow(win) {
  */
 function addBotPlayer() {
   if (!app.isHost) return;
+  // B20: Cap room at 8 players
+  if (app.state.players.length >= 8) {
+    showToast('The room is full (maximum 8 players).', 'warn');
+    return;
+  }
   const botCount = app.state.players.filter(p => p.isBot).length;
   const template = RANDOM_CHARACTERS[(botCount + Math.floor(Math.random() * RANDOM_CHARACTERS.length)) % RANDOM_CHARACTERS.length];
   const botId = 'bot-' + Math.random().toString(36).slice(2, 7);
   const botPortrait = generateProceduralPortraitDataUrl();
+  const botName = disambiguatePlayerName(`${template.name.split(' ')[0]} (Bot)`, app.state.players);
 
   app.state.players.push({
     id: botId,
-    name: `${template.name.split(' ')[0]} (AI Bot)`,
+    name: botName,
     isHost: false,
     isBot: true,
     score: 0,

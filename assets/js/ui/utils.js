@@ -19,6 +19,23 @@ function isLocalhost() {
 }
 
 /**
+ * Ensures player nicknames are unique by appending " (2)", " (3)", etc. to duplicates (B20).
+ * @param {string} baseName - Raw name
+ * @param {Array<{name: string}>} existingPlayers - Array of existing player objects
+ * @returns {string} Disambiguated unique name
+ */
+function disambiguatePlayerName(baseName, existingPlayers = []) {
+  const clean = (baseName || 'Player').trim().slice(0, 24);
+  let name = clean;
+  let counter = 2;
+  while (existingPlayers.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    name = `${clean} (${counter})`;
+    counter++;
+  }
+  return name;
+}
+
+/**
  * Resolves the public base URL of the currently running game.
  * Automatically respects custom web hosting and local dev servers,
  * falling back to GitHub Pages only if not running over HTTP/HTTPS.

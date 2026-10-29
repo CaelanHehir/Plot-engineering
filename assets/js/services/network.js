@@ -207,6 +207,20 @@ function handleClientMessageOnHost(conn, msg) {
       return;
     }
 
+    // B20: Cap room at 8 players
+    if (app.state.players.length >= 8) {
+      try {
+        conn.send({
+          type: 'JOIN_REJECTED',
+          reason: 'Cannot join: The room is full (maximum 8 players).'
+        });
+      } catch (e) {}
+      setTimeout(() => {
+        try { conn.close(); } catch (e) {}
+      }, 80);
+      return;
+    }
+
     // Reject mid-game joins for brand new players: new joins only allowed in LOBBY
     if (app.state.phase !== 'LOBBY') {
       try {
@@ -225,9 +239,12 @@ function handleClientMessageOnHost(conn, msg) {
     conn.playerId = playerId;
     app.clientConns[playerId] = conn;
 
+    // B20: Ensure unique player name
+    const finalName = disambiguatePlayerName(msg.playerName || 'Player', app.state.players);
+
     const newPlayer = {
       id: playerId,
-      name: (msg.playerName || 'Player').slice(0, 24),
+      name: finalName,
       isHost: false,
       isBot: false,
       score: 0,
