@@ -392,3 +392,27 @@ body {
     display: flex !important;
   }
 }
+
+/* ==================== REDUCED MOTION (A7) ==================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .boiling-badge,
+  .timer-urgent,
+  .wobbly-card,
+  .tilt-left,
+  .tilt-right,
+  .big-locked-stamp,
+  .verdict-banner,
+  .hud-menu-toggle {
+    transform: none !important;
+    animation: none !important;
+  }
+}
