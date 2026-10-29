@@ -958,12 +958,38 @@
 
 .action-textarea {
   flex: 1;
-  min-height: 7rem;
-  height: 100%;
-  resize: none;
+  min-height: 8rem;
+  max-height: 40dvh;
+  resize: vertical;
   font-size: 1.05rem;
   line-height: 1.45;
   padding: 0.75rem 0.85rem;
+}
+
+/* B5: Inline Scenario Scene Card */
+.scenario-scene-card {
+  background: rgba(0, 0, 0, 0.28);
+  border: 2.5px solid var(--ink);
+  border-radius: var(--wobbly-box);
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.scenario-scene-summary {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--accent-gold);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.scenario-scene-text {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--text-light);
+  margin: 0.4rem 0 0;
 }
 
 .bridge-box {

@@ -426,7 +426,7 @@
         <div class="row-gap">
           <span id="scenario-round-badge" class="badge badge-genre">ROUND 1 OF 4</span>
           <button type="button" class="btn-small btn-dice" onclick="openScenarioPopup()">
-            📜 Show Scenario Details
+            📜 Re-read the scene
           </button>
         </div>
         <div class="row-gap">
@@ -440,20 +440,31 @@
         </div>
       </div>
 
-      <!-- What Would You Do? Section -->
-      <div class="card card-highlight wobbly-card scenario-single-card" style="flex:1; min-height:0;">
+      <!-- Action Section with Inline Scene Card (B5) -->
+      <div class="card card-highlight wobbly-card scenario-single-card" style="flex:1; min-height:0; overflow-y:auto;">
         <div class="scenario-title-bar">
-          <h2>💬 What Would You Do?</h2>
+          <h2>💬 Your move</h2>
         </div>
+
+        <!-- B5: Scene text visible inline while writing move -->
+        <details id="scenario-inline-details" class="scenario-scene-card" open>
+          <summary class="scenario-scene-summary">
+            <strong id="scenario-inline-title">Scene</strong> (tap to collapse)
+          </summary>
+          <div id="scenario-inline-bridge" class="bridge-box hidden"></div>
+          <p id="scenario-inline-desc" class="scenario-scene-text"></p>
+        </details>
 
         <div id="scenario-window-action" class="scenario-window-pane">
           <div id="my-char-banner" class="my-char-banner"></div>
 
           <div id="scenario-input-area" class="scenario-input-flex">
             <div class="form-group scenario-textarea-group">
-              <label for="scenario-action-input" class="prompt-call-label">💬 WHAT DO YOU DO?!</label>
               <textarea id="scenario-action-input" name="plot_action_input_nofill" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field action-textarea" maxlength="400"
                 placeholder="Write your character's move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!"></textarea>
+              <p class="text-muted small mt-1" style="text-align:center;">
+                🤫 Silent round: no talking or sharing plans until the Judge reveals what happened!
+              </p>
             </div>
 
             <button type="button" class="btn btn-gold btn-block" onclick="submitMyAction()">

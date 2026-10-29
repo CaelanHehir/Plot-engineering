@@ -467,23 +467,38 @@ function renderScenarioScreen() {
   if (popupRoundBadge) popupRoundBadge.textContent = roundLabelText;
   document.getElementById('scenario-title').textContent = roundObj.title;
 
+  // B5: Populate inline scene title
+  const inlineTitle = document.getElementById('scenario-inline-title');
+  if (inlineTitle) inlineTitle.textContent = roundObj.title;
+
+  let sceneDesc = roundObj.scenario;
   if (myBlindedMod) {
     const redacted = roundObj.scenario
       .split(/\s+/)
       .map((w, i) => (i % 2 === 1 ? '█████' : w))
       .join(' ');
-    document.getElementById('scenario-description').textContent = `🕶️ [BLINDED BY "${myBlindedMod.name}"] ${redacted}`;
-  } else {
-    document.getElementById('scenario-description').textContent = roundObj.scenario;
+    sceneDesc = `🕶️ [BLINDED BY "${myBlindedMod.name}"] ${redacted}`;
   }
+  document.getElementById('scenario-description').textContent = sceneDesc;
+
+  // B5: Populate inline scene description
+  const inlineDesc = document.getElementById('scenario-inline-desc');
+  if (inlineDesc) inlineDesc.textContent = sceneDesc;
 
   const bridgeBox = document.getElementById('scenario-bridge-box');
+  const inlineBridge = document.getElementById('scenario-inline-bridge');
   if (roundIdx > 0 && app.state.roundHistory.length > 0) {
     const prev = app.state.roundHistory[app.state.roundHistory.length - 1];
+    const bridgeHtml = `<strong>🎞️ Previously:</strong> ${escapeHtml(prev.judgment?.continuityBridge || prev.judgment?.headline || '')}`;
     bridgeBox.classList.remove('hidden');
-    bridgeBox.innerHTML = `<strong>🎞️ Previously:</strong> ${escapeHtml(prev.judgment?.continuityBridge || prev.judgment?.headline || '')}`;
+    bridgeBox.innerHTML = bridgeHtml;
+    if (inlineBridge) {
+      inlineBridge.classList.remove('hidden');
+      inlineBridge.innerHTML = bridgeHtml;
+    }
   } else {
     bridgeBox.classList.add('hidden');
+    if (inlineBridge) inlineBridge.classList.add('hidden');
   }
 
   const timerEl = document.getElementById('scenario-timer');
