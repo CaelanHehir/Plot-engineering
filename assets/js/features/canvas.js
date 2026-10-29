@@ -37,12 +37,22 @@ function initDrawingCanvas() {
   drawState.canvas = canvas;
   drawState.ctx = canvas.getContext('2d');
 
-  // Build clickable color swatches from DRAW_COLORS palette
+  // Build clickable color swatches from DRAW_COLORS palette (A3)
+  const colorNames = {
+    '#ffca28': 'Gold',
+    '#ff5252': 'Red',
+    '#ff7043': 'Orange',
+    '#00e676': 'Green',
+    '#00e5ff': 'Cyan',
+    '#7c4dff': 'Purple',
+    '#ec407a': 'Pink',
+    '#111426': 'Black'
+  };
   const paletteEl = document.getElementById('draw-color-palette');
   if (paletteEl) {
     paletteEl.innerHTML = DRAW_COLORS.map(c => `
       <button type="button" class="color-swatch ${c === drawState.color ? 'active' : ''}"
-        style="background:${c};" onclick="selectDrawColor('${c}')"></button>
+        style="background:${c};" aria-label="Color ${colorNames[c] || c}" onclick="selectDrawColor('${c}')"></button>
     `).join('');
   }
 
