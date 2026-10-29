@@ -135,6 +135,13 @@ window.addEventListener('DOMContentLoaded', () => {
         closeTopMenu();
       }
     }
+    // Dismiss sketchpad tool popups on outside click
+    if (!e.target.closest('.sketch-tool-group')) {
+      const colorMenu = document.getElementById('sketch-color-menu');
+      const thickMenu = document.getElementById('sketch-thickness-menu');
+      if (colorMenu) colorMenu.classList.add('hidden');
+      if (thickMenu) thickMenu.classList.add('hidden');
+    }
   });
 
   // Global Escape key listener to dismiss popovers and modals
@@ -145,6 +152,10 @@ window.addEventListener('DOMContentLoaded', () => {
       closeApiKeyModal();
       closeQrPopup();
       if (app.scenarioPopupOpen) closeScenarioPopup();
+      const colorMenu = document.getElementById('sketch-color-menu');
+      const thickMenu = document.getElementById('sketch-thickness-menu');
+      if (colorMenu) colorMenu.classList.add('hidden');
+      if (thickMenu) thickMenu.classList.add('hidden');
     }
   });
 });
@@ -261,6 +272,20 @@ function setupDelegatedEventListeners() {
       case 'select-draw-color':
         if (actionEl.dataset.color) selectDrawColor(actionEl.dataset.color);
         break;
+      case 'toggle-sketch-color-menu': {
+        const colorMenu = document.getElementById('sketch-color-menu');
+        const thickMenu = document.getElementById('sketch-thickness-menu');
+        if (thickMenu) thickMenu.classList.add('hidden');
+        if (colorMenu) colorMenu.classList.toggle('hidden');
+        break;
+      }
+      case 'toggle-sketch-thickness-menu': {
+        const colorMenu = document.getElementById('sketch-color-menu');
+        const thickMenu = document.getElementById('sketch-thickness-menu');
+        if (colorMenu) colorMenu.classList.add('hidden');
+        if (thickMenu) thickMenu.classList.toggle('hidden');
+        break;
+      }
       case 'submit-character':
         submitMyCharacter();
         break;

@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=12" />
-  <link rel="stylesheet" href="assets/css/components.css?v=12" />
-  <link rel="stylesheet" href="assets/css/screens.css?v=12" />
+  <link rel="stylesheet" href="assets/css/base.css?v=13" />
+  <link rel="stylesheet" href="assets/css/components.css?v=13" />
+  <link rel="stylesheet" href="assets/css/screens.css?v=13" />
   <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC (A9) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 </head>
@@ -333,23 +333,62 @@
               </button>
             </div>
 
-            <!-- STAGE 2: Full-Section Sketchpad + Footer Toolbars -->
+            <!-- STAGE 2: Full-Section Sketchpad with Compact Side Toolbar -->
             <div id="char-stage-2" class="char-stage-body char-sketchpad-stage hidden">
-              <!-- FULL MIDDLE SECTION: The Sketchpad Canvas -->
-              <div class="full-sketchpad-canvas-area">
-                <canvas id="char-canvas" width="360" height="360" aria-label="Drawing area" role="img"></canvas>
-              </div>
+              <!-- Middle Section: Canvas + Right-Side Vertical Toolbar -->
+              <div class="sketchpad-stage-layout">
+                <div class="full-sketchpad-canvas-area">
+                  <canvas id="char-canvas" width="360" height="360" aria-label="Drawing area" role="img"></canvas>
+                </div>
 
-              <!-- FOOTER SECTION: Color Picking, Line Width & Canvas Tools -->
-              <div class="sketchpad-footer-bar">
-                <div id="draw-color-palette" class="draw-toolbar palette-bar"></div>
-                <div class="draw-toolbar tools-bar">
-                  <button type="button" class="brush-btn brush-size-btn" data-size="3" data-action="select-brush-size">Thin</button>
-                  <button type="button" class="brush-btn brush-size-btn active" data-size="6" data-action="select-brush-size">Med</button>
-                  <button type="button" class="brush-btn brush-size-btn" data-size="12" data-action="select-brush-size">Thick</button>
-                  <button type="button" id="draw-eraser-btn" class="brush-btn" title="Eraser" data-action="toggle-eraser">Eraser</button>
-                  <button type="button" class="brush-btn" title="Undo Stroke" data-action="undo-canvas">Undo</button>
-                  <button type="button" class="brush-btn" title="Clear Canvas" data-action="clear-canvas">Clear</button>
+                <!-- Right-side Compact Vertical Toolbar -->
+                <div class="sketchpad-side-toolbar" role="toolbar" aria-label="Sketchpad tools">
+                  <!-- 1. Color Picker Button + Menu Popup -->
+                  <div class="sketch-tool-group">
+                    <button id="sketch-color-btn" type="button" class="sketch-tool-btn" title="Choose color" aria-label="Choose color" data-action="toggle-sketch-color-menu">
+                      <span id="sketch-color-indicator" class="sketch-color-circle" style="background:#00e5ff;"></span>
+                    </button>
+                    <div id="sketch-color-menu" class="sketch-popup-menu hidden" role="menu"></div>
+                  </div>
+
+                  <!-- 2. Line Thickness Button + Menu Popup -->
+                  <div class="sketch-tool-group">
+                    <button id="sketch-thickness-btn" type="button" class="sketch-tool-btn" title="Line thickness" aria-label="Line thickness" data-action="toggle-sketch-thickness-menu">
+                      <span id="sketch-thickness-indicator" class="sketch-thickness-preview">
+                        <span class="thickness-dot" style="width: 9px; height: 9px;"></span>
+                      </span>
+                    </button>
+                    <div id="sketch-thickness-menu" class="sketch-popup-menu hidden" role="menu">
+                      <button type="button" class="thickness-opt-btn" data-size="3" data-action="select-brush-size" title="Thin (3px)">
+                        <span class="thickness-dot" style="width: 5px; height: 5px;"></span>
+                        <span class="tiny">Thin</span>
+                      </button>
+                      <button type="button" class="thickness-opt-btn active" data-size="6" data-action="select-brush-size" title="Medium (6px)">
+                        <span class="thickness-dot" style="width: 9px; height: 9px;"></span>
+                        <span class="tiny">Med</span>
+                      </button>
+                      <button type="button" class="thickness-opt-btn" data-size="12" data-action="select-brush-size" title="Thick (12px)">
+                        <span class="thickness-dot" style="width: 14px; height: 14px;"></span>
+                        <span class="tiny">Thick</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 3. Undo Button -->
+                  <button id="sketch-undo-btn" type="button" class="sketch-tool-btn" title="Undo stroke" aria-label="Undo stroke" data-action="undo-canvas">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 7v6h6"></path>
+                      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                    </svg>
+                  </button>
+
+                  <!-- 4. Clear Button -->
+                  <button id="sketch-clear-btn" type="button" class="sketch-tool-btn" title="Clear canvas" aria-label="Clear canvas" data-action="clear-canvas">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
                 </div>
               </div>
 
@@ -662,14 +701,14 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Modular Application Scripts (Ordered for file:// compatibility without bundler) -->
-  <script src="assets/js/data/campaigns.js?v=12"></script>
-  <script src="assets/js/ui/utils.js?v=12"></script>
-  <script src="assets/js/services/audio.js?v=12"></script>
-  <script src="assets/js/services/gemini.js?v=12"></script>
-  <script src="assets/js/features/canvas.js?v=12"></script>
-  <script src="assets/js/features/settings.js?v=12"></script>
-  <script src="assets/js/services/network.js?v=12"></script>
-  <script src="assets/js/ui/render.js?v=12"></script>
-  <script src="assets/js/main.js?v=12"></script>
+  <script src="assets/js/data/campaigns.js?v=13"></script>
+  <script src="assets/js/ui/utils.js?v=13"></script>
+  <script src="assets/js/services/audio.js?v=13"></script>
+  <script src="assets/js/services/gemini.js?v=13"></script>
+  <script src="assets/js/features/canvas.js?v=13"></script>
+  <script src="assets/js/features/settings.js?v=13"></script>
+  <script src="assets/js/services/network.js?v=13"></script>
+  <script src="assets/js/ui/render.js?v=13"></script>
+  <script src="assets/js/main.js?v=13"></script>
 </body>
 </html>

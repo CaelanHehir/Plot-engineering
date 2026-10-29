@@ -37,7 +37,7 @@ function initDrawingCanvas() {
   drawState.canvas = canvas;
   drawState.ctx = canvas.getContext('2d');
 
-  // Build clickable color swatches from DRAW_COLORS palette (A3)
+  // Build clickable color swatches for the popup palette
   const colorNames = {
     '#ffca28': 'Gold',
     '#ff5252': 'Red',
@@ -46,15 +46,21 @@ function initDrawingCanvas() {
     '#00e5ff': 'Cyan',
     '#7c4dff': 'Purple',
     '#ec407a': 'Pink',
-    '#111426': 'Black'
+    '#111426': 'Black',
+    '#ffffff': 'Eraser (White)'
   };
-  const paletteEl = document.getElementById('draw-color-palette');
-  if (paletteEl) {
-    paletteEl.innerHTML = DRAW_COLORS.map(c => `
+  const colorMenuEl = document.getElementById('sketch-color-menu') || document.getElementById('draw-color-palette');
+  if (colorMenuEl) {
+    const allColors = [...DRAW_COLORS, '#ffffff'];
+    colorMenuEl.innerHTML = allColors.map(c => `
       <button type="button" class="color-swatch ${c === drawState.color ? 'active' : ''}"
-        style="background:${c};" aria-label="Color ${colorNames[c] || c}" data-action="select-draw-color" data-color="${c}"></button>
+        style="background:${c};" aria-label="Color ${colorNames[c] || c}" title="${colorNames[c] || c}" data-action="select-draw-color" data-color="${c}"></button>
     `).join('');
   }
+
+  const colorIndicator = document.getElementById('sketch-color-indicator');
+  if (colorIndicator) colorIndicator.style.background = drawState.color;
+  selectBrushSize(drawState.brushSize);
 
   clearCharacterCanvas(false);
 
@@ -194,11 +200,13 @@ function syncCanvasToContainer(forceRepaint = false) {
  */
 function selectDrawColor(color) {
   drawState.color = color;
-  drawState.isEraser = false;
-  const eraserBtn = document.getElementById('draw-eraser-btn');
-  if (eraserBtn) eraserBtn.classList.remove('active');
+  drawState.isEraser = (color.toLowerCase() === '#ffffff');
+  const indicator = document.getElementById('sketch-color-indicator');
+  if (indicator) indicator.style.background = color;
+  const menu = document.getElementById('sketch-color-menu');
+  if (menu) menu.classList.add('hidden');
   document.querySelectorAll('.color-swatch').forEach(el => {
-    el.classList.toggle('active', el.getAttribute('onclick')?.includes(color));
+    el.classList.toggle('active', el.dataset.color === color);
   });
 }
 
@@ -208,13 +216,11 @@ function selectDrawColor(color) {
  */
 function setEraserMode(active = true) {
   drawState.isEraser = Boolean(active);
-  const eraserBtn = document.getElementById('draw-eraser-btn');
-  if (eraserBtn) {
-    eraserBtn.classList.toggle('active', drawState.isEraser);
+  if (drawState.isEraser) {
+    selectDrawColor('#ffffff');
+  } else {
+    selectDrawColor('#00e5ff');
   }
-  document.querySelectorAll('.color-swatch').forEach(el => {
-    el.classList.toggle('active', !drawState.isEraser && el.getAttribute('onclick')?.includes(drawState.color));
-  });
 }
 
 /**
@@ -222,9 +228,17 @@ function setEraserMode(active = true) {
  * @param {number} size - Stroke width (3, 6, 12, etc.)
  */
 function selectBrushSize(size) {
-  drawState.brushSize = size;
-  document.querySelectorAll('.brush-size-btn').forEach(btn => {
-    btn.classList.toggle('active', Number(btn.dataset.size) === size);
+  const numSize = Number(size) || 6;
+  drawState.brushSize = numSize;
+  const indicator = document.getElementById('sketch-thickness-indicator');
+  if (indicator) {
+    const dotSize = numSize === 3 ? 5 : (numSize === 6 ? 9 : 14);
+    indicator.innerHTML = `<span class="thickness-dot" style="width:${dotSize}px;height:${dotSize}px;"></span>`;
+  }
+  const menu = document.getElementById('sketch-thickness-menu');
+  if (menu) menu.classList.add('hidden');
+  document.querySelectorAll('.thickness-opt-btn, .brush-size-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.size) === numSize);
   });
 }
 
