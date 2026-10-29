@@ -58,7 +58,9 @@ function setStoredApiKey(key) {
 async function validateAndDiscoverModels(apiKey) {
   const cleanKey = (apiKey || '').trim();
   if (!cleanKey || cleanKey.length < 20) {
-    throw new Error('API Key is too short or empty.');
+    const err = new Error('API Key is too short or empty.');
+    err.code = 'INVALID';
+    throw err;
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`;
@@ -66,13 +68,23 @@ async function validateAndDiscoverModels(apiKey) {
   try {
     res = await fetch(url);
   } catch (networkErr) {
-    throw new Error('Network error while verifying API key.');
+    const err = new Error('Network error while verifying API key.');
+    err.code = 'NETWORK';
+    throw err;
   }
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
     const msg = errData?.error?.message || `HTTP ${res.status}`;
-    throw new Error(msg);
+    const err = new Error(msg);
+    if (res.status === 429) {
+      err.code = 'RATE';
+    } else if (res.status === 400 || res.status === 401 || res.status === 403) {
+      err.code = 'INVALID';
+    } else {
+      err.code = 'NETWORK';
+    }
+    throw err;
   }
 
   const data = await res.json();

@@ -243,6 +243,7 @@ function closeApiKeyModal() {
 async function saveApiKeyFromModal() {
   const inputEl = document.getElementById('api-key-input');
   const val = (inputEl ? inputEl.value : '').trim();
+  const prevKey = getStoredApiKey();
 
   if (!val) {
     setStoredApiKey('');
@@ -264,13 +265,22 @@ async function saveApiKeyFromModal() {
     showToast(`✅ Gemini API Key verified! Active model: ${models[0]}`, 'success');
   } catch (err) {
     setLoadingOverlay(false);
-    setStoredApiKey('');
-    isApiKeyVerified = false;
-    if (inputEl) {
-      inputEl.value = '';
-      inputEl.focus();
+    if (err.code === 'INVALID') {
+      // Key was explicitly rejected by the server
+      setStoredApiKey('');
+      isApiKeyVerified = false;
+      if (inputEl) {
+        inputEl.value = '';
+        inputEl.focus();
+      }
+      updateApiKeyBadge(false);
+      showToast('❌ Invalid API Key refused: ' + err.message, 'error');
+    } else {
+      // B4: Network timeout or rate limit: restore previous key and do not wipe it
+      setStoredApiKey(prevKey);
+      if (inputEl) inputEl.value = prevKey;
+      showToast(err.code === 'RATE' ? 'Rate limit reached. Stored key kept.' : 'Network error verifying key. Stored key kept.', 'warn');
+      closeApiKeyModal();
     }
-    updateApiKeyBadge(false);
-    showToast('❌ Invalid API Key refused: ' + err.message, 'error');
   }
 }

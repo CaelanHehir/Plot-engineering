@@ -222,18 +222,12 @@ async function initUI() {
     }
   }
 
+  // B4: Do not validate over network on page load (flaky offline connections must not wipe keys)
   const savedKey = getStoredApiKey();
   const keyInput = document.getElementById('api-key-input');
   if (savedKey) {
-    try {
-      await validateAndDiscoverModels(savedKey);
-      if (keyInput) keyInput.value = savedKey;
-      updateApiKeyBadge(true);
-    } catch (e) {
-      setStoredApiKey('');
-      if (keyInput) keyInput.value = '';
-      updateApiKeyBadge(false);
-    }
+    if (keyInput) keyInput.value = savedKey;
+    updateApiKeyBadge(true);
   } else {
     if (keyInput) keyInput.value = '';
     updateApiKeyBadge(false);
