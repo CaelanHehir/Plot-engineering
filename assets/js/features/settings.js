@@ -243,8 +243,24 @@ function updateApiKeyBadge(verified = isApiKeyVerified) {
 
 /** Opens the Gemini API Key configuration modal */
 function openApiKeyModal() {
-  document.getElementById('api-key-input').value = isApiKeyVerified ? getStoredApiKey() : '';
+  const input = document.getElementById('api-key-input');
+  if (input) {
+    input.value = isApiKeyVerified ? getStoredApiKey() : '';
+    input.type = 'password';
+  }
+  const toggleBtn = document.getElementById('btn-toggle-key-visibility');
+  if (toggleBtn) toggleBtn.textContent = 'Show';
   openAccessibleModal('api-key-modal', '#api-key-input');
+}
+
+/** Toggles password visibility for the Gemini API Key input field (A5) */
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('api-key-input');
+  const btn = document.getElementById('btn-toggle-key-visibility');
+  if (!input) return;
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  if (btn) btn.textContent = isPass ? 'Hide' : 'Show';
 }
 
 /** Closes the Gemini API Key configuration modal */

@@ -629,7 +629,10 @@
       </p>
       <div class="form-group">
         <label for="api-key-input">Gemini API Key</label>
-        <input id="api-key-input" type="text" name="gemini_token_nofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field masked-key-input" placeholder="AIzaSy..." />
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input id="api-key-input" type="password" name="gemini_token_nofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field" placeholder="AIzaSy..." style="flex:1;" />
+          <button id="btn-toggle-key-visibility" type="button" class="btn-small" onclick="toggleApiKeyVisibility()" style="min-width:4.5rem;">Show</button>
+        </div>
       </div>
       <div class="row-between mt-2 modal-footer-bar">
         <button type="button" class="btn btn-secondary" onclick="closeApiKeyModal()">Cancel</button>
