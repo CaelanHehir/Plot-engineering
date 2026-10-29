@@ -514,7 +514,9 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
   }, null, 2);
 
   const res = await callGeminiJSON(systemPrompt, userPrompt, apiKey);
-  return normalizeJudgeResult(res, players, settings);
+  const normalized = normalizeJudgeResult(res, players, settings);
+  normalized.judgedBy = 'ai';
+  return normalized;
 }
 
 /**
@@ -654,11 +656,15 @@ function mockJudgeRound({ players, submissions, settings }) {
     outcome = 'FLYING_COLORS';
   }
 
+  // B9: Clean quotes and handle dead/locked players without leaking status strings
   const characterActionSentences = players.map(p => {
     const charName = p.character?.name || p.name;
-    const role = p.character?.role ? ` (${p.character.role})` : '';
-    const act = (submissions[p.id] || '').trim() || 'stood there blinking in total silence';
-    return `${charName}${role} jumped into action and explicitly ${act.replace(/^I\s+/i, '')}.`;
+    const rawAct = (submissions[p.id] || '').trim();
+    if (rawAct.includes('DEAD') || rawAct.includes('LOCKED OUT') || rawAct === '(Was away)') {
+      return `${charName} watched from the sidelines.`;
+    }
+    const cleanAct = rawAct.replace(/[.!?]+$/, '') || 'stood there blinking in total silence';
+    return `${charName} went with this plan: "${cleanAct}".`;
   });
 
   const storyParagraphs = [
@@ -670,39 +676,86 @@ function mockJudgeRound({ players, submissions, settings }) {
       : 'Unfortunately, their moves went in completely opposite directions with zero coherence, turning the scene into a glorious trainwreck!'
   ];
 
-  const sampleTitles = ['Comedy MVP', 'Yes-And Champion', 'Chaotic Co-Star', 'Slapstick Hazard'];
-  const buffMods = [
-    { name: 'Prop Department Megaphone', type: 'buff', metaEffect: 'NONE', description: 'Amplifies dramatic bluffs and distractions' },
-    { name: 'Unstoppable Momentum', type: 'buff', metaEffect: 'NONE', description: 'Bonus flair on absurd physical stunts' }
-  ];
-  const debuffMods = [
-    { name: 'Dizzy from Slapstick', type: 'debuff', metaEffect: 'NONE', description: 'Wobbly aim on delicate tasks' },
-    { name: 'Stuffed in a Trash Can', type: 'meta', metaEffect: 'SKIP_TURN', description: 'Stuck for 1 turn unless a teammate tips you out!' }
+  const sampleTitles = [
+    'Scene Stealer',
+    'Comedic Anchor',
+    'Yes-And Champion',
+    'Wild Card Improv',
+    'Slapstick Master',
+    'Plot Accelerant',
+    'Deadpan Specialist',
+    'Ensemble Hero',
+    'Chaos Director',
+    'Calculated Hazard'
   ];
 
-  const rankings = players.map((p, idx) => {
-    const chosenMod = outcome === 'FLYING_COLORS'
-      ? buffMods[idx % buffMods.length]
-      : debuffMods[idx % debuffMods.length];
+  const sampleEvaluations = [
+    'Brought razor-sharp comedic timing and committed to the bit wholeheartedly.',
+    'Turned a completely ridiculous concept into the highlight of the scene.',
+    'Coordinated cleanly with the rest of the crew while leaving room for everyone to shine.',
+    'Drove the narrative forward with fearless physical humor and audacity.',
+    'Added just the right amount of grounded realism to make the surreal punchline hit.',
+    'Embraced the core rule of improv: took what was handed to them and ran a mile with it.',
+    'Delivered maximum comedic value with surprising strategic efficiency.',
+    'Stole the spotlight with an unexpected twist that tied the scene together.'
+  ];
+
+  const buffMods = [
+    { name: 'Prop Department Megaphone', type: 'buff', metaEffect: 'NONE', description: 'Amplifies dramatic bluffs and distractions' },
+    { name: 'Unstoppable Momentum', type: 'buff', metaEffect: 'NONE', description: 'Bonus flair on absurd physical stunts' },
+    { name: 'Pocket Confetti Cannon', type: 'buff', metaEffect: 'NONE', description: 'Instant distraction in tight spots' },
+    { name: 'Stunt Double Armor', type: 'buff', metaEffect: 'NONE', description: 'Absorbs one clumsy misstep' },
+    { name: 'Audience Applause Booster', type: 'buff', metaEffect: 'NONE', description: 'Elevates morale and crowd favor' },
+    { name: 'Lucky Rubber Chicken', type: 'buff', metaEffect: 'NONE', description: 'Bounces out of danger unexpectedly' },
+    { name: 'Director Bullhorn', type: 'buff', metaEffect: 'NONE', description: 'Overrides chaos with commanding authority' },
+    { name: 'Plot Armor Vest', type: 'buff', metaEffect: 'NONE', description: 'Survives narrative explosions intact' }
+  ];
+
+  const debuffMods = [
+    { name: 'Dizzy from Slapstick', type: 'debuff', metaEffect: 'NONE', description: 'Wobbly aim on delicate tasks' },
+    { name: 'Slippery Banana Peel', type: 'debuff', metaEffect: 'NONE', description: 'Comedic balance hazard' },
+    { name: 'Loud Creaky Shoes', type: 'debuff', metaEffect: 'NONE', description: 'Subtle stealth attempts are ruined' },
+    { name: 'Stage Fright Hiccups', type: 'debuff', metaEffect: 'NONE', description: 'Interrupts dramatic declarations' },
+    { name: 'Broken Prop Handle', type: 'debuff', metaEffect: 'NONE', description: 'Tools come apart at inopportune times' },
+    { name: 'Camera Glare', type: 'debuff', metaEffect: 'NONE', description: 'Squinting through bright spotlight beams' },
+    { name: 'Wardrobe Malfunction', type: 'debuff', metaEffect: 'NONE', description: 'Distracted by tangled costume pieces' },
+    { name: 'Wrong Cue Card', type: 'debuff', metaEffect: 'NONE', description: 'Occasional verbal slip-ups under pressure' }
+  ];
+
+  // B9: Rank by a mix of action length and fuzz rather than join order
+  const scoredPlayers = players.map((p, i) => {
+    const act = (submissions[p.id] || '').trim();
+    const fuzz = Math.sin(i * 3.7 + act.length) * 15;
+    return { p, score: act.length + fuzz };
+  }).sort((a, b) => b.score - a.score);
+
+  const availableMods = outcome === 'FLYING_COLORS' ? [...buffMods] : [...debuffMods];
+
+  const rankings = scoredPlayers.map(({ p }, rankIdx) => {
+    // Unique modifier per player in the round
+    const chosenMod = availableMods[rankIdx % availableMods.length];
     return {
       playerId: p.id,
-      rank: idx + 1,
-      title: sampleTitles[idx % sampleTitles.length],
-      evaluation: `(Demo Mode) Scored on coordination, coherence, and comedic commitment!`,
+      rank: rankIdx + 1,
+      title: sampleTitles[rankIdx % sampleTitles.length],
+      evaluation: sampleEvaluations[rankIdx % sampleEvaluations.length],
       modifiersAdded: outcome === 'FAILED' ? [] : [chosenMod],
       modifiersRemoved: []
     };
   });
 
-  return normalizeJudgeResult({
+  const res = normalizeJudgeResult({
     outcome,
     headline: outcome === 'FLYING_COLORS'
-      ? 'Pure Comedic Genius! (Demo Mode)'
+      ? 'Pure Comedic Genius!'
       : outcome === 'BARELY_PASSED'
-      ? 'Slapstick Survival! (Demo Mode)'
-      : 'Plot Totally Derailed! (Demo Mode)',
+      ? 'Slapstick Survival!'
+      : 'Plot Totally Derailed!',
     storyParagraphs,
     continuityBridge: outcome === 'FAILED' ? 'The curtain falls on this disaster.' : 'The crew stumbles triumphantly into the next act.',
     rankings
   }, players, settings);
+
+  res.judgedBy = 'demo';
+  return res;
 }

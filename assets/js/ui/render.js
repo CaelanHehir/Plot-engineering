@@ -825,6 +825,10 @@ function showPostStoryVerdictAndLeaderboard(j) {
       sfx.verdictFail();
     }
     document.getElementById('verdict-headline').textContent = j.headline;
+    const judgeBadge = document.getElementById('verdict-judge-badge');
+    if (judgeBadge) {
+      judgeBadge.classList.toggle('hidden', j.judgedBy !== 'demo');
+    }
   }
 
   rankingsBox.classList.remove('hidden');
