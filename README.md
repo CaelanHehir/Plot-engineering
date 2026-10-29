@@ -26,14 +26,17 @@ Each game has a theme chosen by the host, and consists of multiple rounds. Each 
 ## Technical Features
 - **AI Storytelling**: The game uses an LLM to analyze player input, generate the story, decide who contributed the most, whether the team succeeded or not, etc... It requires the player hosting the room to input a Gemini API key in order to work (check out the [Security](#security) section for privacy concerns).
 - **Peer-to-Peer Multiplayer**: Creating a room works using PeerJS WebRTC, which allows players themselves to host the room on their device. No backend is required to keep the game running.
-- **Procedural Audio System**: Sounds are generated using the the Web Audio API, meaning no external audio assets need to be loaded.
+- **Procedural Audio System**: Sounds are generated using the Web Audio API, meaning no external audio assets need to be loaded.
+- **Demo Mode**: Play immediately without an API key using the built-in offline comedy judge.
+- **8-Player Capacity**: Rooms support up to 8 players (including bots and human teammates).
 
 ---
 
 ## Playing the game
 The game is hosted for free on GitHub Pages. You can play it in your web browser **[here](https://caelanhehir.github.io/Plot-engineering/)**!
 
-The room host needs a [Google Gemini API Key](https://aistudio.google.com/app/apikey) for the game to work correctly.
+### Requirements
+- A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one). No key? Demo mode works without one. Rooms support up to 8 players.
 
 ---
 
@@ -88,11 +91,12 @@ Right-click `index.html` and click **"Open with Live Server"**.
 ---
 
 ## Security
-- **Client-Side Only:** User Gemini API keys are stored securely in their browser's `localStorage` and are never sent to any external server other than Google's official Gemini endpoint.
+- **API Key Storage:** Stored in plain text in your browser's localStorage on this device; sent only to Google's API; clear it from the key dialog.
 - **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
 
 ---
 
 ## License
 Distributed under the MIT License. See [LICENSE](LICENSE) for full details.
+
 
