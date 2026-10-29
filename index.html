@@ -350,8 +350,8 @@
                 </div>
 
                 <div id="char-quirk-group" class="form-group">
-                  <label for="char-quirk-input">🎒 Starting Item or Quirk (Optional)</label>
-                  <input id="char-quirk-input" type="text" name="plot_char_quirk_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Lucky Grappling Hook: Works 60% of the time" maxlength="80" />
+                  <label for="char-quirk-input">Starting trait (optional)</label>
+                  <input id="char-quirk-input" type="text" name="plot_char_quirk_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="Format: Name: what it does. Example: Lucky Hook: works 60% of the time" maxlength="80" />
                 </div>
               </div>
 
@@ -383,15 +383,15 @@
           </div>
 
           <div id="char-waiting-box" class="hidden locked-stamp-box" style="margin:auto; text-align:center;">
-            <div class="big-locked-stamp">🎨 HERO LOCKED IN!</div>
-            <p id="char-waiting-text" class="text-muted small mb-2">Admire the Polaroid gallery while the rest of the crew finishes doodling...</p>
+            <div class="big-locked-stamp">Character locked in</div>
+            <p id="char-waiting-text" class="text-muted small mb-2">Waiting for the rest of the crew...</p>
             <div id="char-waiting-host-action" class="mb-2 hidden">
               <button type="button" class="btn btn-gold btn-block" onclick="hostStartFirstRound()">
                 Start round 1
               </button>
             </div>
             <button type="button" class="btn btn-secondary" onclick="unlockMyCharacterToEdit()">
-              ✏️ Re-Draw / Edit Hero
+              Edit my character
             </button>
           </div>
         </div>
@@ -471,10 +471,10 @@
           </div>
 
           <div id="scenario-locked-area" class="hidden locked-stamp-box" style="margin:auto; text-align:center;">
-            <div class="big-locked-stamp">🔒 MOVE LOCKED IN!</div>
-            <p class="text-muted small mb-2">Keep a poker face while your teammates finish typing...</p>
+            <div class="big-locked-stamp">Move locked in</div>
+            <p class="text-muted small mb-2">Waiting for the others...</p>
             <button type="button" class="btn btn-secondary" onclick="unlockMyActionToEdit()">
-              ✏️ Change My Move
+              Change my move
             </button>
           </div>
         </div>
