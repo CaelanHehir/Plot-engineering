@@ -455,16 +455,29 @@ function stripCampaignSecrets(campaign) {
  */
 function getPublicState(forPlayerId = null) {
   const maskedSubmissions = {};
-  for (const pid of Object.keys(app.state.submissions)) {
-    if (app.state.phase === 'SCENARIO') {
-      maskedSubmissions[pid] = (pid === forPlayerId) ? app.state.submissions[pid] : '__LOCKED_IN__';
+  const submissionKinds = {};
+
+  // B11: Compute explicit submissionKinds map so eliminated/locked players render consistently on host and guests
+  for (const p of app.state.players) {
+    const pid = p.id;
+    const deadMod = getPlayerMetaMod(p, 'DEAD');
+    const skipMod = getPlayerMetaMod(p, 'SKIP_TURN');
+
+    if (deadMod) {
+      submissionKinds[pid] = 'dead';
+      maskedSubmissions[pid] = '(Eliminated from the campaign)';
+    } else if (skipMod) {
+      submissionKinds[pid] = 'locked';
+      maskedSubmissions[pid] = `(Locked out this round: ${skipMod.name})`;
+    } else if (p.disconnected) {
+      submissionKinds[pid] = 'away';
+      maskedSubmissions[pid] = '(Was away)';
+    } else if (pid === forPlayerId || app.isHost) {
+      submissionKinds[pid] = 'text';
+      maskedSubmissions[pid] = app.state.submissions[pid] || '';
     } else {
-      // Actions are always hidden from other players
-      if (pid === forPlayerId) {
-        maskedSubmissions[pid] = app.state.submissions[pid];
-      } else {
-        maskedSubmissions[pid] = '__SECRET_ACTION__';
-      }
+      submissionKinds[pid] = 'secret';
+      maskedSubmissions[pid] = app.state.phase === 'SCENARIO' ? '__LOCKED_IN__' : '__SECRET_ACTION__';
     }
   }
 
@@ -472,7 +485,8 @@ function getPublicState(forPlayerId = null) {
     ...app.state,
     activeCampaign: stripCampaignSecrets(app.state.activeCampaign),
     customCampaign: stripCampaignSecrets(app.state.customCampaign),
-    submissions: maskedSubmissions
+    submissions: maskedSubmissions,
+    submissionKinds
   };
 }
 

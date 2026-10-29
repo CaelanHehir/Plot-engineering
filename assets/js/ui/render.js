@@ -591,14 +591,24 @@ function renderRevealScreen() {
 
   // 1. Populate "What Everyone Decided To Do" as Cartoon Speech Bubbles & Censor Tape
   const actionsGrid = document.getElementById('reveal-actions-grid');
+  const kinds = app.state.submissionKinds || {};
   actionsGrid.innerHTML = app.state.players.map((p, idx) => {
     const isMe = p.id === app.myId;
+    const kind = kinds[p.id] || (isMe ? 'text' : 'secret');
     const actionText = app.state.submissions[p.id] || '(Panicked and did nothing!)';
-    const isSpecialStatus = actionText.startsWith('(💀 DEAD') || actionText.startsWith('(⛓️ LOCKED OUT');
-    const isHidden = !isMe && !isSpecialStatus;
-    const quoteHtml = isHidden
-      ? `<div class="action-quote-hidden">🕵️ SECRET MOVE — Hidden from others!</div>`
-      : `<blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(actionText))}"</blockquote>`;
+
+    let quoteHtml = '';
+    if (kind === 'dead') {
+      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-red); font-weight:700;">💀 Eliminated from the campaign</div>`;
+    } else if (kind === 'locked') {
+      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-gold); font-weight:700;">⛓️ Locked out this round</div>`;
+    } else if (kind === 'away') {
+      quoteHtml = `<div class="action-quote-status text-muted">💤 Away during this round</div>`;
+    } else if (kind === 'secret' && !isMe) {
+      quoteHtml = `<div class="action-quote-hidden">🕵️ SECRET MOVE — Hidden from others!</div>`;
+    } else {
+      quoteHtml = `<blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(actionText))}"</blockquote>`;
+    }
 
     return `
       <div class="action-reveal-card" style="animation-delay: ${idx * 0.08}s;">

@@ -104,6 +104,7 @@ const app = {
     players: [],
     submissions: {},
     hiddenSubmissions: {},
+    submissionKinds: {},
     currentJudgment: null
   },
 
