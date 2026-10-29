@@ -597,6 +597,24 @@ function renderRevealScreen() {
     const kind = kinds[p.id] || (isMe ? 'text' : 'secret');
     const actionText = app.state.submissions[p.id] || '(Panicked and did nothing!)';
 
+    if (kind === 'secret' && !isMe) {
+      // U9: Render hidden moves as one compact row
+      return `
+        <div class="action-reveal-card" style="animation-delay: ${idx * 0.08}s; padding: 0.6rem 0.85rem;">
+          <div class="row-between" style="width: 100%;">
+            <div class="row-gap" style="gap: 0.65rem;">
+              ${renderAvatarHtml(p.character?.avatar, 'avatar-img-sm')}
+              <div>
+                <strong>${escapeHtml(p.character?.name || p.name)}</strong>
+                <div class="text-muted tiny">${escapeHtml(p.character?.role || '')}</div>
+              </div>
+            </div>
+            <span class="badge badge-warn">Move locked</span>
+          </div>
+        </div>
+      `;
+    }
+
     let quoteHtml = '';
     if (kind === 'dead') {
       quoteHtml = `<div class="action-quote-status" style="color:var(--accent-red); font-weight:700;">Eliminated from the campaign</div>`;
@@ -604,8 +622,6 @@ function renderRevealScreen() {
       quoteHtml = `<div class="action-quote-status" style="color:var(--accent-gold); font-weight:700;">Locked out this round</div>`;
     } else if (kind === 'away') {
       quoteHtml = `<div class="action-quote-status text-muted">Away during this round</div>`;
-    } else if (kind === 'secret' && !isMe) {
-      quoteHtml = `<div class="action-quote-hidden">Secret move — Hidden from others</div>`;
     } else {
       quoteHtml = `<blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(actionText))}"</blockquote>`;
     }
