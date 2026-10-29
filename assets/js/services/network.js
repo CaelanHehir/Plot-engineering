@@ -153,10 +153,20 @@ function setupHostClientConnection(conn) {
       handleClientMessageOnHost(conn, msg);
     });
     conn.on('close', () => {
-      if (app.state.phase === 'LOBBY' && conn.playerId) {
+      if (!conn.playerId) return;
+      if (app.state.phase === 'LOBBY') {
         app.state.players = app.state.players.filter(p => p.id !== conn.playerId);
         delete app.clientConns[conn.playerId];
         broadcastState();
+      } else {
+        // B3: Outside LOBBY, mark disconnected so round flow is not stalled
+        const p = app.state.players.find(pl => pl.id === conn.playerId);
+        if (p) {
+          p.disconnected = true;
+          broadcastState();
+          if (app.state.phase === 'CHAR_CREATE') checkAllCharactersReady();
+          if (app.state.phase === 'SCENARIO') checkAllActionsSubmitted();
+        }
       }
     });
   });
@@ -172,9 +182,32 @@ function setupHostClientConnection(conn) {
 function handleClientMessageOnHost(conn, msg) {
   if (!msg || !msg.type) return;
 
-  // New player joining the room
+  // New or rejoining player connecting to the room
   if (msg.type === 'JOIN_REQUEST') {
-    // Reject mid-game joins: players can only join while host is in LOBBY
+    // B2: Host assigns IDs: accept client ID only if it matches safe regex, else generate
+    const rawId = typeof msg.playerId === 'string' ? msg.playerId.trim() : '';
+    const safeProvidedId = /^[a-z0-9-]{3,24}$/i.test(rawId) ? rawId : null;
+
+    // B3: Check if existing player is rejoining (allowed in any phase)
+    let existing = safeProvidedId ? app.state.players.find(p => p.id === safeProvidedId) : null;
+    if (existing) {
+      const playerId = existing.id;
+      conn.playerId = playerId;
+      app.clientConns[playerId] = conn;
+      existing.disconnected = false;
+      if (msg.playerName) existing.name = msg.playerName.slice(0, 24);
+
+      conn.send({
+        type: 'JOIN_ACCEPTED',
+        playerId,
+        state: getPublicState(playerId)
+      });
+      broadcastState();
+      showToast(`${existing.name} reconnected!`, 'info');
+      return;
+    }
+
+    // Reject mid-game joins for brand new players: new joins only allowed in LOBBY
     if (app.state.phase !== 'LOBBY') {
       try {
         conn.send({
@@ -188,36 +221,31 @@ function handleClientMessageOnHost(conn, msg) {
       return;
     }
 
-    // B2: Host assigns IDs: accept client ID only if it matches safe regex, else generate
-    const rawId = typeof msg.playerId === 'string' ? msg.playerId.trim() : '';
-    const playerId = /^[a-z0-9-]{3,24}$/i.test(rawId) ? rawId : ('p-' + Math.random().toString(36).slice(2, 9));
+    const playerId = safeProvidedId || ('p-' + Math.random().toString(36).slice(2, 9));
     conn.playerId = playerId;
     app.clientConns[playerId] = conn;
 
-    let existing = app.state.players.find(p => p.id === playerId);
-    if (!existing) {
-      existing = {
-        id: playerId,
-        name: (msg.playerName || 'Player').slice(0, 24),
-        isHost: false,
-        isBot: false,
-        score: 0,
-        character: null,
-        modifiers: []
-      };
-      app.state.players.push(existing);
-      sfx.join();
-      showToast(`${existing.name} joined the room!`, 'info');
-    } else {
-      existing.name = (msg.playerName || existing.name).slice(0, 24);
-    }
+    const newPlayer = {
+      id: playerId,
+      name: (msg.playerName || 'Player').slice(0, 24),
+      isHost: false,
+      isBot: false,
+      score: 0,
+      character: null,
+      modifiers: [],
+      disconnected: false
+    };
+    app.state.players.push(newPlayer);
+    sfx.join();
+    showToast(`${newPlayer.name} joined the room!`, 'info');
 
     conn.send({
       type: 'JOIN_ACCEPTED',
       playerId,
-      state: getPublicState()
+      state: getPublicState(playerId)
     });
     broadcastState();
+    return;
   }
 
   // Character submitted during Character Creation stage
@@ -307,6 +335,8 @@ function clientJoinRoom() {
   app.myName = name;
   app.myId = sessionStorage.getItem('plot_engineering_player_id') || ('p-' + Math.random().toString(36).slice(2, 9));
   sessionStorage.setItem('plot_engineering_player_id', app.myId);
+  sessionStorage.setItem('plot_engineering_room_code', code);
+  sessionStorage.setItem('plot_engineering_player_name', name);
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 
@@ -453,10 +483,25 @@ function broadcastState() {
 }
 
 /**
+ * Reconnects a guest to a previously active room session (B3).
+ */
+function rejoinStoredRoom() {
+  const code = sessionStorage.getItem('plot_engineering_room_code');
+  const name = sessionStorage.getItem('plot_engineering_player_name') || 'Player';
+  if (!code) return;
+  const codeInput = document.getElementById('join-room-code');
+  const nameInput = document.getElementById('join-player-name');
+  if (codeInput) codeInput.value = code;
+  if (nameInput) nameInput.value = name;
+  clientJoinRoom();
+}
+
+/**
  * Gracefully leaves the active room and returns to the HOME screen.
  * Closes WebRTC connections, notifies peers with ROOM_CLOSED, and destroys Peer instance.
  */
 function leaveRoomToHome() {
+  sessionStorage.removeItem('plot_engineering_room_code');
   clearInterval(app.timerInterval);
   stopTypewriter();
 

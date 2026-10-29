@@ -210,6 +210,18 @@ async function initUI() {
     }
   });
 
+  // B3: Display prompt to rejoin previously active room session if stored
+  const storedRoom = sessionStorage.getItem('plot_engineering_room_code');
+  const storedId = sessionStorage.getItem('plot_engineering_player_id');
+  if (storedRoom && storedId) {
+    const rejoinBanner = document.getElementById('rejoin-room-banner');
+    const rejoinCodeEl = document.getElementById('rejoin-room-code');
+    if (rejoinBanner && rejoinCodeEl) {
+      rejoinCodeEl.textContent = storedRoom;
+      rejoinBanner.classList.remove('hidden');
+    }
+  }
+
   const savedKey = getStoredApiKey();
   const keyInput = document.getElementById('api-key-input');
   if (savedKey) {
@@ -687,7 +699,9 @@ function unlockMyCharacterToEdit() {
  */
 function checkAllCharactersReady() {
   if (!app.isHost) return;
-  const allReady = app.state.players.length > 0 && app.state.players.every(p => p.character && p.character.ready);
+  // B3: Ignore disconnected players so offline guests do not stall character creation
+  const activePlayers = app.state.players.filter(p => !p.disconnected);
+  const allReady = activePlayers.length > 0 && activePlayers.every(p => p.character && p.character.ready);
   if (allReady) {
     clearInterval(app.timerInterval);
   }
@@ -750,6 +764,9 @@ function startScenarioRound(roundIndex) {
       app.state.submissions[p.id] = '(💀 DEAD — Eliminated from the campaign)';
     } else if (skipMod) {
       app.state.submissions[p.id] = `(⛓️ LOCKED OUT THIS TURN [${skipMod.name}] — Cannot act unless rescued by a teammate!)`;
+    } else if (p.disconnected) {
+      // B3: Auto-fill move for disconnected players so the round can proceed
+      app.state.submissions[p.id] = '(Was away)';
     } else if (p.isBot) {
       app.state.submissions[p.id] = generateBotAction(p);
     }
@@ -870,7 +887,9 @@ function unlockMyActionToEdit() {
  */
 function checkAllActionsSubmitted() {
   if (!app.isHost) return;
-  const allSubmitted = app.state.players.every(p => Boolean(app.state.submissions[p.id]));
+  // B3: Ignore disconnected players so offline guests do not stall round evaluation
+  const activePlayers = app.state.players.filter(p => !p.disconnected);
+  const allSubmitted = activePlayers.length > 0 && activePlayers.every(p => Boolean(app.state.submissions[p.id]));
   if (allSubmitted) {
     clearInterval(app.timerInterval);
     evaluateCurrentRound();

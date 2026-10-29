@@ -133,7 +133,7 @@ function renderLobbyScreen() {
           <div class="row-gap" style="gap:0.4rem; min-width:0;">
             <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎭')}</span>
             <span class="player-pill-name" title="${escapeHtml(p.name)}">
-              ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''}
+              ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''} ${p.disconnected ? '<small style="color:var(--accent-red);">(offline)</small>' : ''}
             </span>
           </div>
           ${app.isHost && !isMe ? `<button type="button" class="btn-icon-remove btn-remove-player" title="Remove" data-player-id="${escapeHtml(p.id)}">✕</button>` : ''}
@@ -391,7 +391,7 @@ function renderCharCreateScreen() {
           <div class="polaroid-name">${escapeHtml(ready ? p.character.name : p.name)}</div>
           <div class="polaroid-role">${ready ? escapeHtml(p.character.role) : 'Sketching hero...'}</div>
           <div class="polaroid-status-tag">
-            <span class="badge ${ready ? 'badge-success' : 'badge-warn'}">${ready ? '✅ Ready!' : '✏️ Drawing'}</span>
+            <span class="badge ${p.disconnected ? 'badge-warn' : (ready ? 'badge-success' : 'badge-warn')}">${p.disconnected ? '⚠️ Offline' : (ready ? '✅ Ready!' : '✏️ Drawing')}</span>
           </div>
         </div>
       `;
