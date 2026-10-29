@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=7" />
-  <link rel="stylesheet" href="assets/css/components.css?v=7" />
-  <link rel="stylesheet" href="assets/css/screens.css?v=7" />
+  <link rel="stylesheet" href="assets/css/base.css?v=8" />
+  <link rel="stylesheet" href="assets/css/components.css?v=8" />
+  <link rel="stylesheet" href="assets/css/screens.css?v=8" />
   <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC (A9) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 </head>
@@ -424,7 +424,7 @@
         </details>
 
         <div id="scenario-window-action" class="scenario-window-pane">
-          <div id="my-char-banner" class="my-char-banner"></div>
+          <div id="scenario-traits-strip" class="scenario-traits-strip hidden"></div>
 
           <div id="scenario-input-area" class="scenario-input-flex">
             <div class="form-group scenario-textarea-group">
@@ -598,6 +598,10 @@
       <div class="scenario-modal-body">
         <p id="scenario-description" class="scenario-text"></p>
       </div>
+      <label class="scenario-disable-popup-label">
+        <input id="chk-disable-scenario-popup" type="checkbox" style="width:1.15rem;height:1.15rem;cursor:pointer;" />
+        <span>Don't show popup automatically</span>
+      </label>
       <button type="button" class="btn btn-gold btn-block mt-2" data-action="close-scenario-popup">
         Continue
       </button>
@@ -655,14 +659,14 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Modular Application Scripts (Ordered for file:// compatibility without bundler) -->
-  <script src="assets/js/data/campaigns.js?v=7"></script>
-  <script src="assets/js/ui/utils.js?v=7"></script>
-  <script src="assets/js/services/audio.js?v=7"></script>
-  <script src="assets/js/services/gemini.js?v=7"></script>
-  <script src="assets/js/features/canvas.js?v=7"></script>
-  <script src="assets/js/features/settings.js?v=7"></script>
-  <script src="assets/js/services/network.js?v=7"></script>
-  <script src="assets/js/ui/render.js?v=7"></script>
-  <script src="assets/js/main.js?v=7"></script>
+  <script src="assets/js/data/campaigns.js?v=8"></script>
+  <script src="assets/js/ui/utils.js?v=8"></script>
+  <script src="assets/js/services/audio.js?v=8"></script>
+  <script src="assets/js/services/gemini.js?v=8"></script>
+  <script src="assets/js/features/canvas.js?v=8"></script>
+  <script src="assets/js/features/settings.js?v=8"></script>
+  <script src="assets/js/services/network.js?v=8"></script>
+  <script src="assets/js/ui/render.js?v=8"></script>
+  <script src="assets/js/main.js?v=8"></script>
 </body>
 </html>

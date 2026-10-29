@@ -436,7 +436,8 @@ function renderScenarioScreen() {
   const roundPopupKey = `${app.state.roomCode}-${camp.id || camp.title}-r${roundIdx}`;
   if (app.scenarioPopupKey !== roundPopupKey) {
     app.scenarioPopupKey = roundPopupKey;
-    app.scenarioPopupOpen = true;
+    const isAutoDisabled = localStorage.getItem('plot_engineering_disable_scenario_popup') === 'true';
+    app.scenarioPopupOpen = !isAutoDisabled;
     const actionInput = document.getElementById('scenario-action-input');
     if (actionInput && !app.state.submissions[app.myId]) {
       actionInput.value = '';
@@ -446,6 +447,10 @@ function renderScenarioScreen() {
   const scenModal = document.getElementById('scenario-popup-modal');
   if (scenModal) {
     scenModal.classList.toggle('hidden', !app.scenarioPopupOpen);
+    const chk = document.getElementById('chk-disable-scenario-popup');
+    if (chk) {
+      chk.checked = localStorage.getItem('plot_engineering_disable_scenario_popup') === 'true';
+    }
   }
 
   const myDeadMod = getPlayerMetaMod(me, 'DEAD');
@@ -505,27 +510,25 @@ function renderScenarioScreen() {
     if (addTimeBtn) addTimeBtn.classList.add('hidden');
   }
 
-  if (me) {
+  const traitsStrip = document.getElementById('scenario-traits-strip');
+  if (traitsStrip && me) {
     const modsCount = (me.modifiers || []).length;
-    document.getElementById('my-char-banner').innerHTML = `
-      <div class="my-char-header" style="flex:1; min-width:0;">
-        ${renderAvatarHtml(me.character?.avatar, 'avatar-img')}
-        <div style="min-width:0; flex:1;">
-          <h4>${escapeHtml(me.character?.name || me.name)}</h4>
-          <p class="text-muted small">${escapeHtml(me.character?.role || '')}</p>
-        </div>
-      </div>
-      ${modsCount > 0 ? `
-        <details class="modifiers-section" style="cursor:pointer;">
-          <summary class="mod-label" style="outline:none; user-select:none; color:var(--accent-gold);">
+    if (modsCount > 0) {
+      traitsStrip.classList.remove('hidden');
+      traitsStrip.innerHTML = `
+        <details class="modifiers-section" style="cursor:pointer; margin-bottom:0.5rem;" open>
+          <summary class="mod-label" style="outline:none; user-select:none; color:var(--accent-gold); font-size:0.85rem;">
             Active traits (${modsCount})
           </summary>
           <div class="modifier-chips mt-1">
             ${renderModifierChips(me.modifiers)}
           </div>
         </details>
-      ` : ''}
-    `;
+      `;
+    } else {
+      traitsStrip.classList.add('hidden');
+      traitsStrip.innerHTML = '';
+    }
   }
 
   const actionInput = document.getElementById('scenario-action-input');

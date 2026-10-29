@@ -1083,25 +1083,25 @@
   overflow-wrap: anywhere;
 }
 
-.my-char-banner {
-  background: var(--bg-input);
-  border: 3px solid var(--ink);
-  border-radius: var(--wobbly-box);
-  box-shadow: 3px 3px 0px var(--ink);
-  padding: 0.55rem 0.85rem;
-  margin-bottom: 0.65rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+.scenario-traits-strip {
+  margin-bottom: 0.5rem;
 }
 
-.my-char-header {
+.scenario-disable-popup-label {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.scenario-disable-popup-label:hover {
+  color: var(--text-main);
 }
 
 .prompt-call-label {

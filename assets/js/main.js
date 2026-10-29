@@ -362,6 +362,9 @@ function setupDelegatedEventListeners() {
 
   // Delegated Change Dispatcher
   document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'chk-disable-scenario-popup') {
+      localStorage.setItem('plot_engineering_disable_scenario_popup', String(e.target.checked));
+    }
     const bindEl = e.target.closest('[data-bind]');
     if (!bindEl) return;
     const bind = bindEl.dataset.bind;
@@ -1096,11 +1099,19 @@ function hostStartFirstRound() {
 /** Opens the full scenario description popup modal */
 function openScenarioPopup() {
   app.scenarioPopupOpen = true;
+  const chk = document.getElementById('chk-disable-scenario-popup');
+  if (chk) {
+    chk.checked = localStorage.getItem('plot_engineering_disable_scenario_popup') === 'true';
+  }
   openAccessibleModal('scenario-popup-modal');
 }
 
 /** Closes the full scenario description popup modal */
 function closeScenarioPopup() {
+  const chk = document.getElementById('chk-disable-scenario-popup');
+  if (chk) {
+    localStorage.setItem('plot_engineering_disable_scenario_popup', String(chk.checked));
+  }
   app.scenarioPopupOpen = false;
   closeAccessibleModal('scenario-popup-modal');
 }
