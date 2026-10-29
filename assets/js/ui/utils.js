@@ -6,8 +6,22 @@
 const GITHUB_PAGES_URL = 'https://caelanhehir.github.io/Plot-engineering/';
 
 /**
+ * Checks if the game is currently being served from a local development host.
+ * @returns {boolean}
+ */
+function isLocalhost() {
+  try {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '';
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Resolves the public base URL of the currently running game.
- * Automatically respects custom web hosting or falls back to the GitHub Pages production URL.
+ * Automatically respects custom web hosting and local dev servers,
+ * falling back to GitHub Pages only if not running over HTTP/HTTPS.
  * 
  * @returns {string} Fully qualified base URL ending with a slash
  */
@@ -15,8 +29,7 @@ function getPublicGameBaseUrl() {
   try {
     const loc = window.location;
     const isHttp = loc.protocol === 'http:' || loc.protocol === 'https:';
-    const isLocalhost = loc.hostname === 'localhost' || loc.hostname === '127.0.0.1' || loc.hostname === '';
-    if (isHttp && !isLocalhost) {
+    if (isHttp) {
       const cleanPath = loc.pathname.replace(/index\.html$/i, '');
       return `${loc.origin}${cleanPath.endsWith('/') ? cleanPath : cleanPath + '/'}`;
     }

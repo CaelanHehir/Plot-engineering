@@ -124,6 +124,13 @@ function renderLobbyScreen() {
     }
   }
 
+  const qrHint = document.getElementById('lobby-qr-hint');
+  if (qrHint) {
+    qrHint.textContent = isLocalhost()
+      ? 'Friends cannot reach localhost; share your deployed URL or your LAN address.'
+      : 'Point your phone camera here to open the room link!';
+  }
+
   const listEl = document.getElementById('lobby-player-list');
   if (listEl) {
     listEl.innerHTML = app.state.players.map(p => {

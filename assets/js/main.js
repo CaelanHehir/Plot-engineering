@@ -356,7 +356,11 @@ function hostAddExtraTime(seconds = 30) {
 function copyInviteLink() {
   const inviteUrl = getRoomInviteUrl(app.state.roomCode);
   navigator.clipboard.writeText(inviteUrl).then(() => {
-    showToast(`Copied GitHub Pages Invite Link (${app.state.roomCode})!`, 'success');
+    if (isLocalhost()) {
+      showToast('Invite link copied. Note: Friends cannot reach localhost; share your deployed URL or your LAN address.', 'info');
+    } else {
+      showToast('Invite link copied', 'success');
+    }
   }).catch(() => {
     showToast(`Invite Link: ${inviteUrl}`, 'info');
   });
