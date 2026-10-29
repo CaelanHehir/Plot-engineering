@@ -263,10 +263,11 @@ function clearCharacterCanvas(recordUndo = true) {
 
 /**
  * Exports a square 240x240 compressed avatar from the canvas for efficient
- * peer-to-peer WebRTC network synchronization.
+ * peer-to-peer WebRTC network synchronization (B24).
+ * Exports image/jpeg at quality 0.7 on white background with 20KB cap fallback.
  * 
  * @param {HTMLCanvasElement} sourceCanvas - Source drawing canvas
- * @returns {string} Data URL (image/webp or image/png fallback)
+ * @returns {string} Data URL (image/jpeg)
  */
 function exportCompactAvatar(sourceCanvas) {
   const out = document.createElement('canvas');
@@ -283,11 +284,18 @@ function exportCompactAvatar(sourceCanvas) {
   const offsetY = (240 - drawH) / 2;
   outCtx.drawImage(sourceCanvas, offsetX, offsetY, drawW, drawH);
 
-  try {
-    return out.toDataURL('image/webp', 0.75);
-  } catch (e) {
-    return out.toDataURL('image/png');
+  let quality = 0.7;
+  let dataUrl = out.toDataURL('image/jpeg', quality);
+
+  // Check byte size (base64 string length ~ 4/3 of binary size) and lower quality if > 20KB
+  if (dataUrl.length > 27000) {
+    dataUrl = out.toDataURL('image/jpeg', 0.45);
   }
+  if (dataUrl.length > 27000) {
+    dataUrl = out.toDataURL('image/jpeg', 0.25);
+  }
+
+  return dataUrl;
 }
 
 /**
