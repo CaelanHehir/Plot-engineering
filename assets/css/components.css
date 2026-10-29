@@ -153,7 +153,11 @@
   padding: 0.35rem 0.5rem;
 }
 
-/* Key input styling */
+/* Key input styling (masks visually without type="password", preventing browser password manager popups) */
+.key-masked {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
 
 /* ==================== TACTILE 3D CARTOON BUTTONS ==================== */
 /* Interactive elements have minimum tap target of 44px by 44px (Step 8) */

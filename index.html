@@ -77,7 +77,7 @@
             </p>
             <div class="form-group">
               <label for="host-player-name">Your Nickname</label>
-              <input id="host-player-name" type="text" name="plot_host_nick_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Alex" maxlength="24"
+              <input id="host-player-name" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" class="input-field" placeholder="e.g., Alex" maxlength="24"
                 data-on-enter="host-create-room" />
             </div>
           </div>
@@ -102,12 +102,12 @@
             <div class="join-inputs-grid">
               <div class="form-group">
                 <label for="join-room-code">Room Code</label>
-                <input id="join-room-code" type="text" name="plot_room_code_nofill" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" data-lpignore="true" class="input-field input-code" placeholder="ABCD" maxlength="4"
+                <input id="join-room-code" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" class="input-field input-code" placeholder="ABCD" maxlength="4"
                   data-on-enter="client-join-room" />
               </div>
               <div class="form-group">
                 <label for="join-player-name">Your Nickname</label>
-                <input id="join-player-name" type="text" name="plot_join_nick_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Sam" maxlength="24"
+                <input id="join-player-name" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" class="input-field" placeholder="e.g., Sam" maxlength="24"
                   data-on-enter="client-join-room" />
               </div>
             </div>
@@ -311,17 +311,17 @@
               <div class="char-inputs-col">
                 <div class="form-group">
                   <label for="char-name-input">Character Name</label>
-                  <input id="char-name-input" type="text" name="plot_char_name_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="e.g., Brick McLargeHuge" maxlength="30" />
+                  <input id="char-name-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" class="input-field" placeholder="e.g., Brick McLargeHuge" maxlength="30" />
                 </div>
 
                 <div class="form-group">
                   <label for="char-role-input">Role / Description / Vibe</label>
-                  <textarea id="char-role-input" name="plot_char_role_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" rows="2" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
+                  <textarea id="char-role-input" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" class="input-field" rows="2" placeholder="e.g., Overconfident Lockpick who only brought a crowbar" maxlength="80"></textarea>
                 </div>
 
                 <div id="char-quirk-group" class="form-group">
                   <label for="char-quirk-input">Starting trait (optional)</label>
-                  <input id="char-quirk-input" type="text" name="plot_char_quirk_nofill" autocomplete="off" data-form-type="other" data-lpignore="true" class="input-field" placeholder="Format: Name: what it does. Example: Lucky Hook: works 60% of the time" maxlength="80" />
+                  <input id="char-quirk-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" class="input-field" placeholder="Format: Name: what it does. Example: Lucky Hook: works 60% of the time" maxlength="80" />
                 </div>
               </div>
 
@@ -428,7 +428,7 @@
 
           <div id="scenario-input-area" class="scenario-input-flex">
             <div class="form-group scenario-textarea-group">
-              <textarea id="scenario-action-input" name="plot_action_input_nofill" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field action-textarea" maxlength="400"
+              <textarea id="scenario-action-input" autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field action-textarea" maxlength="400"
                 placeholder="Write your character's move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!"></textarea>
               <p class="text-muted small mt-1 text-center">
                 Silent round: no talking or sharing plans until the Judge reveals what happened.
@@ -630,7 +630,7 @@
       <div class="form-group">
         <label for="api-key-input">Gemini API Key</label>
         <div class="row-gap">
-          <input id="api-key-input" type="password" name="gemini_token_nofill" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field flex-1" placeholder="AIzaSy..." />
+          <input id="api-key-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" class="input-field flex-1 key-masked" placeholder="AIzaSy..." />
           <button id="btn-toggle-key-visibility" type="button" class="btn-small btn-toggle-visibility" data-action="toggle-api-key-visibility">Show</button>
         </div>
       </div>
