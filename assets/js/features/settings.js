@@ -46,7 +46,7 @@ const HOST_SETTINGS_SCHEMA = [
     key: 'strictness',
     idBase: 'setting-strictness',
     label: '🎭 AI Judge Vibe',
-    desc: 'How Gemini scores coordination, coherence & humor.',
+    desc: 'How strictly the Judge scores coordination, coherence & humor.',
     type: 'select',
     options: [
       { value: 'forgiving', text: 'Pure "Yes, And!" Improv' },
@@ -206,22 +206,22 @@ function closeSettingsModal() {
 }
 
 /**
- * Updates the visual badge indicating Gemini API key status in the top menu bar.
+ * Updates the visual button indicating AI key status in the top menu (Part 2, U1).
+ * Shows "AI key: Ready" or "AI key: Not set", omitting raw model names outside the modal.
+ * 
  * @param {boolean} [verified]
  */
 function updateApiKeyBadge(verified = isApiKeyVerified) {
+  const btn = document.getElementById('menu-ai-key-btn');
   const badge = document.getElementById('api-key-status-badge');
-  let activeModel = localStorage.getItem('plot_engineering_gemini_model') || '';
-  if (activeModel.includes('2.5') || activeModel.includes('2-5')) {
-    activeModel = '';
-    localStorage.removeItem('plot_engineering_gemini_model');
+  const isOk = Boolean(verified && getStoredApiKey());
+  const label = isOk ? 'AI key: Ready' : 'AI key: Not set';
+  if (btn) {
+    btn.textContent = label;
   }
   if (badge) {
-    const isOk = Boolean(verified && getStoredApiKey());
     badge.className = 'badge ' + (isOk ? 'badge-success' : 'badge-warn');
-    badge.innerHTML = isOk
-      ? `✅ Gemini Ready${activeModel ? ` (${activeModel})` : ''}`
-      : '⚠️ Set Gemini Key';
+    badge.textContent = label;
   }
 }
 

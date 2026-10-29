@@ -628,7 +628,7 @@ async function hostStartCampaign() {
       return;
     }
     if (!getStoredApiKey() || !isApiKeyVerified) {
-      showToast('Please set a valid Gemini API Key first to generate an AI Campaign!', 'error');
+      showToast('Add an AI key to generate a campaign (Menu > AI key).', 'error');
       openApiKeyModal();
       return;
     }

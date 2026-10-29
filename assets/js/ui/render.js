@@ -55,21 +55,32 @@ function renderState() {
     }
   }
 
-  // House Rules button visibility (host-only during active game)
+  // House Rules button visibility (host-only, hidden on HOME) (U1)
   const settingsBtn = document.getElementById('btn-top-settings');
   if (settingsBtn) {
-    settingsBtn.classList.toggle('hidden', !app.isHost && phase !== 'HOME');
+    settingsBtn.classList.toggle('hidden', !app.isHost || phase === 'HOME');
   }
 
-  // Top header room code badge
+  // AI Key menu button visibility (host-only) (U1)
+  const aiKeyBtn = document.getElementById('menu-ai-key-btn');
+  if (aiKeyBtn) {
+    aiKeyBtn.classList.toggle('hidden', !app.isHost);
+  }
+
+  // Top header room code permanent pill (U1)
+  const roomPill = document.getElementById('header-room-pill');
+  if (roomPill) {
+    if (phase !== 'HOME' && app.state.roomCode) {
+      roomPill.classList.remove('hidden');
+      roomPill.innerHTML = `ROOM: <strong>${escapeHtml(app.state.roomCode)}</strong>`;
+    } else {
+      roomPill.classList.add('hidden');
+    }
+  }
+
   const roomBadge = document.getElementById('top-room-badge');
   if (roomBadge) {
-    if (phase !== 'HOME' && app.state.roomCode) {
-      roomBadge.classList.remove('hidden');
-      roomBadge.innerHTML = `🎟️ ROOM: <strong>${escapeHtml(app.state.roomCode)}</strong>`;
-    } else {
-      roomBadge.classList.add('hidden');
-    }
+    roomBadge.classList.add('hidden');
   }
 
   // Automatically dismiss scenario popup if phase changed away from SCENARIO
@@ -217,7 +228,7 @@ function renderLobbyScreen() {
           <span class="campaign-icon">✨</span>
           <div>
             <h3>AI-Generated Custom Campaign</h3>
-            <span class="badge badge-warn">🔮 Gemini Plot • ${rounds} Rounds</span>
+            <span class="badge badge-warn">AI-generated • ${rounds} rounds</span>
           </div>
         </div>
         <p class="mt-1">${promptSnippet ? `"${escapeHtml(promptSnippet)}"` : 'The Host is cooking up a custom AI movie plot for the crew!'}</p>

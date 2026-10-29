@@ -34,17 +34,14 @@
       </button>
     </div>
     <div class="topbar-right">
+      <div id="header-room-pill" class="room-badge hidden" onclick="copyInviteLink()" style="cursor:pointer;" title="Click to copy invite link">ROOM: ----</div>
       <button id="btn-top-menu" type="button" class="btn-small hud-menu-toggle" onclick="toggleTopMenu(event)" aria-expanded="false">
         ☰ Menu
       </button>
       <div id="top-menu-drawer" class="top-menu-popover hidden">
-        <div id="top-room-badge" class="room-badge hidden" onclick="copyInviteLink()" style="cursor:pointer;" title="Click to copy invite link">🎟️ ROOM: ----</div>
-        <span id="api-key-status-badge" class="badge badge-warn" onclick="closeTopMenu(); openApiKeyModal();" style="cursor:pointer; justify-content:center;">
-          ⚠️ Set Gemini Key
-        </span>
-        <button id="btn-top-settings" type="button" class="btn-small" onclick="closeTopMenu(); openSettingsModal();">⚙️ House Rules</button>
-        <button type="button" class="btn-small" onclick="closeTopMenu(); openApiKeyModal();">🔑 Gemini API Key</button>
         <button id="btn-mute" type="button" class="btn-small" onclick="toggleSound()">🔊 Sound On</button>
+        <button id="menu-ai-key-btn" type="button" class="btn-small hidden" onclick="closeTopMenu(); openApiKeyModal();">AI key: Not set</button>
+        <button id="btn-top-settings" type="button" class="btn-small hidden" onclick="closeTopMenu(); openSettingsModal();">⚙️ House Rules</button>
       </div>
     </div>
   </header>
@@ -246,7 +243,7 @@
             <!-- Sub-Tab: AI Prompt -->
             <div id="panel-ai" class="hidden">
               <div class="form-group">
-                <label for="ai-campaign-prompt">Pitch any wild movie plot, heist, or disaster for Gemini to build:</label>
+                <label for="ai-campaign-prompt">Pitch any wild movie plot, heist, or disaster for the AI to build:</label>
                 <textarea id="ai-campaign-prompt" class="input-field" rows="3"
                   placeholder="e.g., A group of raccoons in trench coats trying to heist a 5-star wedding cake..."
                   oninput="if(app.isHost){ app.state.aiPrompt = this.value; }"></textarea>
@@ -261,7 +258,7 @@
                 </select>
               </div>
               <div class="bridge-box">
-                <strong>✨ 2-Part Comedic Round Generation:</strong> For each round, Gemini automatically creates:
+                <strong>✨ 2-Part Comedic Round Generation:</strong> For each round, the AI creates:
                 <br />• <strong>1. Scene Setup (Shown to Players):</strong> Fun obstacles and interactive props to play off of.
                 <br />• <strong>2. Comedic Hooks (Judge Only):</strong> Quirky NPC personalities &amp; improv fuel so funny, coordinated plans shine!
               </div>
@@ -503,7 +500,7 @@
         <div class="row-between mb-2">
           <h3>🗣️ What Everyone Decided To Do!</h3>
           <div id="reveal-ai-generating-box" class="badge badge-warn boiling-badge hidden">
-            🔮 Gemini is judging the chaos...
+            The Judge is deciding what happens...
           </div>
         </div>
         <div id="reveal-actions-grid" class="actions-grid-compact panel-scroll"></div>
