@@ -46,11 +46,11 @@ function renderState() {
     } else {
       backBtn.classList.remove('hidden');
       if (!app.isHost) {
-        backBtn.textContent = '⬅️ Leave Room';
+        backBtn.textContent = 'Leave room';
       } else if (phase === 'LOBBY') {
-        backBtn.textContent = '⬅️ Exit to Home';
+        backBtn.textContent = 'Exit to home';
       } else {
-        backBtn.textContent = '⬅️ Back to Lobby';
+        backBtn.textContent = 'Back to lobby';
       }
     }
   }
