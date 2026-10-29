@@ -2,6 +2,31 @@
  * Shared UI, DOM, Formatting & GitHub Pages URL Helper Utilities
  */
 
+// T13: Migrate legacy storage keys from prompt_engineering_* to plot_engineering_*
+(function migrateLegacyStorageKeys() {
+  try {
+    const keys = ['gemini_key', 'gemini_model', 'muted', 'player_id', 'player_name', 'room_code'];
+    keys.forEach(k => {
+      const oldKey = `prompt_engineering_${k}`;
+      const newKey = `plot_engineering_${k}`;
+      const localVal = localStorage.getItem(oldKey);
+      if (localVal !== null) {
+        if (localStorage.getItem(newKey) === null) {
+          localStorage.setItem(newKey, localVal);
+        }
+        localStorage.removeItem(oldKey);
+      }
+      const sessVal = sessionStorage.getItem(oldKey);
+      if (sessVal !== null) {
+        if (sessionStorage.getItem(newKey) === null) {
+          sessionStorage.setItem(newKey, sessVal);
+        }
+        sessionStorage.removeItem(oldKey);
+      }
+    });
+  } catch (e) {}
+})();
+
 /** Canonical GitHub Pages hosting URL for multiplayer invites */
 const GITHUB_PAGES_URL = 'https://caelanhehir.github.io/Plot-engineering/';
 
