@@ -672,17 +672,21 @@ function submitMyCharacter() {
     sfx.lockIn();
     checkAllCharactersReady();
     broadcastState();
-  } else if (app.hostConn && app.hostConn.open) {
-    const me = app.state.players.find(p => p.id === app.myId);
-    if (me) {
-      me.character = { name, role, avatar: avatarDataUrl, ready: true };
-    }
-    renderState();
-    app.hostConn.send({
+  } else {
+    // B7: Disallow optimistic local state update unless sendToHost succeeds
+    const sent = sendToHost({
       type: 'SUBMIT_CHARACTER',
       playerId: app.myId,
       character: charData
     });
+    if (sent) {
+      const me = app.state.players.find(p => p.id === app.myId);
+      if (me) {
+        me.character = { name, role, avatar: avatarDataUrl, ready: true };
+      }
+      sfx.lockIn();
+      renderState();
+    }
   }
 }
 
@@ -690,18 +694,25 @@ function submitMyCharacter() {
  * Unlocks the local player's character so they can edit bio or redraw portrait.
  */
 function unlockMyCharacterToEdit() {
-  const me = app.state.players.find(p => p.id === app.myId);
-  if (me && me.character) {
-    me.character.ready = false;
-  }
   if (app.isHost) {
+    const me = app.state.players.find(p => p.id === app.myId);
+    if (me && me.character) {
+      me.character.ready = false;
+    }
     broadcastState();
-  } else if (app.hostConn && app.hostConn.open) {
-    app.hostConn.send({
+  } else {
+    // B7: Guard action unlock with sendToHost
+    const sent = sendToHost({
       type: 'UNLOCK_CHARACTER',
       playerId: app.myId
     });
-    renderState();
+    if (sent) {
+      const me = app.state.players.find(p => p.id === app.myId);
+      if (me && me.character) {
+        me.character.ready = false;
+      }
+      renderState();
+    }
   }
 }
 
@@ -859,15 +870,19 @@ function submitMyAction() {
     sfx.lockIn();
     broadcastState();
     checkAllActionsSubmitted();
-  } else if (app.hostConn && app.hostConn.open) {
-    app.state.submissions[app.myId] = '__LOCKED_IN__';
-    app.state.hiddenSubmissions[app.myId] = true;
-    renderState();
-    app.hostConn.send({
+  } else {
+    // B7: Guard action submission with sendToHost
+    const sent = sendToHost({
       type: 'SUBMIT_ACTION',
       playerId: app.myId,
       action
     });
+    if (sent) {
+      app.state.submissions[app.myId] = '__LOCKED_IN__';
+      app.state.hiddenSubmissions[app.myId] = true;
+      sfx.lockIn();
+      renderState();
+    }
   }
 }
 
@@ -880,16 +895,21 @@ function unlockMyActionToEdit() {
     showToast('You cannot act this turn due to your active status effect!', 'warn');
     return;
   }
-  delete app.state.submissions[app.myId];
-  delete app.state.hiddenSubmissions[app.myId];
   if (app.isHost) {
+    delete app.state.submissions[app.myId];
+    delete app.state.hiddenSubmissions[app.myId];
     broadcastState();
-  } else if (app.hostConn && app.hostConn.open) {
-    app.hostConn.send({
+  } else {
+    // B7: Guard action unlock with sendToHost
+    const sent = sendToHost({
       type: 'UNLOCK_ACTION',
       playerId: app.myId
     });
-    renderState();
+    if (sent) {
+      delete app.state.submissions[app.myId];
+      delete app.state.hiddenSubmissions[app.myId];
+      renderState();
+    }
   }
 }
 

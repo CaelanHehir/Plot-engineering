@@ -483,6 +483,28 @@ function broadcastState() {
 }
 
 /**
+ * Sends a message payload to the Host via the active WebRTC DataChannel (B7).
+ * Returns true if message was successfully dispatched, or false if disconnected.
+ * 
+ * @param {object} msg
+ * @returns {boolean}
+ */
+function sendToHost(msg) {
+  if (app.isHost) return true;
+  if (app.hostConn && app.hostConn.open) {
+    try {
+      app.hostConn.send(msg);
+      return true;
+    } catch (e) {
+      console.warn('sendToHost failed:', e);
+    }
+  }
+  showToast('Lost connection to the host. Trying to reconnect...', 'warn');
+  rejoinStoredRoom();
+  return false;
+}
+
+/**
  * Reconnects a guest to a previously active room session (B3).
  */
 function rejoinStoredRoom() {
