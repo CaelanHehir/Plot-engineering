@@ -59,25 +59,25 @@ const app = {
     aiRoundCount: 4,
     customCampaign: {
       id: 'custom-1',
-      title: 'My Custom Adventure',
+      title: 'Custom campaign',
       icon: '🎭',
       genre: 'Custom Story',
-      description: 'A custom multi-round scenario created by the Host.',
+      description: 'A custom multi-round campaign created by the Host.',
       rounds: [
         {
-          title: 'Act I: The Setup',
+          title: 'The Setup',
           scenario: 'A troll in a clip-on tie blocks the stone bridge. He crosses his arms and refuses to let anyone pass.',
           secrets: 'The troll is secretly insecure about his fashion sense and loves dramatic flattery, absurd bribes, or coordinated slapstick distractions!'
         },
         {
-          title: 'Act II: The Escalation',
-          scenario: 'Describe what the players see in Round 2 (set up fun moving parts)...',
-          secrets: 'Describe the comedic quirks of the NPCs/props for the AI Judge...'
+          title: 'The Escalation',
+          scenario: '',
+          secrets: ''
         },
         {
-          title: 'Act III: The Climax',
-          scenario: 'Describe what the players see in the finale...',
-          secrets: 'Describe the comedic hooks and moving parts for the AI Judge...'
+          title: 'The Climax',
+          scenario: '',
+          secrets: ''
         }
       ]
     },
@@ -457,7 +457,7 @@ function selectPremadeCampaign(id) {
 /** Adds an empty round block to the custom campaign editor */
 function addCustomRound() {
   app.state.customCampaign.rounds.push({
-    title: `Act ${app.state.customCampaign.rounds.length + 1}: New Challenge`,
+    title: `Round ${app.state.customCampaign.rounds.length + 1}: New Challenge`,
     scenario: '',
     secrets: ''
   });
@@ -488,8 +488,26 @@ async function hostStartCampaign() {
     const found = PREMADE_CAMPAIGNS.find(c => c.id === app.state.selectedPremadeId) || PREMADE_CAMPAIGNS[0];
     chosenCampaign = JSON.parse(JSON.stringify(found));
   } else if (app.state.campaignMode === 'custom') {
-    app.state.customCampaign.title = document.getElementById('custom-camp-title').value.trim() || 'Custom Campaign';
-    app.state.customCampaign.description = document.getElementById('custom-camp-desc').value.trim() || 'Survive each act together!';
+    const customTitleInput = document.getElementById('custom-camp-title');
+    const customDescInput = document.getElementById('custom-camp-desc');
+    app.state.customCampaign.title = (customTitleInput ? customTitleInput.value.trim() : '') || 'Custom campaign';
+    app.state.customCampaign.description = (customDescInput ? customDescInput.value.trim() : '') || 'Survive each round together!';
+
+    // B6: Validate that every custom round has at least 15 characters of scene text
+    for (let i = 0; i < app.state.customCampaign.rounds.length; i++) {
+      const r = app.state.customCampaign.rounds[i];
+      const scenarioText = (r.scenario || '').trim();
+      if (scenarioText.length < 15) {
+        showToast(`Round ${i + 1} needs a scene description (at least 15 characters).`, 'error');
+        setCampaignMode('custom');
+        const targetTextarea = document.getElementById(`custom-round-scenario-${i}`);
+        if (targetTextarea) {
+          targetTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetTextarea.focus();
+        }
+        return;
+      }
+    }
     chosenCampaign = JSON.parse(JSON.stringify(app.state.customCampaign));
   } else if (app.state.campaignMode === 'ai') {
     const promptInput = document.getElementById('ai-campaign-prompt').value.trim();
