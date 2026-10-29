@@ -752,7 +752,8 @@ function startStoryWordByWord(roundKey, judgment) {
   verdictBox.classList.add('hidden');
   rankingsBox.classList.add('hidden');
   nextBtn.classList.add('hidden');
-  if (skipBtn) skipBtn.classList.toggle('hidden', !app.isHost);
+  // B22: Show Skip to everyone for their own view
+  if (skipBtn) skipBtn.classList.remove('hidden');
   waitMsg.classList.remove('hidden');
   waitMsg.textContent = '📖 The scenario is unfolding...';
 
