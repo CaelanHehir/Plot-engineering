@@ -34,7 +34,7 @@
       </button>
     </div>
     <div class="topbar-right">
-      <div id="header-room-pill" class="room-badge hidden" onclick="copyInviteLink()" style="cursor:pointer;" title="Click to copy invite link">ROOM: ----</div>
+      <button id="header-room-pill" type="button" class="room-badge hidden" onclick="copyInviteLink()" style="cursor:pointer;" title="Click to copy invite link">ROOM: ----</button>
       <button id="btn-top-menu" type="button" class="btn-small hud-menu-toggle" onclick="toggleTopMenu(event)" aria-expanded="false">
         ☰ Menu
       </button>
@@ -90,9 +90,9 @@
         <div id="home-join-card" class="card wobbly-card tilt-right" style="justify-content: space-between;">
           <div>
             <h2>Join a Room</h2>
-            <div id="rejoin-room-banner" class="invite-detected-banner hidden" style="cursor:pointer;" onclick="rejoinStoredRoom()">
+            <button id="rejoin-room-banner" type="button" class="invite-detected-banner hidden" style="cursor:pointer; width:100%; font:inherit;" onclick="rejoinStoredRoom()">
               Rejoin room <strong id="rejoin-room-code"></strong>?
-            </div>
+            </button>
             <div id="invite-room-banner" class="invite-detected-banner hidden">
               Invite link ready! Enter your nickname below.
             </div>
@@ -126,9 +126,9 @@
         <!-- Left Column: Room Code Banner & Cast List -->
         <div id="lobby-left-col" style="display:flex; flex-direction:column; min-height:0;">
           <div class="lobby-code-banner wobbly-card">
-            <div id="lobby-join-url-pill" class="join-url-sticker" onclick="copyInviteLink()" title="Click to copy full invite link">
+            <button id="lobby-join-url-pill" type="button" class="join-url-sticker" onclick="copyInviteLink()" title="Click to copy full invite link">
               Join at: <strong>caelanhehir.github.io/Plot-engineering</strong>
-            </div>
+            </button>
             <div class="ticket-kicker mt-1">Room code for friends</div>
             <div id="lobby-room-code-display" class="big-room-code">----</div>
             <div class="row-gap" style="justify-content: center;">

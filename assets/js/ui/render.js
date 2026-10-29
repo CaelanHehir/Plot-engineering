@@ -274,7 +274,7 @@ function renderCampaignSelector() {
     grid.innerHTML = PREMADE_CAMPAIGNS.map(c => {
       const selected = c.id === app.state.selectedPremadeId;
       return `
-        <div class="campaign-card ${selected ? 'selected' : ''}" onclick="selectPremadeCampaign('${c.id}')">
+        <button type="button" class="campaign-card ${selected ? 'selected' : ''}" onclick="selectPremadeCampaign('${c.id}')">
           <div class="campaign-card-header">
             <div>
               <h4>${escapeHtml(c.title)}</h4>
@@ -282,7 +282,7 @@ function renderCampaignSelector() {
             </div>
           </div>
           <p class="small text-muted">${escapeHtml(c.description)}</p>
-        </div>
+        </button>
       `;
     }).join('');
   } else if (mode === 'custom') {
