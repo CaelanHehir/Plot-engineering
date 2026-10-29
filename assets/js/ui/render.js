@@ -533,6 +533,7 @@ function renderScenarioScreen() {
     actionInput.placeholder = myWordLimitMod
       ? `"${myWordLimitMod.name}" active: You may only type up to 5 words this round!`
       : 'Write your character\'s move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!';
+    updateScenarioWordCount();
   }
 
   const hasSubmitted = Boolean(app.state.submissions[app.myId]);
@@ -570,6 +571,33 @@ function renderScenarioScreen() {
   }
 
   document.getElementById('btn-host-force-judge').classList.toggle('hidden', !app.isHost);
+}
+
+/**
+ * Updates the live word counter badge under the scenario move input when a WORD_LIMIT restriction is active.
+ */
+function updateScenarioWordCount() {
+  const input = document.getElementById('scenario-action-input');
+  const counterEl = document.getElementById('scenario-word-limit-counter');
+  if (!counterEl) return;
+
+  const me = app.state?.players?.find(p => p.id === app.myId);
+  const wordLimitMod = getPlayerMetaMod(me, 'WORD_LIMIT');
+
+  if (!wordLimitMod) {
+    counterEl.classList.add('hidden');
+    return;
+  }
+
+  const text = (input ? input.value : '').trim();
+  const words = text ? text.split(/\s+/).filter(Boolean) : [];
+  const count = words.length;
+  const max = 5;
+  const isOver = count > max;
+
+  counterEl.classList.remove('hidden');
+  counterEl.className = `word-limit-counter ${isOver ? 'word-limit-exceeded' : 'word-limit-ok'}`;
+  counterEl.innerHTML = `<strong>${escapeHtml(wordLimitMod.name)}:</strong> ${count} / ${max} words${isOver ? ' (Over limit!)' : ''}`;
 }
 
 /**
@@ -875,7 +903,7 @@ function showPostStoryVerdictAndLeaderboard(j) {
     document.getElementById('verdict-headline').textContent = j.headline;
     const judgeBadge = document.getElementById('verdict-judge-badge');
     if (judgeBadge) {
-      judgeBadge.classList.toggle('hidden', j.judgedBy !== 'demo');
+      judgeBadge.classList.add('hidden');
     }
   }
 

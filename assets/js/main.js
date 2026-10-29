@@ -88,7 +88,7 @@ const app = {
       roundTimer: 120,
       charCreateTimer: 0,
       strictness: 'balanced',
-      allowStartingQuirk: true,
+      allowStartingQuirk: false,
       maxModifiers: 4,
       pointsMultiplier: 1,
       revealMovesAfterStory: true
@@ -322,6 +322,11 @@ function setupDelegatedEventListeners() {
 
   // Delegated Input Dispatcher
   document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'scenario-action-input') {
+      if (typeof updateScenarioWordCount === 'function') {
+        updateScenarioWordCount();
+      }
+    }
     const bindEl = e.target.closest('[data-bind]');
     if (!bindEl) return;
     const bind = bindEl.dataset.bind;
@@ -1336,7 +1341,7 @@ async function evaluateCurrentRound() {
           submissions: app.state.submissions,
           settings: app.state.settings
         });
-        judgment.judgeNotice = 'The AI judge was unavailable, so a demo judge decided this round.';
+        judgment.judgeNotice = 'The AI judge was unavailable, so a fallback judge decided this round.';
       }
     }
   } else {

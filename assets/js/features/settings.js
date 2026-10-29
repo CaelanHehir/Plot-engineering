@@ -113,14 +113,18 @@ const HOST_SETTINGS_SCHEMA = [
 function buildSettingsGridHtml(suffix = '') {
   return HOST_SETTINGS_SCHEMA.map(item => {
     const id = `${item.idBase}${suffix}`;
-    const defaultBadge = item.defaultTag ? ` <small class="text-muted" style="font-size:0.75rem;font-weight:normal;">(default: ${escapeHtml(item.defaultTag)})</small>` : '';
+    const defaultBadge = item.defaultTag ? `<span class="setting-default-tag">(default: ${escapeHtml(item.defaultTag)})</span>` : '';
     if (item.type === 'checkbox') {
+      const isChecked = Boolean(app?.state?.settings?.[item.key]);
       return `
         <div class="setting-item">
-          <label for="${id}">${item.label}${defaultBadge}</label>
+          <div class="setting-label-row">
+            <label for="${id}">${item.label}</label>
+            ${defaultBadge}
+          </div>
           <div class="setting-desc">${item.desc}</div>
-          <label style="display:flex;align-items:center;gap:0.5rem;color:#fff;cursor:pointer;margin-top:0.4rem;min-height:44px;">
-            <input id="${id}" type="checkbox" checked style="width:1.25rem;height:1.25rem;cursor:pointer;"
+          <label class="setting-checkbox-control">
+            <input id="${id}" type="checkbox" ${isChecked ? 'checked' : ''} style="width:1.25rem;height:1.25rem;cursor:pointer;"
               data-bind="host-setting" data-setting-key="${item.key}" />
             <span>${item.checkboxLabel}</span>
           </label>
@@ -130,9 +134,12 @@ function buildSettingsGridHtml(suffix = '') {
     const optsHtml = item.options.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
     return `
       <div class="setting-item">
-        <label for="${id}">${item.label}${defaultBadge}</label>
+        <div class="setting-label-row">
+          <label for="${id}">${item.label}</label>
+          ${defaultBadge}
+        </div>
         <div class="setting-desc">${item.desc}</div>
-        <select id="${id}" class="input-field" data-bind="host-setting" data-setting-key="${item.key}">
+        <select id="${id}" class="input-field setting-input-control" data-bind="host-setting" data-setting-key="${item.key}">
           ${optsHtml}
         </select>
       </div>
@@ -291,7 +298,7 @@ async function saveApiKeyFromModal() {
     if (inputEl) inputEl.value = '';
     updateApiKeyBadge(false);
     closeApiKeyModal();
-    showToast('Cleared Gemini API Key (Demo AI Mode active).', 'warn');
+    showToast('Cleared Gemini API Key.', 'info');
     return;
   }
 
