@@ -354,10 +354,14 @@ function setRevealWindow(win) {
 
 /**
  * Switches the active sub-window on the GAME_OVER screen on mobile.
- * @param {'podium'|'recap'} win
+ * @param {'podium'|'players'|'recap'} win
  */
 function setGameOverWindow(win) {
-  app.gameOverWindow = win === 'recap' ? 'recap' : 'podium';
+  if (win === 'recap' || win === 'players' || win === 'podium') {
+    app.gameOverWindow = win;
+  } else {
+    app.gameOverWindow = 'podium';
+  }
   renderGameOverScreen();
 }
 

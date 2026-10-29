@@ -8,7 +8,7 @@
 class SoundManager {
   constructor() {
     /** Persisted sound toggle state */
-    this.muted = localStorage.getItem('chaos_coop_muted') === 'true';
+    this.muted = localStorage.getItem('plot_engineering_muted') === 'true';
     /** @type {AudioContext|null} */
     this.ctx = null;
   }
@@ -33,7 +33,7 @@ class SoundManager {
    */
   toggleMute() {
     this.muted = !this.muted;
-    localStorage.setItem('chaos_coop_muted', String(this.muted));
+    localStorage.setItem('plot_engineering_muted', String(this.muted));
     return this.muted;
   }
 

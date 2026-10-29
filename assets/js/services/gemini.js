@@ -12,10 +12,10 @@
  */
 
 /** Cached name of the active, verified Gemini text model */
-let cachedModelName = localStorage.getItem('chaos_coop_gemini_model') || '';
+let cachedModelName = localStorage.getItem('plot_engineering_gemini_model') || '';
 if (cachedModelName.includes('2.5') || cachedModelName.includes('2-5')) {
   cachedModelName = '';
-  localStorage.removeItem('chaos_coop_gemini_model');
+  localStorage.removeItem('plot_engineering_gemini_model');
 }
 
 /** Flag tracking whether the stored API key has been verified against Google's endpoint */
@@ -26,7 +26,7 @@ let isApiKeyVerified = false;
  * @returns {string} Clean API key or empty string
  */
 function getStoredApiKey() {
-  return localStorage.getItem('chaos_coop_gemini_key') || '';
+  return localStorage.getItem('plot_engineering_gemini_key') || '';
 }
 
 /**
@@ -38,10 +38,10 @@ function getStoredApiKey() {
 function setStoredApiKey(key) {
   const clean = (key || '').trim();
   if (clean) {
-    localStorage.setItem('chaos_coop_gemini_key', clean);
+    localStorage.setItem('plot_engineering_gemini_key', clean);
   } else {
-    localStorage.removeItem('chaos_coop_gemini_key');
-    localStorage.removeItem('chaos_coop_gemini_model');
+    localStorage.removeItem('plot_engineering_gemini_key');
+    localStorage.removeItem('plot_engineering_gemini_model');
     cachedModelName = '';
     isApiKeyVerified = false;
   }
@@ -140,7 +140,7 @@ async function validateAndDiscoverModels(apiKey) {
 
   cachedModelName = sorted[0];
   isApiKeyVerified = true;
-  localStorage.setItem('chaos_coop_gemini_model', cachedModelName);
+  localStorage.setItem('plot_engineering_gemini_model', cachedModelName);
   return sorted;
 }
 
@@ -210,7 +210,7 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
 
       cachedModelName = model;
       isApiKeyVerified = true;
-      localStorage.setItem('chaos_coop_gemini_model', model);
+      localStorage.setItem('plot_engineering_gemini_model', model);
       return parseCleanJSON(rawText);
     } catch (err) {
       if (err.message.includes('Invalid Gemini API Key')) {

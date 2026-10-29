@@ -130,9 +130,10 @@ function syncCanvasToContainer(forceRepaint = false) {
   const rect = canvas.getBoundingClientRect();
   const targetW = Math.round(rect.width);
   const targetH = Math.round(rect.height);
-  if (targetW < 40 || targetH < 40) return;
+  const side = Math.min(targetW, targetH);
+  if (side < 40) return;
 
-  const sizeChanged = Math.abs(canvas.width - targetW) > 2 || Math.abs(canvas.height - targetH) > 2;
+  const sizeChanged = Math.abs(canvas.width - side) > 2 || Math.abs(canvas.height - side) > 2;
   if (!sizeChanged && !forceRepaint) return;
 
   // Snapshot current artwork if canvas has valid dimensions and history
@@ -146,21 +147,21 @@ function syncCanvasToContainer(forceRepaint = false) {
     tempCtx.drawImage(canvas, 0, 0);
   }
 
-  // Update canvas resolution to match new container dimensions
-  canvas.width = targetW;
-  canvas.height = targetH;
+  // Update canvas resolution to match exact square dimensions
+  canvas.width = side;
+  canvas.height = side;
 
   const ctx = drawState.ctx;
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, targetW, targetH);
+  ctx.fillRect(0, 0, side, side);
 
-  // Rescale and center old artwork into the new dimensions if exists
+  // Rescale and center old artwork into the square dimensions if exists
   if (tempCanvas) {
-    const scale = Math.min(targetW / tempCanvas.width, targetH / tempCanvas.height);
+    const scale = Math.min(side / tempCanvas.width, side / tempCanvas.height);
     const drawW = tempCanvas.width * scale;
     const drawH = tempCanvas.height * scale;
-    const offsetX = (targetW - drawW) / 2;
-    const offsetY = (targetH - drawH) / 2;
+    const offsetX = (side - drawW) / 2;
+    const offsetY = (side - drawH) / 2;
     ctx.drawImage(tempCanvas, offsetX, offsetY, drawW, drawH);
   }
 }

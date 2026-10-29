@@ -130,7 +130,7 @@ function renderLobbyScreen() {
       const isMe = p.id === app.myId;
       return `
         <div class="player-pill ${isMe ? 'is-me-pill' : ''}">
-          <div class="row-gap" style="gap:6px; min-width:0;">
+          <div class="row-gap" style="gap:0.4rem; min-width:0;">
             <span class="player-pill-icon">${p.isBot ? '🤖' : (p.isHost ? '👑' : '🎭')}</span>
             <span class="player-pill-name" title="${escapeHtml(p.name)}">
               ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''}
@@ -300,10 +300,10 @@ function renderCampaignSelector() {
         </div>
         <input type="text" class="input-field" value="${escapeHtml(r.title)}" placeholder="Round Title"
           onchange="app.state.customCampaign.rounds[${i}].title = this.value" />
-        <label class="tiny text-muted" style="margin-top:2px;">1. Scene Setup (Shown to Players — set the stage without spoiling!):</label>
+        <label class="tiny text-muted" style="margin-top:0.15rem;">1. Scene Setup (Shown to Players — set the stage without spoiling!):</label>
         <textarea class="input-field" rows="2" placeholder="e.g., A massive troll in a clip-on tie blocks the bridge and glares at the party."
           onchange="app.state.customCampaign.rounds[${i}].scenario = this.value">${escapeHtml(r.scenario || '')}</textarea>
-        <label class="tiny text-muted" style="margin-top:2px;">2. Comedic Hooks &amp; Quirks (Shown to AI Judge — fun personalities &amp; improv fuel!):</label>
+        <label class="tiny text-muted" style="margin-top:0.15rem;">2. Comedic Hooks &amp; Quirks (Shown to AI Judge — fun personalities &amp; improv fuel!):</label>
         <textarea class="input-field" rows="2" placeholder="e.g., The troll is super insecure about his tie and loves dramatic flattery or slapstick combos!"
           onchange="app.state.customCampaign.rounds[${i}].secrets = this.value">${escapeHtml(r.secrets || '')}</textarea>
       </div>
@@ -854,14 +854,22 @@ function showPostStoryVerdictAndLeaderboard(j) {
  * 4. Act-by-act multi-round campaign synopsis.
  */
 function renderGameOverScreen() {
-  const goWin = app.gameOverWindow === 'recap' ? 'recap' : 'podium';
+  const goWin = (app.gameOverWindow === 'recap' || app.gameOverWindow === 'players')
+    ? app.gameOverWindow
+    : 'podium';
   const podiumCard = document.getElementById('gameover-podium-card');
+  const playersCard = document.getElementById('gameover-players-card');
   const recapCard = document.getElementById('gameover-recap-card');
   const btnPodium = document.getElementById('gameover-win-btn-podium');
+  const btnPlayers = document.getElementById('gameover-win-btn-players');
   const btnRecap = document.getElementById('gameover-win-btn-recap');
+
   if (podiumCard) podiumCard.classList.toggle('mobile-window-hidden', goWin !== 'podium');
+  if (playersCard) playersCard.classList.toggle('mobile-window-hidden', goWin !== 'players');
   if (recapCard) recapCard.classList.toggle('mobile-window-hidden', goWin !== 'recap');
+
   if (btnPodium) btnPodium.classList.toggle('active', goWin === 'podium');
+  if (btnPlayers) btnPlayers.classList.toggle('active', goWin === 'players');
   if (btnRecap) btnRecap.classList.toggle('active', goWin === 'recap');
 
   const sorted = [...app.state.players].sort((a, b) => b.score - a.score);
@@ -973,7 +981,7 @@ function renderGameOverScreen() {
             <strong>🎬 Act ${idx + 1}: ${escapeHtml(h.roundTitle)}</strong>
             <span class="badge ${badgeClass}">${badgeText}</span>
           </div>
-          <div style="font-family: var(--font-display); font-weight:700; color: var(--accent-gold); margin-bottom:5px;">
+          <div style="font-family: var(--font-display); font-weight:700; color: var(--accent-gold); margin-bottom:0.35rem;">
             ${escapeHtml(h.judgment?.headline || '')}
           </div>
           <p class="text-muted small">

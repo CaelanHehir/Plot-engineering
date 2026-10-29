@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Plot Engineering — Co-Op AI Comedy Scenario Game</title>
   <meta name="description" content="Doodle your hero, engineer hilarious multi-round stories together in silence, and let the AI Judge score your coordination, coherence, and humor!" />
   <meta name="theme-color" content="#12131f" />
@@ -151,7 +151,7 @@
             </div>
 
             <!-- Mobile-only Campaign Info Snippet & Action at bottom of Cast card -->
-            <div class="compact-only-inline" style="flex-direction:column; width:100%; margin-top:8px; border-top:2px dashed rgba(255,255,255,0.12); padding-top:8px;">
+            <div class="compact-only-inline" style="flex-direction:column; width:100%; margin-top:0.5rem; border-top:2px dashed rgba(255,255,255,0.12); padding-top:0.5rem;">
               <div id="lobby-cast-preview-snippet" class="text-muted small mb-1"></div>
               <button id="btn-host-setup-campaign-mobile" type="button" class="btn btn-gold btn-block hidden" onclick="openLobbyCampaignSetup()">
                 ⚙️ Set up campaign
@@ -170,15 +170,15 @@
             <div class="waiting-stage-preview" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; min-height:0;">
               <!-- Before host clicks 'Set up campaign' (Host View): Prompt to configure -->
               <div id="lobby-stage-host-pre-setup" class="lobby-waiting-setup-box hidden">
-                <div style="font-size:2.4rem; margin-bottom:8px;">🎬</div>
-                <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:6px;">Ready to configure the show?</h3>
+                <div style="font-size:2.4rem; margin-bottom:0.5rem;">🎬</div>
+                <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:0.35rem;">Ready to configure the show?</h3>
                 <p class="text-muted small">Click "Set up campaign" below to choose a storyline, adjust rules, or create an AI plot!</p>
               </div>
 
               <!-- Before host clicks 'Set up campaign' (Player View): Waiting message -->
               <div id="lobby-stage-pre-setup" class="lobby-waiting-setup-box hidden">
-                <div style="font-size:2.4rem; margin-bottom:8px;">⏳</div>
-                <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:6px;">Wait for host to set up the campaign</h3>
+                <div style="font-size:2.4rem; margin-bottom:0.5rem;">⏳</div>
+                <h3 style="color:var(--accent-gold); font-size:1.2rem; margin-bottom:0.35rem;">Wait for host to set up the campaign</h3>
                 <p class="text-muted small">The Host will select the storyline and rules before launching the game.</p>
               </div>
 
@@ -207,7 +207,7 @@
       <!-- VIEW 2: Campaign Settings Section (Shown when Host clicks 'Set up campaign') -->
       <div id="lobby-view-campaign" class="card card-highlight wobbly-card hidden" style="flex:1; min-height:0; justify-content:space-between;">
         <div style="display:flex; flex-direction:column; flex:1; min-height:0;">
-          <div class="row-between mb-1" style="border-bottom: 2.5px dashed rgba(255,255,255,0.14); padding-bottom: 8px;">
+          <div class="row-between mb-1" style="border-bottom: 2.5px dashed rgba(255,255,255,0.14); padding-bottom: 0.5rem;">
             <div class="row-gap">
               <button type="button" class="btn-small btn-secondary" onclick="closeLobbyCampaignSetup()">
                 ⬅️ Back to Cast
@@ -252,7 +252,7 @@
               </div>
               <div class="form-group">
                 <label for="ai-round-count">Number of Rounds (Acts):</label>
-                <select id="ai-round-count" class="input-field" style="max-width: 220px;"
+                <select id="ai-round-count" class="input-field" style="max-width: 14rem;"
                   onchange="if(app.isHost){ app.state.aiRoundCount = parseInt(this.value,10)||4; broadcastState(); }">
                   <option value="3">3 Rounds (Quick Episode)</option>
                   <option value="4" selected>4 Rounds (Feature Presentation)</option>
@@ -271,7 +271,7 @@
               <div class="bridge-box mb-1">
                 <strong>📖 Director's Guide:</strong> For each round, write <strong>1. Scene Setup</strong> (shown to players) and <strong>2. Comedic Hooks &amp; Quirks</strong> (shown to the AI Judge to fuel the story).
               </div>
-              <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap: 10px;">
+              <div class="custom-campaign-meta-grid">
                 <div class="form-group">
                   <label>Campaign Title</label>
                   <input id="custom-camp-title" type="text" class="input-field" placeholder="My Custom Campaign"
@@ -548,31 +548,44 @@
         </button>
       </div>
 
-      <!-- Mobile/Compact Window Switcher for Game Over -->
+      <!-- Mobile/Compact Window Switcher for Game Over (Split: Podium, Player List, Story Recap) -->
       <div id="gameover-window-switcher" class="window-switcher-bar compact-only-switcher">
         <button id="gameover-win-btn-podium" type="button" class="window-tab-btn active" onclick="setGameOverWindow('podium')">
           👑 Finale Podium
+        </button>
+        <button id="gameover-win-btn-players" type="button" class="window-tab-btn" onclick="setGameOverWindow('players')">
+          👥 Player Results
         </button>
         <button id="gameover-win-btn-recap" type="button" class="window-tab-btn" onclick="setGameOverWindow('recap')">
           📖 Episode Recap
         </button>
       </div>
 
-      <div class="dashboard-equal">
-        <!-- Left Column: Celebratory Podium + 4th Place Honorable Mention + Standings -->
+      <div class="dashboard-3col gameover-cards-grid">
+        <!-- Window 1: Celebratory Podium + 4th Place Honorable Mention -->
         <div id="gameover-podium-card" class="card wobbly-card podium-main-card">
-          <div class="row-between">
+          <div class="row-between mb-1">
             <h3>👑 Grand Finale Podium</h3>
-            <span class="badge badge-warn">✨ FINAL SCORES</span>
+            <span class="badge badge-warn">✨ TOP 3</span>
           </div>
           <div id="final-podium-stage" class="podium-stage"></div>
           <div id="final-honorable-mention" class="honorable-mention-banner hidden"></div>
+        </div>
+
+        <!-- Window 2: Player Standings with Description, Points, and Modifiers -->
+        <div id="gameover-players-card" class="card wobbly-card podium-players-card">
+          <div class="row-between mb-1">
+            <h3>👥 Player Standings</h3>
+            <span class="badge badge-genre">✨ ALL CREW</span>
+          </div>
           <div id="final-leaderboard-list" class="panel-scroll" style="flex:1;"></div>
         </div>
 
-        <!-- Right Column: Act-by-Act Campaign Story Summary -->
-        <div id="gameover-recap-card" class="card wobbly-card">
-          <h3>📖 Full Episode Story Recap</h3>
+        <!-- Window 3: Act-by-Act Campaign Story Summary -->
+        <div id="gameover-recap-card" class="card wobbly-card podium-recap-card">
+          <div class="row-between mb-1">
+            <h3>📖 Full Episode Story Recap</h3>
+          </div>
           <div id="final-campaign-recap-list" class="panel-scroll mt-1" style="flex:1;"></div>
         </div>
       </div>
@@ -582,12 +595,12 @@
 
   <!-- ==================== QR CODE INVITE POPUP MODAL ==================== -->
   <div id="qr-popup-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeQrPopup()">
-    <div class="modal-card wobbly-card" style="max-width:360px; text-align:center;">
+    <div class="modal-card wobbly-card" style="max-width:22.5rem; text-align:center;">
       <div class="row-between mb-1 modal-header-bar">
         <h3>📱 Scan to Join Room</h3>
         <button type="button" class="btn-small" onclick="closeQrPopup()">✕ Close</button>
       </div>
-      <div style="display:flex; flex-direction:column; align-items:center; padding: 10px 0;">
+      <div style="display:flex; flex-direction:column; align-items:center; padding: 0.65rem 0;">
         <img id="lobby-qr-img" class="lobby-qr-image" alt="Scan QR Code to Join Room" />
         <div class="tiny text-muted mt-2">Point your phone camera here to open the room link!</div>
       </div>
@@ -632,7 +645,7 @@
 
   <!-- ==================== GEMINI API KEY MODAL ==================== -->
   <div id="api-key-modal" class="modal-backdrop hidden" onclick="if(event.target===this) closeApiKeyModal()">
-    <div class="modal-card wobbly-card" style="max-width:480px;">
+    <div class="modal-card wobbly-card" style="max-width:30rem;">
       <div class="row-between mb-1 modal-header-bar">
         <h3>🔑 Gemini API Key (Host Only)</h3>
         <button type="button" class="btn-small" onclick="closeApiKeyModal()">✕ Close</button>
@@ -653,7 +666,7 @@
 
   <!-- Loading Overlay -->
   <div id="loading-overlay" class="modal-backdrop hidden">
-    <div class="modal-card wobbly-card" style="text-align:center; max-width:380px;">
+    <div class="modal-card wobbly-card" style="text-align:center; max-width:24rem;">
       <div class="spinner"></div>
       <h3 id="loading-text">Loading...</h3>
     </div>

@@ -253,8 +253,8 @@ function clientJoinRoom() {
   app.isHost = false;
   app.roomCode = code;
   app.myName = name;
-  app.myId = sessionStorage.getItem('chaos_coop_player_id') || ('p-' + Math.random().toString(36).slice(2, 9));
-  sessionStorage.setItem('chaos_coop_player_id', app.myId);
+  app.myId = sessionStorage.getItem('plot_engineering_player_id') || ('p-' + Math.random().toString(36).slice(2, 9));
+  sessionStorage.setItem('plot_engineering_player_id', app.myId);
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 

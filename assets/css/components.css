@@ -1,14 +1,6 @@
 /**
  * Plot Engineering — Shared Cartoon UI Components
- * 
- * Includes:
- * - Wobbly cartoon cards, ribbons, and tilts
- * - Form inputs, masked keys, and room code displays
- * - 3D tactile buttons (primary, gold, secondary, danger, dice)
- * - Badges, score pills, and boiling urgent timers
- * - Polaroid frames and avatar thumbnail styling
- * - Status modifier chips (buffs, debuffs, neutrals, meta conditions)
- * - Modal dialogs, loading spinners, and toast notifications
+ * Responsive, Mobile-First Component Stylesheet
  */
 
 /* ==================== WOBBLY CARTOON CARDS ==================== */
@@ -16,12 +8,19 @@
   background: linear-gradient(165deg, #262044 0%, var(--bg-card) 100%);
   border: 3.5px solid var(--ink);
   border-radius: var(--wobbly-box);
-  padding: 15px 18px;
+  padding: 0.75rem 0.85rem;
   box-shadow: var(--shadow-hard), inset 0 2px 0 rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   min-height: 0;
   position: relative;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 40rem) {
+  .card {
+    padding: 0.9rem 1.1rem;
+  }
 }
 
 .wobbly-card:nth-child(even) {
@@ -41,29 +40,30 @@
   outline: 2.5px solid var(--primary);
 }
 
+/* Fluid Heading Typography (Step 3: clamp() for responsive scaling across screens) */
 .card h2 {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: clamp(1.2rem, 3.5vw + 0.3rem, 1.55rem);
   font-weight: 700;
   letter-spacing: 0.4px;
   color: #ffffff;
   text-shadow: 2px 2px 0px var(--ink);
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem;
 }
 
 .card h3 {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: clamp(1.05rem, 2.5vw + 0.2rem, 1.25rem);
   font-weight: 700;
   letter-spacing: 0.3px;
   color: #ffffff;
   text-shadow: 2px 2px 0px var(--ink);
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem;
 }
 
 .card h4 {
   font-family: var(--font-display);
-  font-size: 1.02rem;
+  font-size: clamp(0.95rem, 1.5vw + 0.2rem, 1.1rem);
   color: #ffffff;
   text-shadow: 1.5px 1.5px 0px var(--ink);
 }
@@ -72,15 +72,15 @@
   display: inline-block;
   align-self: flex-start;
   font-family: var(--font-display);
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  padding: 3px 12px;
+  padding: 0.25rem 0.75rem;
   border-radius: var(--wobbly-pill);
   border: 2.5px solid var(--ink);
   box-shadow: 2px 2px 0px var(--ink);
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   transform: rotate(-1.5deg);
 }
 
@@ -96,29 +96,32 @@
 
 /* ==================== FORMS & WOBBLY SKETCH INPUTS ==================== */
 .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 0.65rem;
+  width: 100%;
 }
 
 .form-group label {
   display: block;
   font-family: var(--font-display);
   font-weight: 700;
-  margin-bottom: 4px;
-  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
   letter-spacing: 0.3px;
   color: #ede8ff;
   text-shadow: 1.5px 1.5px 0px var(--ink);
 }
 
+/* Inputs use font-size: 1rem or larger (Step 8 rule prevents iOS Safari auto-zoom on focus) */
 .input-field {
   width: 100%;
-  padding: 9px 13px;
+  min-height: 44px; /* Step 8: 44px minimum tap target for touch inputs */
+  padding: 0.55rem 0.85rem;
   background: var(--bg-input);
   border: 3px solid var(--ink);
   border-radius: 16px 10px 18px 12px / 12px 18px 10px 16px;
   box-shadow: inset 0 3px 0 rgba(0, 0, 0, 0.45), 2px 2px 0 rgba(255, 255, 255, 0.05);
   color: var(--text-main);
-  font-size: 0.96rem;
+  font-size: 1rem;
   font-weight: 700;
   font-family: var(--font-body);
   transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
@@ -139,15 +142,15 @@
 
 .input-code {
   font-family: var(--font-display);
-  font-size: 1.55rem;
+  font-size: clamp(1.3rem, 4vw + 0.3rem, 1.65rem);
   font-weight: 700;
   text-transform: uppercase;
   text-align: center;
-  letter-spacing: 6px;
+  letter-spacing: clamp(3px, 1.5vw, 6px);
   color: var(--accent-gold);
   background: #100d20;
   border-color: var(--accent-gold);
-  padding: 5px 8px;
+  padding: 0.35rem 0.5rem;
 }
 
 .masked-key-input {
@@ -156,12 +159,15 @@
 }
 
 /* ==================== TACTILE 3D CARTOON BUTTONS ==================== */
+/* Interactive elements have minimum tap target of 44px by 44px (Step 8) */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.65rem 1.25rem;
   border-radius: 22px 12px 20px 14px / 14px 20px 12px 22px;
   font-family: var(--font-display);
   font-weight: 700;
@@ -174,6 +180,7 @@
   transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.12s, filter 0.12s;
   flex-shrink: 0;
   user-select: none;
+  text-decoration: none;
 }
 
 .btn:hover {
@@ -216,13 +223,17 @@
   text-shadow: 1.5px 1.5px 0px var(--ink);
 }
 
+/* Small tactile button with minimum tap target height of 44px (Step 8) */
 .btn-small {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.4rem 0.85rem;
   font-family: var(--font-display);
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 700;
   letter-spacing: 0.3px;
   border-radius: var(--wobbly-pill);
@@ -267,16 +278,17 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 11px;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--wobbly-pill);
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.4px;
   border: 2.5px solid var(--ink);
   box-shadow: 2.5px 2.5px 0px var(--ink);
   transform: rotate(-0.8deg);
+  overflow-wrap: anywhere;
 }
 
 .badge-success {
@@ -304,9 +316,9 @@
   color: var(--ink);
   border: 2px solid var(--ink);
   box-shadow: 2px 2px 0px var(--ink);
-  padding: 1px 9px;
+  padding: 0.15rem 0.6rem;
   border-radius: var(--wobbly-pill);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   transform: rotate(1.5deg);
 }
@@ -317,7 +329,7 @@
   border: 3px solid var(--ink);
   box-shadow: 3px 3px 0px var(--ink);
   color: var(--ink);
-  padding: 4px 14px;
+  padding: 0.35rem 0.9rem;
   border-radius: var(--wobbly-pill);
   font-weight: 700;
   font-size: 1rem;
@@ -338,8 +350,8 @@
 
 /* ==================== POLAROID / STICKER AVATAR FRAMES ==================== */
 .avatar-img {
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 10px 6px 12px 8px;
   object-fit: cover;
   border: 2.5px solid var(--ink);
@@ -351,8 +363,8 @@
 }
 
 .avatar-img-lg {
-  width: 60px;
-  height: 60px;
+  width: 3.75rem;
+  height: 3.75rem;
   border-radius: 12px 8px 14px 10px;
   object-fit: cover;
   border: 3px solid var(--ink);
@@ -364,8 +376,8 @@
 }
 
 .avatar-img-sm {
-  width: 34px;
-  height: 34px;
+  width: 2.125rem;
+  height: 2.125rem;
   border-radius: 8px;
   object-fit: cover;
   border: 2px solid var(--ink);
@@ -381,34 +393,35 @@
 .mod-label {
   display: block;
   font-family: var(--font-display);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--accent-gold);
   text-shadow: 1px 1px 0px var(--ink);
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 .modifier-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .mod-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
+  gap: 0.25rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 14px 8px 16px 10px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
   background: #161329;
   color: #fff;
   border: 2px solid var(--ink);
   box-shadow: 2px 2px 0px var(--ink);
   transform: rotate(-0.6deg);
+  overflow-wrap: anywhere;
 }
 
 .mod-chip:nth-child(even) {
@@ -450,25 +463,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px;
+  padding: 0.65rem;
   z-index: 160;
+  overflow-y: auto;
 }
 
 .modal-card {
-  max-width: 700px;
   width: 100%;
-  max-height: calc(100vh - 20px);
-  max-height: calc(100dvh - 20px);
+  max-width: 44rem;
+  max-height: calc(100vh - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   background: linear-gradient(165deg, #2b234d 0%, var(--bg-card) 100%);
   border: 4px solid var(--ink);
   outline: 2.5px solid var(--accent-gold);
   border-radius: var(--wobbly-box);
-  padding: 16px 20px;
+  padding: 0.85rem 1rem;
   box-shadow: var(--shadow-hard-lg);
   animation: popBounceIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (min-width: 40rem) {
+  .modal-card {
+    padding: 1.1rem 1.35rem;
+  }
 }
 
 .modal-header-bar {
@@ -477,25 +498,18 @@
 
 .modal-footer-bar {
   flex-shrink: 0;
-  margin-top: 10px;
-}
-
-@media (max-width: 768px), (max-height: 700px) {
-  .modal-card {
-    padding: 12px 14px;
-    max-height: calc(100dvh - 16px);
-  }
+  margin-top: 0.65rem;
 }
 
 .spinner {
-  width: 42px;
-  height: 42px;
+  width: 2.625rem;
+  height: 2.625rem;
   border: 5px solid var(--bg-card-alt);
   border-top-color: var(--accent-gold);
   border-right-color: var(--accent-cyan);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;
-  margin: 0 auto 12px;
+  margin: 0 auto 0.75rem;
 }
 
 @keyframes spin {
@@ -504,28 +518,30 @@
 
 #toast-container {
   position: fixed;
-  bottom: 18px;
-  right: 18px;
+  bottom: 1.125rem;
+  right: 1.125rem;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.65rem;
   z-index: 200;
+  max-width: calc(100vw - 2.25rem);
 }
 
 .toast {
-  padding: 10px 16px;
+  padding: 0.65rem 1rem;
   border-radius: var(--wobbly-box);
   background: var(--cream-bubble);
   color: var(--ink);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   border: 3px solid var(--ink);
   box-shadow: 4px 4px 0px var(--ink);
   border-left: 8px solid var(--accent-cyan);
   transform: rotate(-1deg);
   animation: popBounceIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
   transition: opacity 0.3s, transform 0.3s;
+  overflow-wrap: anywhere;
 }
 
 .toast-success { border-left-color: var(--accent-green); }

@@ -103,8 +103,8 @@ function buildSettingsGridHtml(suffix = '') {
         <div class="setting-item">
           <label>${item.label}</label>
           <div class="setting-desc">${item.desc}</div>
-          <label style="display:flex;align-items:center;gap:8px;color:#fff;cursor:pointer;margin-top:6px;">
-            <input id="${id}" type="checkbox" checked style="width:16px;height:16px;"
+          <label style="display:flex;align-items:center;gap:0.5rem;color:#fff;cursor:pointer;margin-top:0.4rem;min-height:44px;">
+            <input id="${id}" type="checkbox" checked style="width:1.25rem;height:1.25rem;cursor:pointer;"
               onchange="updateHostSetting('${item.key}', this.checked)" />
             <span>${item.checkboxLabel}</span>
           </label>
@@ -211,10 +211,10 @@ function closeSettingsModal() {
  */
 function updateApiKeyBadge(verified = isApiKeyVerified) {
   const badge = document.getElementById('api-key-status-badge');
-  let activeModel = localStorage.getItem('chaos_coop_gemini_model') || '';
+  let activeModel = localStorage.getItem('plot_engineering_gemini_model') || '';
   if (activeModel.includes('2.5') || activeModel.includes('2-5')) {
     activeModel = '';
-    localStorage.removeItem('chaos_coop_gemini_model');
+    localStorage.removeItem('plot_engineering_gemini_model');
   }
   if (badge) {
     const isOk = Boolean(verified && getStoredApiKey());
