@@ -736,7 +736,14 @@ function submitMyCharacter() {
     return;
   }
 
-  const avatarDataUrl = drawState.canvas ? exportCompactAvatar(drawState.canvas) : '';
+  let avatarDataUrl = '';
+  if (drawState.canvas && drawState.hasDrawn) {
+    avatarDataUrl = exportCompactAvatar(drawState.canvas);
+  } else {
+    // B19: Blank portrait auto-generates procedural cartoon portrait
+    avatarDataUrl = generateProceduralPortraitDataUrl();
+    showToast('No drawing, so we picked a portrait for you', 'info');
+  }
 
   let startMod = null;
   if (quirkRaw && app.state.settings.allowStartingQuirk) {

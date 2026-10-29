@@ -18,6 +18,7 @@ const drawState = {
   ctx: null,
   isDrawing: false,
   isEraser: false,
+  hasDrawn: false,
   color: '#00e5ff',
   brushSize: 6,
   /** @type {Array<string>} History snapshots for undo */
@@ -67,6 +68,7 @@ function initDrawingCanvas() {
     e.preventDefault();
     saveCanvasSnapshot();
     drawState.isDrawing = true;
+    drawState.hasDrawn = true;
     const pos = getPos(e);
     drawState.lastX = pos.x;
     drawState.lastY = pos.y;
@@ -230,6 +232,9 @@ function saveCanvasSnapshot() {
 function undoCanvasStroke() {
   if (!drawState.canvas || drawState.history.length === 0) return;
   const lastUrl = drawState.history.pop();
+  if (drawState.history.length === 0) {
+    drawState.hasDrawn = false;
+  }
   const img = new Image();
   img.onload = () => {
     drawState.ctx.clearRect(0, 0, drawState.canvas.width, drawState.canvas.height);
@@ -244,6 +249,7 @@ function undoCanvasStroke() {
  */
 function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
+  drawState.hasDrawn = false;
   if (recordUndo) {
     saveCanvasSnapshot();
   } else {
