@@ -182,12 +182,11 @@
   animation: sketchBoil 2s infinite ease-in-out;
 }
 
-/* Auto-fitting player roster grid (Step 5) */
+/* Single-column full-width player roster list (U4) */
 .player-pill-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
-  gap: 0.65rem;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   margin-top: 0.5rem;
   overflow-y: auto;
   flex: 1;
@@ -198,28 +197,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  width: 100%;
   background: var(--cream-bubble);
   color: var(--ink);
   border: 3px solid var(--ink);
   box-shadow: 3px 3px 0px var(--ink);
   padding: 0.5rem 0.75rem;
-  border-radius: 18px 10px 20px 12px / 12px 20px 10px 18px;
+  border-radius: 14px;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 0.92rem;
-  transform: rotate(-1.4deg);
   animation: popBounceIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  min-height: 44px; /* Touch friendly tap target */
+  min-height: 40px;
 }
 
 .player-pill:nth-child(even) {
-  transform: rotate(1.4deg);
   background: #e8f8ff;
 }
 
 .player-pill:nth-child(3n) {
-  transform: rotate(-0.6deg);
   background: #fff4cc;
 }
 
@@ -240,17 +237,19 @@
   min-width: 0;
 }
 
-/* Remove button with minimum 44px tap target (Step 8) */
+/* Compact remove button at end of row (U4) */
 .btn-icon-remove {
   background: var(--accent-red);
   border: 2px solid var(--ink);
   color: #fff;
-  min-width: 44px;
-  min-height: 44px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   border-radius: 50%;
   cursor: pointer;
   font-weight: 900;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;

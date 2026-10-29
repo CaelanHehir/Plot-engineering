@@ -148,7 +148,7 @@ function renderLobbyScreen() {
       const isMe = p.id === app.myId;
       return `
         <div class="player-pill ${isMe ? 'is-me-pill' : ''}">
-          <div class="row-gap" style="gap:0.4rem; min-width:0;">
+          <div class="row-gap" style="gap:0.5rem; min-width:0; flex:1;">
             ${p.isBot ? '<span class="badge">Bot</span>' : (p.isHost ? '<span class="badge">Host</span>' : '')}
             <span class="player-pill-name" title="${escapeHtml(p.name)}">
               ${escapeHtml(p.name)} ${isMe ? '<small>(You)</small>' : ''} ${p.disconnected ? '<small style="color:var(--accent-red);">(offline)</small>' : ''}
