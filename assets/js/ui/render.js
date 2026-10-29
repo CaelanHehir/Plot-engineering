@@ -678,8 +678,8 @@ function renderRevealScreen() {
             </div>
           </div>
           <div class="rank-points">
-            +${r.pointsAwarded} PTS
-            <div class="tiny text-muted">Total: ${p.score} PTS</div>
+            +${(r.pointsAwarded || 0).toLocaleString()} pts
+            <div class="tiny text-muted">Total ${(p.score || 0).toLocaleString()}</div>
           </div>
         </div>
         <p class="rank-eval">${escapeHtml(r.evaluation)}</p>
@@ -954,7 +954,7 @@ function renderGameOverScreen() {
           <h4 class="podium-pillar-name mt-1">${escapeHtml(p.character?.name || p.name)}</h4>
           <div class="podium-pillar-player text-muted tiny">Played by ${escapeHtml(p.name)}</div>
           <div class="podium-pillar-role text-muted tiny">${escapeHtml(p.character?.role || '')}</div>
-          <div class="podium-score">${p.score} PTS</div>
+          <div class="podium-score">${(p.score || 0).toLocaleString()} pts</div>
         </div>
       `;
     };
@@ -982,7 +982,7 @@ function renderGameOverScreen() {
               <div class="text-muted tiny">${escapeHtml(fourth.character?.role || '')}</div>
             </div>
           </div>
-          <div class="final-score-box">${fourth.score} PTS</div>
+          <div class="final-score-box">${(fourth.score || 0).toLocaleString()} pts</div>
         </div>
       `;
     } else {
@@ -1005,7 +1005,7 @@ function renderGameOverScreen() {
                 <div class="text-muted small">Played by ${escapeHtml(p.name)} • ${escapeHtml(p.character?.role || '')}</div>
               </div>
             </div>
-            <div class="final-score-box">${p.score} PTS</div>
+            <div class="final-score-box">${(p.score || 0).toLocaleString()} pts</div>
           </div>
           <div class="mt-1">
             <span class="mod-label">Final Character Condition &amp; Modifiers:</span>
