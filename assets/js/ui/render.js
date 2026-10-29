@@ -646,7 +646,7 @@ function renderRevealScreen() {
     nextBtn.classList.add('hidden');
     if (skipBtn) skipBtn.classList.add('hidden');
     waitMsg.classList.remove('hidden');
-    waitMsg.textContent = '🔮 Read the speech bubbles while Gemini judges the outcome...';
+    waitMsg.textContent = 'The Judge is working out what happens...';
     return;
   }
 
