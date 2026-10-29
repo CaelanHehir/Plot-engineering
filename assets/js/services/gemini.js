@@ -11,15 +11,51 @@
  * 5. Offline Fallback Judge: generates humorous story text and scores even without an API key.
  */
 
+/**
+ * Checks if a model name is allowed (e.g. Gemini 3 Flash, never 2.5).
+ * @param {string} name
+ * @returns {boolean}
+ */
+function isAllowedModel(name) {
+  if (!name || typeof name !== 'string') return false;
+  const lower = name.toLowerCase();
+  return !lower.includes('2.5') && !lower.includes('2-5');
+}
+
 /** Cached name of the active, verified Gemini text model */
 let cachedModelName = localStorage.getItem('plot_engineering_gemini_model') || '';
-if (cachedModelName.includes('2.5') || cachedModelName.includes('2-5')) {
+if (!isAllowedModel(cachedModelName)) {
   cachedModelName = '';
   localStorage.removeItem('plot_engineering_gemini_model');
 }
 
 /** Flag tracking whether the stored API key has been verified against Google's endpoint */
 let isApiKeyVerified = false;
+
+/**
+ * Maps raw API/network errors to friendly messages for players.
+ * Technical error details are logged to console.warn only.
+ * 
+ * @param {Error|any} err
+ * @returns {string} User-facing message
+ */
+function friendlyAiError(err) {
+  console.warn('AI Error Details:', err);
+  if (!err) return 'The AI service did not answer. Try again.';
+  if (err.name === 'AbortError' || err.code === 'TIMEOUT' || err.message?.includes('aborted') || err.message?.includes('timed out')) {
+    return 'The AI request timed out. Please try again.';
+  }
+  if (err.code === 'INVALID' || err.message?.toLowerCase().includes('api key') || err.message?.includes('400') || err.message?.includes('401') || err.message?.includes('403')) {
+    return 'Invalid AI key. Please check your key in the menu.';
+  }
+  if (err.code === 'RATE' || err.message?.includes('429')) {
+    return 'The AI is currently busy (rate limit). Please wait a moment and try again.';
+  }
+  if (err.code === 'NETWORK' || err.message?.toLowerCase().includes('network') || err.message?.toLowerCase().includes('failed to fetch')) {
+    return 'Network error connecting to the AI service. Please check your connection.';
+  }
+  return 'The AI service did not answer. Try again.';
+}
 
 /**
  * Retrieves the stored Gemini API key from browser localStorage.
@@ -63,15 +99,26 @@ async function validateAndDiscoverModels(apiKey) {
     throw err;
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`;
+  // B13: Send API key via x-goog-api-key header instead of query parameter
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models';
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
   let res;
   try {
-    res = await fetch(url);
+    res = await fetch(url, {
+      headers: {
+        'x-goog-api-key': cleanKey
+      },
+      signal: controller.signal
+    });
   } catch (networkErr) {
-    const err = new Error('Network error while verifying API key.');
-    err.code = 'NETWORK';
+    clearTimeout(timer);
+    const err = new Error(networkErr.name === 'AbortError' ? 'Timeout verifying API key.' : 'Network error while verifying API key.');
+    err.code = networkErr.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK';
     throw err;
   }
+  clearTimeout(timer);
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
@@ -96,7 +143,7 @@ async function validateAndDiscoverModels(apiKey) {
       const name = (m.name || '').toLowerCase();
       if (!methods.includes('generateContent')) return false;
       if (!name.includes('gemini')) return false;
-      if (name.includes('2.5') || name.includes('2-5')) return false;
+      if (!isAllowedModel(name)) return false;
       if (
         name.includes('tts') ||
         name.includes('image') ||
@@ -135,8 +182,7 @@ async function validateAndDiscoverModels(apiKey) {
   for (const s of supported) {
     const lower = s.toLowerCase();
     if (
-      !lower.includes('2.5') &&
-      !lower.includes('2-5') &&
+      isAllowedModel(lower) &&
       (lower.includes('gemini-3') || lower.includes('gemini-3.0')) &&
       lower.includes('flash') &&
       !sorted.includes(s)
@@ -158,35 +204,70 @@ async function validateAndDiscoverModels(apiKey) {
 
 /**
  * Executes a structured JSON prompt against the Gemini generateContent API with
- * automatic fallback retry across discovered models.
+ * model caching, AbortController timeouts, and automatic fallback retry.
  * 
  * @param {string} systemInstruction - Guiding rules & output JSON schema
  * @param {string} userPrompt - Input parameters and scene payload
  * @param {string} [apiKey] - Optional explicit API key
+ * @param {object} [options] - Optional config { timeoutMs, signal }
  * @returns {Promise<object>} Parsed JSON object response from the LLM
  */
-async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
+async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {}) {
   const cleanKey = (apiKey || getStoredApiKey()).trim();
   if (!cleanKey) {
-    throw new Error('No Gemini API key provided.');
+    const err = new Error('No API key provided.');
+    err.code = 'INVALID';
+    throw err;
   }
 
-  const candidateModels = (await validateAndDiscoverModels(cleanKey))
-    .filter(m => !m.includes('2.5') && !m.includes('2-5'));
-  if (candidateModels.length === 0) {
-    candidateModels.push('gemini-3-flash');
-  }
-  const errors = [];
+  const timeoutMs = options.timeoutMs || 45000;
 
-  for (const model of candidateModels.slice(0, 4)) {
-    if (model.includes('2.5') || model.includes('2-5')) continue;
+  // B13: Cache the discovered model. Re-discover only after a 404 on the cached model.
+  let modelsToTry = [];
+  if (cachedModelName && isAllowedModel(cachedModelName)) {
+    modelsToTry.push(cachedModelName);
+  } else {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+      const candidateModels = await validateAndDiscoverModels(cleanKey);
+      modelsToTry = candidateModels.filter(isAllowedModel);
+    } catch (discErr) {
+      console.warn('Initial model discovery failed, falling back to gemini-3-flash:', discErr);
+      modelsToTry = ['gemini-3-flash'];
+    }
+  }
+
+  const errors = [];
+  let rediscovered = false;
+
+  for (let i = 0; i < modelsToTry.length; i++) {
+    const model = modelsToTry[i];
+    if (!isAllowedModel(model)) continue;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    const onExternalAbort = () => controller.abort();
+    if (options.signal) {
+      if (options.signal.aborted) {
+        clearTimeout(timer);
+        const cancelErr = new Error('Operation cancelled.');
+        cancelErr.name = 'AbortError';
+        throw cancelErr;
+      }
+      options.signal.addEventListener('abort', onExternalAbort, { once: true });
+    }
+
+    try {
+      // B13: Key in x-goog-api-key header instead of URL query string
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
       const fullPrompt = `${systemInstruction}\n\nIMPORTANT: Return ONLY valid JSON with no extra commentary.\n\nINPUT:\n${userPrompt}`;
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': cleanKey
+        },
         body: JSON.stringify({
           contents: [
             {
@@ -198,15 +279,40 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
             temperature: 0.75,
             responseMimeType: 'application/json'
           }
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timer);
+      if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
         const msg = errData?.error?.message || `HTTP ${response.status}`;
         errors.push(`${model}: ${msg}`);
+
+        // B13: Re-discover models only on 404
+        if (response.status === 404 && !rediscovered) {
+          rediscovered = true;
+          try {
+            const fresh = await validateAndDiscoverModels(cleanKey);
+            const remaining = fresh.filter(m => isAllowedModel(m) && !modelsToTry.slice(0, i + 1).includes(m));
+            modelsToTry = modelsToTry.slice(0, i + 1).concat(remaining);
+            continue;
+          } catch (rediscErr) {
+            console.warn('Model re-discovery after 404 failed:', rediscErr);
+          }
+        }
+
         if (response.status === 400 && msg.toLowerCase().includes('api key')) {
-          throw new Error(`Invalid Gemini API Key: ${msg}`);
+          const err = new Error(`Invalid Gemini API Key: ${msg}`);
+          err.code = 'INVALID';
+          throw err;
+        }
+        if (response.status === 429) {
+          const err = new Error(`Rate limit exceeded: ${msg}`);
+          err.code = 'RATE';
+          throw err;
         }
         continue;
       }
@@ -225,7 +331,15 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey) {
       localStorage.setItem('plot_engineering_gemini_model', model);
       return parseCleanJSON(rawText);
     } catch (err) {
-      if (err.message.includes('Invalid Gemini API Key')) {
+      clearTimeout(timer);
+      if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
+
+      if (err.name === 'AbortError') {
+        const cancelOrTimeout = new Error(options.signal?.aborted ? 'Operation cancelled.' : `AI request timed out after ${Math.round(timeoutMs / 1000)}s.`);
+        cancelOrTimeout.code = 'TIMEOUT';
+        throw cancelOrTimeout;
+      }
+      if (err.code === 'INVALID' || err.code === 'RATE') {
         throw err;
       }
       errors.push(`${model}: ${err.message}`);
@@ -318,16 +432,22 @@ Return ONLY valid JSON matching this exact structure:
  * 
  * @param {string} promptText - User-provided story concept or genre
  * @param {number} numRounds - Number of acts to create (default 4)
- * @param {string} [apiKey] - Optional explicit API key
+ * @param {string|object} [apiKeyOrOptions] - Optional explicit API key or options object
  * @returns {Promise<object>} Structured campaign object ready for game state
  */
-async function generateCampaignWithAI(promptText, numRounds = 4, apiKey = '') {
+async function generateCampaignWithAI(promptText, numRounds = 4, apiKeyOrOptions = {}) {
   const userPrompt = `Create a ${numRounds}-round comedic campaign for Plot Engineering based on this idea: "${promptText}".
 Remember:
 1. For each round, generate both "scenario" (shown to players — NO solutions or hints!) and "secrets" (comedic hooks and quirky moving parts for the Judge LLM).
 2. Make sure the rounds form a connected, escalating comedic story arc from beginning to climax!`;
 
-  const result = await callGeminiJSON(CAMPAIGN_GENERATION_GUIDE, userPrompt, apiKey);
+  const apiKey = typeof apiKeyOrOptions === 'string' ? apiKeyOrOptions : (apiKeyOrOptions?.apiKey || '');
+  const signal = typeof apiKeyOrOptions === 'object' ? apiKeyOrOptions?.signal : undefined;
+
+  const result = await callGeminiJSON(CAMPAIGN_GENERATION_GUIDE, userPrompt, apiKey, {
+    timeoutMs: 60000,
+    signal
+  });
   const rawRounds = Array.isArray(result.rounds) && result.rounds.length > 0
     ? result.rounds
     : [{
@@ -379,7 +499,7 @@ async function judgeRoundWithAI({
   submissions,
   settings,
   apiKey
-}) {
+}, options = {}) {
   const strictness = settings?.strictness || 'balanced';
   const strictnessGuide = {
     forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! As long as players wrote actual actions and didn\'t directly sabotage each other, weave even the most absurd cartoon stunts into a triumphant comedic success.',
@@ -513,7 +633,10 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
     playersAndActions: playerProfiles
   }, null, 2);
 
-  const res = await callGeminiJSON(systemPrompt, userPrompt, apiKey);
+  const res = await callGeminiJSON(systemPrompt, userPrompt, apiKey, {
+    timeoutMs: 45000,
+    signal: options.signal
+  });
   const normalized = normalizeJudgeResult(res, players, settings);
   normalized.judgedBy = 'ai';
   return normalized;

@@ -581,14 +581,17 @@ async function hostStartCampaign() {
       return;
     }
 
-    setLoadingOverlay(true, '✨ Gemini is crafting your custom multi-round campaign...');
+    const abortCtrl = new AbortController();
+    setLoadingOverlay(true, 'Writing your campaign...', () => {
+      abortCtrl.abort();
+    });
     try {
-      chosenCampaign = await generateCampaignWithAI(promptInput, roundCount);
+      chosenCampaign = await generateCampaignWithAI(promptInput, roundCount, { signal: abortCtrl.signal });
       updateApiKeyBadge(true);
       setLoadingOverlay(false);
     } catch (err) {
       setLoadingOverlay(false);
-      showToast('AI Generation Error: ' + err.message, 'error');
+      showToast(friendlyAiError(err), 'error');
       return;
     }
   }

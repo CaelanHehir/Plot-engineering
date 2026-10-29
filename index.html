@@ -681,10 +681,11 @@
   </div>
 
   <!-- Loading Overlay -->
-  <div id="loading-overlay" class="modal-backdrop hidden">
+  <div id="loading-overlay" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="loading-text">
     <div class="modal-card wobbly-card" style="text-align:center; max-width:24rem;">
       <div class="spinner"></div>
       <h3 id="loading-text">Loading...</h3>
+      <button id="loading-cancel-btn" class="btn btn-secondary btn-sm hidden" style="margin-top:1rem;">Cancel</button>
     </div>
   </div>
 

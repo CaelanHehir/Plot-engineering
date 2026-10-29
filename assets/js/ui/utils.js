@@ -89,18 +89,46 @@ function formatSeconds(sec) {
   return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
 }
 
+let currentLoadingCancelHandler = null;
+
 /**
  * Displays or hides the full-screen modal loading overlay with custom text.
+ * Supports an optional onCancel callback.
  * 
  * @param {boolean} visible - Whether to show the overlay
  * @param {string} text - Message to display under the spinner
+ * @param {Function|null} [onCancel] - Optional callback triggered on Cancel or Escape
  */
-function setLoadingOverlay(visible, text = 'Loading...') {
+function setLoadingOverlay(visible, text = 'Loading...', onCancel = null) {
   const el = document.getElementById('loading-overlay');
   const txt = document.getElementById('loading-text');
+  const cancelBtn = document.getElementById('loading-cancel-btn');
+
   if (txt) txt.textContent = text;
+  currentLoadingCancelHandler = visible ? onCancel : null;
+
+  if (cancelBtn) {
+    cancelBtn.classList.toggle('hidden', !onCancel);
+    cancelBtn.onclick = () => {
+      if (currentLoadingCancelHandler) {
+        currentLoadingCancelHandler();
+      }
+      setLoadingOverlay(false);
+    };
+  }
+
   if (el) el.classList.toggle('hidden', !visible);
 }
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const el = document.getElementById('loading-overlay');
+    if (el && !el.classList.contains('hidden') && currentLoadingCancelHandler) {
+      currentLoadingCancelHandler();
+      setLoadingOverlay(false);
+    }
+  }
+});
 
 /**
  * Displays a single temporary toast notification at the bottom right.
