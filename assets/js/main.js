@@ -95,6 +95,7 @@ const app = {
     },
 
     timeLeft: 0,
+    remainingMs: 0,
     currentRound: 0,
     storySoFar: '',
     roundHistory: [],
@@ -108,6 +109,7 @@ const app = {
 
   /** Active setInterval reference for timers */
   timerInterval: null,
+  timerDeadline: 0,
 
   /** Typewriter narration playback tracker */
   typewriter: {
@@ -278,15 +280,71 @@ function hostBackToLobby() {
 }
 
 /**
+ * Starts or synchronizes a timestamp-based countdown timer (B8).
+ * Avoids per-second full state broadcasts and background tab drift.
+ * @param {number} seconds
+ */
+function startTimer(seconds) {
+  stopTimer();
+  if (seconds <= 0) {
+    app.state.remainingMs = 0;
+    app.state.timeLeft = 0;
+    app.timerDeadline = 0;
+    return;
+  }
+  app.state.remainingMs = seconds * 1000;
+  app.state.timeLeft = seconds;
+  app.timerDeadline = Date.now() + app.state.remainingMs;
+  app.timerInterval = setInterval(updateTimerDisplay, 250);
+}
+
+function stopTimer() {
+  if (app.timerInterval) {
+    clearInterval(app.timerInterval);
+    app.timerInterval = null;
+  }
+  app.timerDeadline = 0;
+}
+
+function updateTimerDisplay() {
+  if (!app.timerDeadline) return;
+  const msLeft = Math.max(0, app.timerDeadline - Date.now());
+  const secondsLeft = Math.ceil(msLeft / 1000);
+  app.state.timeLeft = secondsLeft;
+
+  // B8: Update only timer elements directly rather than re-rendering whole screen
+  const charTimerEl = document.getElementById('char-create-timer');
+  if (charTimerEl && app.state.phase === 'CHAR_CREATE') {
+    charTimerEl.textContent = `⏱️ ${formatSeconds(secondsLeft)}`;
+  }
+  const scenTimerEl = document.getElementById('scenario-timer');
+  if (scenTimerEl && app.state.phase === 'SCENARIO') {
+    scenTimerEl.textContent = `⏱️ ${formatSeconds(secondsLeft)}`;
+    scenTimerEl.classList.toggle('timer-urgent', secondsLeft <= 20);
+  }
+
+  // Host checks deadline
+  if (app.isHost && msLeft <= 0) {
+    stopTimer();
+    if (app.state.phase === 'CHAR_CREATE') {
+      hostForceStartFirstRound();
+    } else if (app.state.phase === 'SCENARIO') {
+      hostForceEvaluateRound();
+    }
+  }
+}
+
+/**
  * Host utility to add overtime (default +30 seconds) to the active round countdown.
  * @param {number} seconds
  */
 function hostAddExtraTime(seconds = 30) {
   if (!app.isHost || app.state.phase !== 'SCENARIO') return;
-  if (app.state.settings.roundTimer <= 0) {
-    app.state.settings.roundTimer = 120;
-  }
-  app.state.timeLeft += seconds;
+  const currentRemaining = Math.max(0, (app.timerDeadline || Date.now()) - Date.now());
+  const newRemaining = currentRemaining + (seconds * 1000);
+  app.state.remainingMs = newRemaining;
+  app.state.timeLeft = Math.ceil(newRemaining / 1000);
+  app.timerDeadline = Date.now() + newRemaining;
   showToast(`Added +${seconds} seconds to the round timer!`, 'info');
   broadcastState();
 }
@@ -556,24 +614,8 @@ async function hostStartCampaign() {
   const actionInput = document.getElementById('scenario-action-input');
   if (actionInput) actionInput.value = '';
 
-  clearInterval(app.timerInterval);
-  if (app.state.settings.charCreateTimer > 0) {
-    app.state.timeLeft = app.state.settings.charCreateTimer;
-    app.timerInterval = setInterval(() => {
-      if (app.state.phase !== 'CHAR_CREATE') {
-        clearInterval(app.timerInterval);
-        return;
-      }
-      app.state.timeLeft = Math.max(0, app.state.timeLeft - 1);
-      broadcastState();
-      if (app.state.timeLeft <= 0) {
-        clearInterval(app.timerInterval);
-        hostForceStartFirstRound();
-      }
-    }, 1000);
-  } else {
-    app.state.timeLeft = 0;
-  }
+  // B8: Use timestamp deadline timer rather than broadcasting every second
+  startTimer(Number(app.state.settings.charCreateTimer) || 0);
 
   sfx.stepReveal();
   broadcastState();
@@ -609,6 +651,10 @@ function setCharCreateStep(step) {
   app.charCreateStep = step === 2 ? 2 : 1;
   sfx.stepReveal();
   renderCharCreateScreen();
+  // B8: Sync canvas container on step transition, not on every render
+  if (app.charCreateStep === 2 && typeof syncCanvasToContainer === 'function') {
+    requestAnimationFrame(() => syncCanvasToContainer(true));
+  }
 }
 
 /**
@@ -619,6 +665,9 @@ function goToCharPortraitStage() {
   app.charCreateStep = 2;
   sfx.stepReveal();
   renderCharCreateScreen();
+  if (typeof syncCanvasToContainer === 'function') {
+    requestAnimationFrame(() => syncCanvasToContainer(true));
+  }
 }
 
 /**
@@ -795,25 +844,8 @@ function startScenarioRound(roundIndex) {
     }
   });
 
-  clearInterval(app.timerInterval);
-  const duration = Number(app.state.settings.roundTimer) || 0;
-  if (duration > 0) {
-    app.state.timeLeft = duration;
-    app.timerInterval = setInterval(() => {
-      if (app.state.phase !== 'SCENARIO') {
-        clearInterval(app.timerInterval);
-        return;
-      }
-      app.state.timeLeft = Math.max(0, app.state.timeLeft - 1);
-      broadcastState();
-      if (app.state.timeLeft <= 0) {
-        clearInterval(app.timerInterval);
-        hostForceEvaluateRound();
-      }
-    }, 1000);
-  } else {
-    app.state.timeLeft = 0;
-  }
+  // B8: Use timestamp deadline timer rather than broadcasting every second
+  startTimer(Number(app.state.settings.roundTimer) || 0);
 
   sfx.stepReveal();
   broadcastState();

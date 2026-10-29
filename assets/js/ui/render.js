@@ -367,10 +367,6 @@ function renderCharCreateScreen() {
   if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
 
-  if (step === 2 && !isReady && typeof syncCanvasToContainer === 'function') {
-    requestAnimationFrame(() => syncCanvasToContainer(true));
-  }
-
   const statusEl = document.getElementById('char-ready-list');
   const rosterSig = app.state.players
     .map(p => `${p.id}:${Boolean(p.character?.ready)}:${p.character?.name || ''}:${p.character?.role || ''}:${(p.character?.avatar || '').length}`)

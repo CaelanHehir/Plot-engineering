@@ -366,6 +366,12 @@ function clientJoinRoom() {
         setLoadingOverlay(false);
         app.myId = msg.playerId;
         app.state = msg.state;
+        if (msg.state.remainingMs > 0) {
+          app.timerDeadline = Date.now() + msg.state.remainingMs;
+          if (!app.timerInterval) app.timerInterval = setInterval(updateTimerDisplay, 250);
+        } else {
+          stopTimer();
+        }
         sfx.join();
         renderState();
       } else if (msg.type === 'STATE_UPDATE') {
@@ -373,6 +379,12 @@ function clientJoinRoom() {
         const prevRound = app.state.currentRound;
         const prevReveal = app.state.revealStep;
         app.state = msg.state;
+        if (msg.state.remainingMs > 0) {
+          app.timerDeadline = Date.now() + msg.state.remainingMs;
+          if (!app.timerInterval) app.timerInterval = setInterval(updateTimerDisplay, 250);
+        } else {
+          stopTimer();
+        }
         if (prevPhase !== 'CHAR_CREATE' && app.state.phase === 'CHAR_CREATE') {
           app.charCreateStep = 1;
           clearCharacterCanvas(false);
