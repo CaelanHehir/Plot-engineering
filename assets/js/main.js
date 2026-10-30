@@ -1284,6 +1284,11 @@ async function triggerBotActionsForRound(activeBots, roundIndex) {
     modifiers: b.modifiers || []
   }));
 
+  const detailedRecap = (app.state.roundHistory || []).map((h, i) => {
+    const paras = (h.judgment?.storyParagraphs || []).join(' ');
+    return `Round ${i + 1} (${h.roundTitle || 'Act'}): ${paras}`;
+  }).join('\n\n');
+
   let actions = {};
   try {
     actions = await generateBotActionsWithAI({
@@ -1291,7 +1296,7 @@ async function triggerBotActionsForRound(activeBots, roundIndex) {
       roundTitle: roundObj.title,
       campaignTitle: campaign.title,
       campaignDescription: campaign.description,
-      storySoFar: app.state.storySoFar,
+      storySoFar: detailedRecap || app.state.storySoFar,
       botProfiles,
       apiKey
     });
@@ -1555,7 +1560,7 @@ async function evaluateCurrentRound() {
 
   const outcomeLabel = judgment.outcome === 'FLYING_COLORS'
     ? 'PASSED WITH FLYING COLORS'
-    : (judgment.outcome === 'BARELY_PASSED' ? 'BARELY PASSED' : 'FAILED');
+    : ((judgment.outcome === 'PASSED' || judgment.outcome === 'BARELY_PASSED') ? 'PASSED' : 'FAILED');
   const summaryLine = `Round ${roundIndex + 1} (${outcomeLabel}): ${judgment.headline} ${judgment.continuityBridge || ''}`;
   app.state.storySoFar = app.state.storySoFar
     ? `${app.state.storySoFar}\n${summaryLine}`

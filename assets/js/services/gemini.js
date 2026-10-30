@@ -501,8 +501,8 @@ async function judgeRoundWithAI({
 }, options = {}) {
   const strictness = settings?.strictness || 'balanced';
   const strictnessGuide = {
-    forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! Weave even absurd cartoon stunts and funny player sabotage into a triumphant comedic success (clever sabotage interrupts rivals and gets rewarded, while the team miraculously bumbles into a pass).',
-    balanced: 'BALANCED (COMEDY, SYNERGY & RIVALRY): Reward funny, coordinated team actions OR clever, audacious player sabotage with high scores! Interrupt sabotaged players\' actions in the story. If mutual sabotage or dogpiling occurs, let it erupt into a hilarious chain reaction. Give BARELY_PASSED when sabotage or fumbles nearly sink the mission; give FAILED only when infighting or lazy answers completely destroy the crew without any comedic recovery.',
+    forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! Weave even absurd cartoon stunts into a triumphant comedic success (clever sabotage interrupts rivals and gets rewarded, but the surviving crew still passes).',
+    balanced: 'BALANCED (COMEDY, SYNERGY & RIVALRY): Reward funny, coordinated team actions OR clever, audacious player sabotage with high scores! Interrupt sabotaged players\' actions in the story and punish victims with failed actions, lockouts, or debuffs. If mutual sabotage or dogpiling occurs, let it erupt into a hilarious chain reaction. Give PASSED when sabotage, casualties, or fumbles complicate the mission; give FAILED only when infighting or lazy answers completely destroy the crew without any comedic recovery.',
     brutal: 'TOUGH CRITIC: High-stakes comedic drama! Clever sabotage pays off big for the saboteur, but messy sabotage will violently backfire, interrupt critical moves, or drag the entire team into catastrophic failure and death.'
   }[strictness] || '';
 
@@ -559,12 +559,16 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - Treat them as organic, living elements of the fictional world (e.g. write "Barnaby swung his trusty mop to block the blast" instead of "\"Barnaby\" swung his \"Trusty Mop\"").
    - Only use quotation marks when a character is speaking actual dialogue out loud.
 
-4. SABOTAGE & RIVALRY (A VIABLE & REWARDED STRATEGY!):
-   - SABOTAGE IS FULLY VIABLE: Players are completely allowed and encouraged to target, hinder, backstab, or prank each other! Do NOT automatically fail a round just because players chose to sabotage teammates.
-   - REWARD CLEVER SABOTAGE: If a player executes an audaciously clever, funny, or well-timed sabotage against a rival, REWARD THEM with high rankings, praise in their evaluation, and a funny title (e.g. "Treacherous Mastermind", "Saboteur Supreme", "Backstab MVP", "Master of Friendly Fire").
-   - TARGET PLAYER'S ACTION IS INTERRUPTED: When Player A deliberately sabotages Player B, Player B's submitted action MUST BE INTERRUPTED in the story! Player B does NOT get to execute their intended move cleanly—they are cut off mid-stride, trip over Player A's hazard, get shoved into danger, or take the hit. Show Player B beginning their move only to be humorously derailed by Player A's sabotage, and reflect this disruption in Player B's evaluation!
-   - MULTIPLE SABOTEURS & DOGPILING: When multiple players attempt to sabotage each other (e.g. A attacks B, B trips C, C pushes A), or multiple players dogpile on the same victim, turn it into peak comedic chaos! Treat it as an escalating slapstick chain reaction or Mexican standoff where their contradictory plots collide, tangle, or trigger collateral domino effects!
-   - THE STAKES & RISK: Sabotage carries real risk. If sabotage is clumsy, poorly timed, or leaves no one to handle the scene's primary threat, it can backfire onto the saboteur (inflicting damage or traits) or drag the round down into BARELY_PASSED or FAILED. But if the crew survives (or the sabotage accidentally resolves an obstacle), the clever saboteur takes top honors!
+4. SABOTAGE, BETRAYAL & PUNISHMENTS (VIABLE STRATEGY & REAL TEETH!):
+   - SABOTAGE IS FULLY VIABLE & REWARDED: Players are completely allowed and encouraged to target, hinder, backstab, or narc on each other! Reward clever saboteurs with top rankings, praise in their evaluation, and funny titles (e.g. "Treacherous Mastermind", "Saboteur Supreme", "Backstab MVP", "Master of Friendly Fire").
+   - NO MIRACLE RESCUES OR FREE PASSES (ABSOLUTE RULE): DO NOT invent third-party miracles or lucky coincidences to bail out sabotaged players! If Player A uses insider knowledge, bouncers, guards, or the environment to frame, expose, trip, or narc on teammates, the betrayal STICKS! Do NOT have third parties (celebrities, bouncers) suddenly forgive the victims, adopt them as an entourage, or have guards accidentally hit jackpot levers to save them. If Bob charms the celebrity for himself and tells the bouncers his teammates are stalkers, Bob strolls inside while the teammates are pinned, detained, or locked out in the street!
+   - SABOTAGED ACTIONS FAIL: When a player is successfully sabotaged (especially by insider info, guards, or traps) and did not explicitly write a defensive counter-measure or evasion, THEIR ACTION FAILS COMPLETELY. They do not get to execute their plan, blind guards from inside a dogpile, or trigger secondary wins.
+   - VARYING PUNISHMENTS FOR THE VICTIM (PROPORTIONAL TO SEVERITY):
+     * MILD SABOTAGE (pranks, trips, stolen props, grease, petty distractions): The victim's action fails/fumbles, they rank at the bottom of active players, lose points, and receive an embarrassing debuff (e.g. "Grease-Stained", "Bruised Pride", "Pantsless").
+     * MODERATE / INCAPACITATING SABOTAGE (narced on to guards who detain/handcuff them, locked in rooms, trapped in chutes, knocked unconscious): The victim is DELAYED/INCAPACITATED and MISSES THEIR NEXT ROUND! Award a lockout trait with "metaEffect": "SKIP_TURN" (e.g. "Handcuffed by Bouncers", "Locked in Walk-In Freezer", "Detained in Holding Cell"). The victim receives 0 points for this round.
+     * SEVERE / FATAL SABOTAGE (shoved into death lasers, thrown off rooftops, dropped into acid vats, explosive traps): The victim DIES and is permanently eliminated from the campaign! Award "metaEffect": "DEAD" (e.g. "Vaporized by Laser Grid", "Fell from Penthouse Spire"). The victim receives 0 points and cannot act in future rounds.
+   - MULTIPLE SABOTEURS & DOGPILING: When multiple players attempt to sabotage each other or dogpile on the same victim, turn it into peak comedic chaos—an escalating slapstick chain reaction or Mexican standoff where contradictory plots collide!
+   - THE STAKES & RISK: Sabotage carries real risk for the saboteur too. If sabotage is clumsy, reckless, or completely wipes out the only teammate handling a fatal threat, it can backfire onto the saboteur or drag the round down into FAILED.
 
 5. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
    - TOTAL INCOHERENCE & CATASTROPHIC WIPEOUT: A round fails when chaotic infighting, disastrous fumbles, or non-cooperation leave the entire team incapacitated or obliterated by the scenario's hazards with zero comedic redemption or survival!
@@ -582,7 +586,7 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
      * If a player does something recklessly fatal, attempts a catastrophic stunt into lethal danger, or is fatally caught in a lethal trap or backfire:
        - Award a FATAL trait with "metaEffect": "DEAD" (e.g., "Incinerated by Lasers", "Crushed by Falling Chandelier", "Impaled on Spikes", "Vaporized into Ash", "Dropped into the Void").
        - When a character dies ("metaEffect": "DEAD"), they are permanently eliminated from the campaign! In all future rounds, they do not act, their action is fixed to "<name> did nothing, they are dead", and they are excluded from the judge prompt.
-       - A round CAN still pass ("FLYING_COLORS" or "BARELY_PASSED") for the surviving players even if one reckless character died in the process!
+       - A round CAN still pass ("PASSED") for the surviving players even if one character died or was detained in the process!
      * For non-fatal incapacitation, award a lockout trait with "metaEffect": "SKIP_TURN" (e.g., "Locked in Freezing Meat Locker", "Tangled in Heavy Chain", "Knocked Unconscious by Flying Pan") or severe physical debuffs (e.g. "Broken Arm", "Concussed & Seeing Stars", "Covered in Hot Tar", "Glued to the Floor").
      * Other meta conditions: "WORD_LIMIT" (gagged/out of breath, max 5 words), "BLINDED_SCENARIO" (sauce/paint in eyes).
    - If a locked-out ("SKIP_TURN") teammate is rescued by another player's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
@@ -593,8 +597,8 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - "evaluation": 1 punchy, funny sentence (max 20 words) per player explaining their score based on their humor, coordination, coherence, or clever sabotage!
 
 THREE OUTCOMES ("outcome"):
-- "FLYING_COLORS": Passed with flying colors! The players' actions were funny, coherent, and coordinated (or featured clever, audaciously funny sabotage that didn't sink the mission!), creating a hilarious story beat.
-- "BARELY_PASSED": Passed, but just barely! Some players delivered funny actions that saved the scene, even though chaotic sabotage, fumbles, or clashes nearly ruined everything.
+- "FLYING_COLORS": Flawless triumphant victory! Can ONLY be awarded if the ENTIRE active crew succeeded with ZERO casualties, ZERO teammates detained/arrested/locked out, and ZERO successful backstabs derailing teammates.
+- "PASSED": Scenario passed, BUT with complications, casualties, fumbles, or successful sabotage where one or more teammates were arrested, delayed/incapacitated ("SKIP_TURN"), killed ("DEAD"), or left behind!
 - "FAILED": Comedic disaster — campaign over! Total wipeout where catastrophic infighting, suicidal sabotage, or lazy non-answers left the entire crew obliterated by the scene's hazards. (Award 0 points and 0 modifiers to everyone!)
 
 JUDGING MODE:
@@ -608,7 +612,7 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
   "coordinationAndCoherenceAnalysis": "1-2 sentences evaluating how the players' actions interacted, including any clever sabotage, interruptions, or chain reactions (rewarding both teamwork and clever sabotage!).",
   "humorEvaluation": "1 sentence highlighting the funniest actions or combinations.",
   "storyCoherentAndFunny": true,
-  "outcome": "FLYING_COLORS | BARELY_PASSED | FAILED",
+  "outcome": "FLYING_COLORS | PASSED | FAILED",
   "headline": "Short, funny 4-8 word episode headline",
   "storyParagraphs": [
     "Paragraph 1 (explicitly naming characters and showing the exact details of what they did; integrate character names, items, and quirks seamlessly into the story without quotes)...",
@@ -671,14 +675,16 @@ function normalizeJudgeResult(raw, players, settings = {}) {
   // Support both storyCoherentAndFunny and deliberateSolutionExists (backward compatibility)
   if (raw.storyCoherentAndFunny === false || raw.deliberateSolutionExists === false) {
     outcome = 'FAILED';
-  } else if (!['FLYING_COLORS', 'BARELY_PASSED', 'FAILED'].includes(outcome)) {
+  } else if (!['FLYING_COLORS', 'PASSED', 'BARELY_PASSED', 'FAILED'].includes(outcome)) {
     if (raw.passed === false || outcome.includes('FAIL')) {
       outcome = 'FAILED';
-    } else if (outcome.includes('BARE') || outcome.includes('CLOSE')) {
-      outcome = 'BARELY_PASSED';
+    } else if (outcome.includes('BARE') || outcome.includes('CLOSE') || outcome.includes('PASS')) {
+      outcome = 'PASSED';
     } else {
       outcome = 'FLYING_COLORS';
     }
+  } else if (outcome === 'BARELY_PASSED') {
+    outcome = 'PASSED';
   }
 
   const passed = outcome !== 'FAILED';
@@ -737,12 +743,22 @@ function normalizeJudgeResult(raw, players, settings = {}) {
     }
   }
 
-  const baseTeamBonus = outcome === 'FLYING_COLORS' ? 600 : (outcome === 'BARELY_PASSED' ? 300 : 0);
+  // If any player died, was detained, or locked out, cap outcome at PASSED
+  const hadCasualtiesOrLockouts = normalizedRankings.some(r =>
+    (r.modifiersAdded || []).some(m => m.metaEffect === 'DEAD' || m.metaEffect === 'SKIP_TURN')
+  );
+  if (outcome === 'FLYING_COLORS' && hadCasualtiesOrLockouts) {
+    outcome = 'PASSED';
+  }
+
+  const baseTeamBonus = outcome === 'FLYING_COLORS' ? 600 : (outcome === 'PASSED' ? 300 : 0);
   const rankBonusTable = [500, 350, 250, 175, 125, 100, 75, 50];
 
   normalizedRankings.forEach((item, idx) => {
     const pl = players.find(p => p.id === item.playerId);
     const wasAlreadyDead = Boolean(getPlayerMetaMod(pl, 'DEAD'));
+    const gotDeadOrLockedOut = (item.modifiersAdded || []).some(m => m.metaEffect === 'DEAD' || m.metaEffect === 'SKIP_TURN');
+
     if (!passed || wasAlreadyDead) {
       item.teamBonus = 0;
       item.rankBonus = 0;
@@ -751,8 +767,13 @@ function normalizeJudgeResult(raw, players, settings = {}) {
       item.modifiersRemoved = [];
       if (wasAlreadyDead) {
         item.title = 'Deceased';
-        item.evaluation = `${pl.character?.name || pl.name} did nothing, they are dead.`;
+        item.evaluation = `${pl ? (pl.character?.name || pl.name) : 'Player'} did nothing, they are dead.`;
       }
+    } else if (gotDeadOrLockedOut) {
+      // Severe punishment: Detained/incapacitated/dead players earn 0 points for this round
+      item.teamBonus = 0;
+      item.rankBonus = 0;
+      item.pointsAwarded = 0;
     } else {
       const teamBonus = Math.round(baseTeamBonus * multiplier);
       const rankBonus = Math.round((rankBonusTable[idx] ?? 50) * multiplier);
@@ -764,7 +785,8 @@ function normalizeJudgeResult(raw, players, settings = {}) {
 
   const defaultHeadlines = {
     FLYING_COLORS: 'Hilarious Synergy Steals the Show!',
-    BARELY_PASSED: 'Chaotic Comedy Somehow Works Out!',
+    PASSED: 'The Crew Survives the Chaos!',
+    BARELY_PASSED: 'The Crew Survives the Chaos!',
     FAILED: 'Incoherent Chaos Derails the Plot!'
   };
 
@@ -796,7 +818,7 @@ function mockJudgeRound({ players, submissions, settings }) {
   const detailedCount = actions.filter(a => a.length >= 15).length;
   const nonEmptyCount = actions.filter(a => a.length >= 4).length;
 
-  let outcome = 'BARELY_PASSED';
+  let outcome = 'PASSED';
   if (nonEmptyCount < Math.ceil(players.length * 0.5)) {
     outcome = 'FAILED';
   } else if (detailedCount >= Math.ceil(players.length * 0.6)) {
@@ -818,7 +840,7 @@ function mockJudgeRound({ players, submissions, settings }) {
     characterActionSentences.join(' '),
     outcome === 'FLYING_COLORS'
       ? 'Against all laws of physics and common sense, their absurd moves combined into a masterpiece of comedic coordination that left the room speechless!'
-      : outcome === 'BARELY_PASSED'
+      : outcome === 'PASSED'
       ? 'The sheer audacity of their moves caused a pileup of slapstick chaos, but the bits connected just enough to carry the crew through to the next act!'
       : 'Unfortunately, their moves went in completely opposite directions with zero coherence, turning the scene into a glorious trainwreck!'
   ];
@@ -1087,9 +1109,10 @@ Rules for Bot Actions:
 2. Play directly into each character's unique role and personality quirks.
 3. React specifically to elements, objects, or threats mentioned in the current scenario.
 4. If a bot has active traits or injuries, weave them humorously into their action (e.g. compensating for an injury or misusing a perk).
-5. The humor should be comedic improv (absurd cartoon plans, slapstick, high-confidence misunderstandings, creative team plays, or cheeky/mischievous sabotage against a teammate if it fits their character).
-6. No emojis in actions.
-7. Return STRICT JSON conforming to the schema.
+5. BOT MEMORY, GRUDGES & RETALIATION: Review the Story Continuity So Far! If a teammate (human or bot) previously sabotaged, narced on, insulted, or threw this bot under the bus, DO NOT FORGIVE THEM! Hold a grudge, distrust them, refuse to assist them, or actively attempt hilarious revenge or counter-sabotage against them in your action!
+6. If no grudge exists, the humor should be comedic improv (absurd cartoon plans, slapstick, high-confidence misunderstandings, creative team plays, or cheeky/mischievous sabotage against a teammate if it fits their character).
+7. No emojis in actions.
+8. Return STRICT JSON conforming to the schema.
 
 Schema:
 {

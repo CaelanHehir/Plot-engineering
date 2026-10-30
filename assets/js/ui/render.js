@@ -959,9 +959,9 @@ function showPostStoryVerdictAndLeaderboard(j) {
       verdictBox.className = 'verdict-banner verdict-flying-colors';
       document.getElementById('verdict-stamp').textContent = 'PASSED WITH FLYING COLORS!';
       sfx.verdictFlyingColors();
-    } else if (j.outcome === 'BARELY_PASSED') {
+    } else if (j.outcome === 'PASSED' || j.outcome === 'BARELY_PASSED') {
       verdictBox.className = 'verdict-banner verdict-barely-passed';
-      document.getElementById('verdict-stamp').textContent = 'PASSED (BUT JUST BARELY!)';
+      document.getElementById('verdict-stamp').textContent = 'SCENARIO PASSED!';
       sfx.verdictBarely();
     } else {
       verdictBox.className = 'verdict-banner verdict-fail';
@@ -1196,10 +1196,10 @@ function renderGameOverScreen() {
   if (recapEl) {
     recapEl.innerHTML = app.state.roundHistory.map((h, idx) => {
       const out = h.judgment?.outcome || 'FLYING_COLORS';
-      const badgeClass = out === 'FLYING_COLORS' ? 'badge-success' : (out === 'BARELY_PASSED' ? 'badge-warn' : 'badge-danger');
+      const badgeClass = out === 'FLYING_COLORS' ? 'badge-success' : ((out === 'PASSED' || out === 'BARELY_PASSED') ? 'badge-warn' : 'badge-danger');
       const badgeText = out === 'FLYING_COLORS'
         ? 'Flying Colors'
-        : (out === 'BARELY_PASSED' ? 'Barely Passed' : 'Wiped Out');
+        : ((out === 'PASSED' || out === 'BARELY_PASSED') ? 'Passed' : 'Wiped Out');
       const cleanTitle = (h.roundTitle || '').replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
       const roundMoves = showRecapMoves && h.submissions ? app.state.players.map(p => {
         const move = h.submissions[p.id];
@@ -1277,7 +1277,7 @@ function copyStoryRecap() {
     const cleanTitle = (h.roundTitle || `Round ${idx + 1}`).replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
     const outcome = h.judgment?.outcome === 'FLYING_COLORS'
       ? 'Flying Colors'
-      : (h.judgment?.outcome === 'BARELY_PASSED' ? 'Barely Passed' : 'Wiped Out');
+      : ((h.judgment?.outcome === 'PASSED' || h.judgment?.outcome === 'BARELY_PASSED') ? 'Passed' : 'Wiped Out');
 
     lines.push(`\n[Round ${idx + 1}: ${cleanTitle}] - ${outcome}`);
     if (h.judgment?.headline) {

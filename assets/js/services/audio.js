@@ -97,7 +97,7 @@ class SoundManager {
     });
   }
 
-  /** Wobbly, narrow interval chime for "Barely Passed" outcome */
+  /** Wobbly, narrow interval chime for "Passed" outcome */
   verdictBarely() {
     [440, 466.16, 523.25, 587.33].forEach((f, i) => {
       this.playTone(f, 'sine', 0.24, i * 0.12, 0.18);
