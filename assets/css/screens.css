@@ -1653,26 +1653,43 @@
   animation: podiumRise 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
 }
 
-/* Fluid responsive podium heights using min-height (Step 3 & 4) */
+/* Stepped podium heights ensuring 1st place is always tallest with comfortable breathing room */
 .podium-pillar.place-1 {
-  min-height: 12rem;
-  outline: 3px solid var(--accent-gold);
+  height: 16.5rem;
+  outline: 3.5px solid var(--accent-gold);
   background: linear-gradient(180deg, #4b3918 0%, #241c3d 100%);
   animation-delay: 0.18s;
+  z-index: 2;
 }
 
 .podium-pillar.place-2 {
-  min-height: 10rem;
-  outline: 2.5px solid #cfd8dc;
+  height: 14rem;
+  outline: 3px solid #cfd8dc;
   background: linear-gradient(180deg, #2e3548 0%, #1e1a34 100%);
   animation-delay: 0.08s;
 }
 
 .podium-pillar.place-3 {
-  min-height: 8.5rem;
-  outline: 2.5px solid #ffab91;
+  height: 12rem;
+  outline: 3px solid #ffab91;
   background: linear-gradient(180deg, #3e2729 0%, #1e1a34 100%);
   animation-delay: 0s;
+}
+
+/* Stepped avatar scaling for iconic podium hierarchy */
+.podium-pillar.place-1 .avatar-img-lg {
+  width: 3.75rem;
+  height: 3.75rem;
+}
+
+.podium-pillar.place-2 .avatar-img-lg {
+  width: 3.1rem;
+  height: 3.1rem;
+}
+
+.podium-pillar.place-3 .avatar-img-lg {
+  width: 2.65rem;
+  height: 2.65rem;
 }
 
 .podium-rank-tag {
@@ -1706,38 +1723,39 @@
 
 .podium-pillar-name {
   width: 100%;
+  font-family: var(--font-display);
+  font-size: clamp(0.78rem, 1.8vw, 0.95rem);
+  font-weight: 700;
+  margin: 0.2rem 0 0.05rem;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
-  font-size: 0.92rem;
-  margin: 0.2rem 0 0.1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.15;
 }
 
 .podium-pillar-player {
   width: 100%;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.75);
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
-  font-size: 0.74rem;
-  line-height: 1.2;
-}
-
-.podium-pillar-role {
-  width: 100%;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.7rem;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .podium-score {
   margin-top: auto;
   padding-top: 0.25rem;
   font-family: var(--font-title);
-  font-size: 1.25rem;
+  font-size: clamp(1rem, 2.2vw, 1.3rem);
   letter-spacing: 1px;
   color: var(--accent-gold);
   text-shadow: 2px 2px 0px var(--ink);
@@ -1802,15 +1820,15 @@
   }
 
   .podium-pillar.place-1 {
-    min-height: 15rem;
+    height: 18.5rem;
   }
 
   .podium-pillar.place-2 {
-    min-height: 13rem;
+    height: 15.5rem;
   }
 
   .podium-pillar.place-3 {
-    min-height: 11rem;
+    height: 13rem;
   }
 }
 
@@ -1821,15 +1839,15 @@
   }
 
   .podium-pillar.place-1 {
-    min-height: 16rem;
+    height: 20rem;
   }
 
   .podium-pillar.place-2 {
-    min-height: 13.5rem;
+    height: 17rem;
   }
 
   .podium-pillar.place-3 {
-    min-height: 11.5rem;
+    height: 14.5rem;
   }
 }
 
@@ -1864,3 +1882,231 @@
   color: var(--accent-green);
   border-color: var(--accent-green);
 }
+
+/* ==================== PLAYER SUMMARIES CARDS (GAME OVER) ==================== */
+.player-summary-card {
+  background: var(--bg-input);
+  border: 3px solid var(--ink);
+  border-radius: 18px 12px 18px 14px;
+  box-shadow: 3.5px 3.5px 0px var(--ink);
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  overflow-wrap: anywhere;
+}
+
+.player-summary-winner {
+  outline: 3px solid var(--accent-gold);
+  background: linear-gradient(135deg, rgba(255, 202, 40, 0.12) 0%, var(--bg-input) 100%);
+  box-shadow: 4px 4px 0px var(--ink);
+}
+
+.player-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.player-summary-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.player-summary-rank-badge {
+  position: absolute;
+  top: -0.45rem;
+  left: -0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--wobbly-pill);
+  border: 2px solid var(--ink);
+  box-shadow: 1.5px 1.5px 0px var(--ink);
+  z-index: 2;
+  white-space: nowrap;
+}
+
+.player-summary-rank-badge.rank-gold {
+  background: var(--accent-gold);
+  color: var(--ink);
+  transform: rotate(-4deg);
+}
+
+.player-summary-rank-badge.rank-silver {
+  background: #eceff1;
+  color: var(--ink);
+}
+
+.player-summary-rank-badge.rank-bronze {
+  background: #ffccbc;
+  color: var(--ink);
+}
+
+.player-summary-rank-badge.rank-default {
+  background: var(--accent-cyan);
+  color: var(--ink);
+}
+
+.player-summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.player-summary-char-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 0;
+  color: #fff;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.player-summary-meta {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 0.1rem;
+}
+
+.player-summary-by strong {
+  color: var(--accent-cyan);
+}
+
+.player-summary-role {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-top: 0.15rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.player-summary-score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid var(--ink);
+  border-radius: var(--wobbly-pill);
+  padding: 0.25rem 0.65rem;
+  box-shadow: 2px 2px 0px var(--ink);
+  flex-shrink: 0;
+}
+
+.player-summary-score-badge .score-num {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  color: var(--accent-gold);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  text-shadow: 1.5px 1.5px 0px var(--ink);
+}
+
+.player-summary-score-badge .score-label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.5px;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.player-summary-traits {
+  border-top: 1.5px dashed rgba(255, 255, 255, 0.15);
+  padding-top: 0.45rem;
+}
+
+.player-summary-traits-label {
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+/* Runners-Up Section (Results card, 4th place+) */
+.runners-up-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: var(--wobbly-box);
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.runners-up-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+}
+
+.runners-up-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.runner-up-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-card);
+  border: 2px solid var(--ink);
+  border-radius: var(--wobbly-pill);
+  padding: 0.25rem 0.5rem;
+  box-shadow: 2px 2px 0px var(--ink);
+}
+
+.runner-up-rank {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--bg-input);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--wobbly-pill);
+  border: 1.5px solid var(--ink);
+}
+
+.runner-up-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.runner-up-name {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.runner-up-player {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.runner-up-score {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  color: var(--accent-gold);
+  white-space: nowrap;
+}
+

@@ -1042,16 +1042,20 @@ function showPostStoryVerdictAndLeaderboard(j) {
  * 4. Act-by-act multi-round campaign synopsis.
  */
 function renderGameOverScreen() {
-  const goWin = app.gameOverWindow === 'recap' ? 'recap' : 'results';
+  const goWin = app.gameOverWindow === 'recap' ? 'recap' : (app.gameOverWindow === 'players' ? 'players' : 'results');
   const resultsCard = document.getElementById('gameover-results-card');
+  const playersCard = document.getElementById('gameover-players-card');
   const recapCard = document.getElementById('gameover-recap-card');
   const btnResults = document.getElementById('gameover-win-btn-results');
+  const btnPlayers = document.getElementById('gameover-win-btn-players');
   const btnRecap = document.getElementById('gameover-win-btn-recap');
 
   if (resultsCard) resultsCard.classList.toggle('mobile-window-hidden', goWin !== 'results');
+  if (playersCard) playersCard.classList.toggle('mobile-window-hidden', goWin !== 'players');
   if (recapCard) recapCard.classList.toggle('mobile-window-hidden', goWin !== 'recap');
 
   if (btnResults) btnResults.classList.toggle('active', goWin === 'results');
+  if (btnPlayers) btnPlayers.classList.toggle('active', goWin === 'players');
   if (btnRecap) btnRecap.classList.toggle('active', goWin === 'recap');
 
   const sorted = [...app.state.players].sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -1107,7 +1111,6 @@ function renderGameOverScreen() {
           ${renderAvatarHtml(p.character?.avatar, 'avatar-img-lg')}
           <h4 class="podium-pillar-name mt-1">${escapeHtml(p.character?.name || p.name)}</h4>
           <div class="podium-pillar-player text-muted tiny">Played by ${escapeHtml(p.name)}</div>
-          <div class="podium-pillar-role text-muted tiny">${escapeHtml(p.character?.role || '')}</div>
           <div class="podium-score">${(p.score || 0).toLocaleString()} pts</div>
         </div>
       `;
@@ -1120,26 +1123,67 @@ function renderGameOverScreen() {
     `;
   }
 
+  const runnersUpEl = document.getElementById('final-runners-up-list');
+  if (runnersUpEl) {
+    const runnersUp = sorted.slice(3);
+    if (runnersUp.length > 0) {
+      runnersUpEl.classList.remove('hidden');
+      runnersUpEl.innerHTML = `
+        <div class="runners-up-card">
+          <div class="runners-up-title">Honorable mentions</div>
+          <div class="runners-up-grid">
+            ${runnersUp.map((p, idx) => {
+              const actualIdx = idx + 3;
+              const rankLabel = getRankLabel(actualIdx);
+              return `
+                <div class="runner-up-pill">
+                  <span class="runner-up-rank">${rankLabel}</span>
+                  ${renderAvatarHtml(p.character?.avatar, 'avatar-img-sm')}
+                  <div class="runner-up-info">
+                    <span class="runner-up-name">${escapeHtml(p.character?.name || p.name)}</span>
+                    <span class="runner-up-player">Played by ${escapeHtml(p.name)}</span>
+                  </div>
+                  <span class="runner-up-score">${(p.score || 0).toLocaleString()} pts</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      runnersUpEl.classList.add('hidden');
+      runnersUpEl.innerHTML = '';
+    }
+  }
+
   const leaderboardEl = document.getElementById('final-leaderboard-list');
   if (leaderboardEl) {
     leaderboardEl.innerHTML = sorted.map((p, i) => {
       const rankLabel = getRankLabel(i);
-      const isWinner = ranks[i] === 1;
+      const rankNum = ranks[i];
+      const isWinner = rankNum === 1;
+      const rankClass = rankNum === 1 ? 'rank-gold' : (rankNum === 2 ? 'rank-silver' : (rankNum === 3 ? 'rank-bronze' : 'rank-default'));
       return `
-        <div class="podium-card ${isWinner ? 'podium-winner' : ''}">
-          <div class="row-between">
-            <div class="rank-player-info" style="min-width:0; flex:1;">
-              <span class="rank-medal">${rankLabel}</span>
+        <div class="player-summary-card ${isWinner ? 'player-summary-winner' : ''}">
+          <div class="player-summary-header">
+            <div class="player-summary-avatar-wrap">
+              <span class="player-summary-rank-badge ${rankClass}">${rankLabel}</span>
               ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
-              <div style="min-width:0; flex:1; overflow-wrap:break-word; word-break:break-word;">
-                <h4 style="white-space:normal; overflow-wrap:break-word; word-break:break-word;">${escapeHtml(p.character?.name || p.name)}</h4>
-                <div class="text-muted small" style="white-space:normal; overflow-wrap:break-word; word-break:break-word;">Played by ${escapeHtml(p.name)} • ${escapeHtml(p.character?.role || '')}</div>
-              </div>
             </div>
-            <div class="final-score-box">${(p.score || 0).toLocaleString()} pts</div>
+            <div class="player-summary-info">
+              <h4 class="player-summary-char-name">${escapeHtml(p.character?.name || p.name)}</h4>
+              <div class="player-summary-meta">
+                <span class="player-summary-by">Played by <strong>${escapeHtml(p.name)}</strong></span>
+              </div>
+              <div class="player-summary-role">${escapeHtml(p.character?.role || 'Adventurer')}</div>
+            </div>
+            <div class="player-summary-score-badge">
+              <span class="score-num">${(p.score || 0).toLocaleString()}</span>
+              <span class="score-label">PTS</span>
+            </div>
           </div>
-          <div class="mt-1">
-            <span class="mod-label">Final Character Condition &amp; Modifiers:</span>
+          <div class="player-summary-traits">
+            <div class="player-summary-traits-label">Condition &amp; Modifiers</div>
             <div class="modifier-chips">${renderModifierChips(p.modifiers)}</div>
           </div>
         </div>
