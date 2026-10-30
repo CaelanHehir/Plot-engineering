@@ -9,6 +9,7 @@
  *    and Humor, ensuring funny/unrealistic moves succeed when they fit together, and
  *    explicitly narrating every character's action.
  * 5. Offline Fallback Judge: generates humorous story text and scores even without an API key.
+ * 6. AI Bot Teammates: Generates themed bot characters and in-character improv moves with placeholder fallback.
  */
 
 /**
@@ -880,3 +881,235 @@ function mockJudgeRound({ players, submissions, settings }) {
   res.judgedBy = 'demo';
   return res;
 }
+
+// ============================================================================
+// AI Bot Teammates Generation
+// ============================================================================
+
+/**
+ * Procedural fallback for generating thematic bot characters when Gemini is offline.
+ * @param {string} campaignTitle
+ * @param {number} count
+ * @returns {Array<object>}
+ */
+function generateFallbackBotCharacters(campaignTitle, count) {
+  const fallbackRoles = [
+    'Over-caffeinated volunteer with zero safety training',
+    'Conspiracy theorist trying to document everything on a tape recorder',
+    'Displaced intern following instructions far too literally',
+    'Self-proclaimed expert whose certifications are entirely fabricated',
+    'Dramatic method actor convinced this is an immersive rehearsal',
+    'Bystander caught in the wrong place at the wrong time',
+    'Former mascot who refuses to break character',
+    'Over-enthusiastic tour guide who lost their group'
+  ];
+  const fallbackTraits = [
+    { name: 'Nervous Reflexes', type: 'buff', description: 'Can dive out of danger very quickly' },
+    { name: 'Pocket Junk', type: 'neutral', description: 'Carries strange miscellaneous trinkets' },
+    { name: 'Overthinking', type: 'debuff', description: 'Freezes when making split-second decisions' },
+    { name: 'Lucky Coin', type: 'buff', description: 'Uncanny luck with 50/50 chances' },
+    { name: 'Loud Sneezing', type: 'debuff', description: 'Gives away hiding spots at dramatic moments' }
+  ];
+
+  const results = [];
+  for (let i = 0; i < count; i++) {
+    const role = fallbackRoles[i % fallbackRoles.length];
+    const trait = fallbackTraits[i % fallbackTraits.length];
+    results.push({
+      name: `Agent ${String.fromCharCode(65 + i)}`,
+      role: `${role} during ${campaignTitle}`,
+      startingTrait: trait
+    });
+  }
+  return results;
+}
+
+/**
+ * Generates custom comedic character profiles tailored to the campaign theme for AI bot teammates.
+ * 
+ * @param {object} params
+ * @param {string} params.campaignTitle
+ * @param {string} params.campaignDescription
+ * @param {string} [params.genre]
+ * @param {number} params.count - Number of bot characters to generate
+ * @param {object} [params.settings]
+ * @param {string} [params.apiKey]
+ * @returns {Promise<Array<{ name: string, role: string, startingTrait: { name: string, type: string, description: string } }>>}
+ */
+async function generateBotCharactersWithAI({
+  campaignTitle,
+  campaignDescription,
+  genre = 'Comedy',
+  count = 1,
+  settings,
+  apiKey
+}) {
+  const cleanKey = (apiKey || getStoredApiKey()).trim();
+  if (!cleanKey) {
+    return generateFallbackBotCharacters(campaignTitle, count);
+  }
+
+  const systemInstruction = `You are a comedy character designer for "Plot Engineering", a comedic tabletop party game.
+Generate exactly ${count} unique, funny, and quirky fictional character profiles tailored to fit the following campaign setting:
+Campaign Title: "${campaignTitle}"
+Genre: "${genre}"
+Campaign Premise: "${campaignDescription}"
+
+Rules:
+1. Each character must have a full name, a hilarious 1-sentence role/occupation with an absurd quirk or comedic flaw, and 1 starting trait (perk or flaw).
+2. The trait must have a punchy name, a type ("buff", "debuff", or "neutral"), and a short 1-sentence description.
+3. No emojis. Output STRICT JSON only conforming to the schema.
+
+Schema:
+{
+  "characters": [
+    {
+      "name": "Full Name",
+      "role": "Comedic role and quirk",
+      "startingTrait": {
+        "name": "Trait Name",
+        "type": "buff",
+        "description": "Comedic effect or quirk description"
+      }
+    }
+  ]
+}`;
+
+  const userPrompt = `Generate ${count} comedic character profiles for the campaign "${campaignTitle}".`;
+
+  const executeCall = async () => {
+    return await callGeminiJSON(systemInstruction, userPrompt, cleanKey, { timeoutMs: 25000 });
+  };
+
+  try {
+    const res = await executeCall();
+    if (res && Array.isArray(res.characters) && res.characters.length > 0) {
+      return res.characters.slice(0, count);
+    }
+  } catch (err) {
+    console.warn('Initial generateBotCharactersWithAI error:', err);
+    const isRetryable = err?.message?.includes('429') || err?.message?.includes('503') || err?.code === 'RATE';
+    if (isRetryable) {
+      await new Promise(r => setTimeout(r, 1500));
+      try {
+        const res = await executeCall();
+        if (res && Array.isArray(res.characters) && res.characters.length > 0) {
+          return res.characters.slice(0, count);
+        }
+      } catch (retryErr) {
+        console.warn('Retry generateBotCharactersWithAI error:', retryErr);
+      }
+    }
+  }
+
+  return generateFallbackBotCharacters(campaignTitle, count);
+}
+
+/**
+ * Generates in-character comedic improv moves for AI bot teammates responding to a scenario.
+ * 
+ * @param {object} params
+ * @param {string} params.scenario
+ * @param {string} params.roundTitle
+ * @param {string} params.campaignTitle
+ * @param {string} params.campaignDescription
+ * @param {string} [params.storySoFar]
+ * @param {Array<{ id: string, name: string, role: string, modifiers: Array<object> }>} params.botProfiles
+ * @param {string} [params.apiKey]
+ * @returns {Promise<Record<string, string>>} Map of bot id -> action string
+ */
+async function generateBotActionsWithAI({
+  scenario,
+  roundTitle,
+  campaignTitle,
+  campaignDescription,
+  storySoFar,
+  botProfiles,
+  apiKey
+}) {
+  const cleanKey = (apiKey || getStoredApiKey()).trim();
+  const fallbackActions = {};
+  botProfiles.forEach(b => {
+    fallbackActions[b.id] = `${b.name} panicked and did nothing!`;
+  });
+
+  if (!cleanKey || !botProfiles || botProfiles.length === 0) {
+    return fallbackActions;
+  }
+
+  const profilesSummary = botProfiles.map(b => {
+    const mods = (b.modifiers || []).map(m => `${m.name} (${m.description || m.type})`).join(', ') || 'None';
+    return `- ID: ${b.id}\n  Name: ${b.name}\n  Role: ${b.role}\n  Active Traits/Injuries: ${mods}`;
+  }).join('\n\n');
+
+  const systemInstruction = `You are playing as the AI bot teammates in "Plot Engineering", a hilarious cooperative tabletop comedy game.
+Write an in-character comedic action for each bot in response to the current round scenario.
+
+Campaign: "${campaignTitle}"
+Premise: "${campaignDescription}"
+Round Title: "${roundTitle}"
+Current Scenario: "${scenario}"
+${storySoFar ? `Story Continuity So Far:\n${storySoFar}\n` : ''}
+
+Crew of Bots to Write Moves For:
+${profilesSummary}
+
+Rules for Bot Actions:
+1. Write 1-2 punchy sentences per character in the first person ("I ...") or third person ("[Name] ...").
+2. Play directly into each character's unique role and personality quirks.
+3. React specifically to elements, objects, or threats mentioned in the current scenario.
+4. If a bot has active traits or injuries, weave them humorously into their action (e.g. compensating for an injury or misusing a perk).
+5. The humor should be cooperative comedic improv (absurd cartoon plans, slapstick, high-confidence misunderstandings, or creative team plays).
+6. No emojis in actions.
+7. Return STRICT JSON conforming to the schema.
+
+Schema:
+{
+  "actions": {
+    "${botProfiles[0].id}": "Comedic action string here"
+  }
+}`;
+
+  const userPrompt = `Generate comedic actions for the ${botProfiles.length} bot character(s) in response to the scenario.`;
+
+  const executeCall = async () => {
+    return await callGeminiJSON(systemInstruction, userPrompt, cleanKey, { timeoutMs: 25000 });
+  };
+
+  try {
+    const res = await executeCall();
+    if (res && res.actions && typeof res.actions === 'object') {
+      const result = {};
+      botProfiles.forEach(b => {
+        result[b.id] = (typeof res.actions[b.id] === 'string' && res.actions[b.id].trim())
+          ? res.actions[b.id].trim()
+          : `${b.name} panicked and did nothing!`;
+      });
+      return result;
+    }
+  } catch (err) {
+    console.warn('Initial generateBotActionsWithAI error:', err);
+    const isRetryable = err?.message?.includes('429') || err?.message?.includes('503') || err?.code === 'RATE';
+    if (isRetryable) {
+      await new Promise(r => setTimeout(r, 1500));
+      try {
+        const res = await executeCall();
+        if (res && res.actions && typeof res.actions === 'object') {
+          const result = {};
+          botProfiles.forEach(b => {
+            result[b.id] = (typeof res.actions[b.id] === 'string' && res.actions[b.id].trim())
+              ? res.actions[b.id].trim()
+              : `${b.name} panicked and did nothing!`;
+          });
+          return result;
+        }
+      } catch (retryErr) {
+        console.warn('Retry generateBotActionsWithAI error:', retryErr);
+      }
+    }
+  }
+
+  // If retries expired or error occurred, use the specified placeholder
+  return fallbackActions;
+}
+

@@ -4,9 +4,7 @@
  * Contains:
  * 1. PREMADE_CAMPAIGNS: Curated multi-round comedic storylines with player-facing
  *    scenarios and judge-only comedic hooks/secrets.
- * 2. RANDOM_CHARACTERS: Sample character templates with starter perks used for
- *    AI bot players and auto-ready fallbacks when players run out of time.
- * 3. DRAW_COLORS: Vibrant cartoon color palette for the drawing canvas sketchpad.
+ * 2. DRAW_COLORS: Vibrant cartoon color palette for the drawing canvas sketchpad.
  */
 
 /**
@@ -129,23 +127,6 @@ const PREMADE_CAMPAIGNS = [
       }
     ]
   }
-];
-
-/**
- * Character archetypes with starting perks.
- * Used for:
- * 1. Simulating AI Bot teammates when playing with fewer than 3 human players.
- * 2. Auto-filling character roles and quirks when players fail to submit before the timer expires.
- */
-const RANDOM_CHARACTERS = [
-  { name: 'Barnaby Slick', role: 'Disgraced Escape Artist who is allergic to ropes', startMod: { name: 'Trick Sleeve', type: 'buff', metaEffect: 'NONE', description: 'Produces small stage props at will' } },
-  { name: 'Dr. Mildred Spark', role: 'Over-caffeinated Mad Scientist with zero spatial awareness', startMod: { name: 'Unstable Taser', type: 'buff', metaEffect: 'NONE', description: 'Can zap machinery or enemies once' } },
-  { name: 'Officer Brick', role: 'Former Mall Security Guard taking this way too seriously', startMod: { name: 'Heavy Flashlight', type: 'buff', metaEffect: 'NONE', description: 'Illuminates dark rooms or bonks heads' } },
-  { name: 'Gizmo the Raccoon', role: 'Three raccoons in a trench coat pretending to be a consultant', startMod: { name: 'Tiny Paws', type: 'neutral', metaEffect: 'NONE', description: 'Great at picking pockets, terrible at reaching high shelves' } },
-  { name: 'Chef Gusto', role: 'Furious Sous-Chef armed with cast-iron cookware', startMod: { name: 'Cast-Iron Skillet', type: 'buff', metaEffect: 'NONE', description: 'Blocks projectiles and makes great omelets' } },
-  { name: 'Vlad the Intern', role: '400-year-old Vampire doing an unpaid internship', startMod: { name: 'Sunlight Allergy', type: 'debuff', metaEffect: 'NONE', description: 'Weakened by bright lights or lasers' } },
-  { name: 'Captain Bolt', role: 'Retired Stunt Double with questionable knees', startMod: { name: 'Creaky Left Knee', type: 'debuff', metaEffect: 'NONE', description: 'Makes a loud pop when sneaking' } },
-  { name: 'Zara Zero', role: 'Conspiracy Podcaster livestreaming the entire crisis', startMod: { name: 'Selfie Stick', type: 'buff', metaEffect: 'NONE', description: 'Can peek around corners or poke buttons from 4 feet away' } }
 ];
 
 /**

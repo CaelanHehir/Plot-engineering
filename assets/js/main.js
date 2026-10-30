@@ -762,8 +762,7 @@ function setGameOverWindow(win) {
 // --- Lobby Roster & Campaign Configuration ---
 
 /**
- * Spawns an AI bot player with a random character profile from RANDOM_CHARACTERS
- * and an auto-generated procedural cartoon portrait.
+ * Spawns an AI bot player with an auto-generated procedural cartoon portrait.
  */
 function addBotPlayer() {
   if (!app.isHost) return;
@@ -773,10 +772,9 @@ function addBotPlayer() {
     return;
   }
   const botCount = app.state.players.filter(p => p.isBot).length;
-  const template = RANDOM_CHARACTERS[(botCount + Math.floor(Math.random() * RANDOM_CHARACTERS.length)) % RANDOM_CHARACTERS.length];
   const botId = 'bot-' + Math.random().toString(36).slice(2, 7);
   const botPortrait = generateProceduralPortraitDataUrl();
-  const botName = disambiguatePlayerName(`${template.name.split(' ')[0]} (Bot)`, app.state.players);
+  const botName = disambiguatePlayerName(`Bot ${botCount + 1}`, app.state.players);
 
   app.state.players.push({
     id: botId,
@@ -784,13 +782,8 @@ function addBotPlayer() {
     isHost: false,
     isBot: true,
     score: 0,
-    character: {
-      name: template.name,
-      role: template.role,
-      avatar: botPortrait,
-      ready: true
-    },
-    modifiers: (template.startMod && app.state.settings.allowStartingQuirk) ? [{ ...template.startMod }] : []
+    character: null,
+    modifiers: []
   });
   sfx.join();
   broadcastState();
@@ -933,10 +926,8 @@ async function hostStartCampaign() {
 
   app.state.players.forEach(p => {
     p.score = 0;
-    if (!p.isBot) {
-      p.character = null;
-      p.modifiers = [];
-    }
+    p.character = null;
+    p.modifiers = [];
   });
 
   app.state.phase = 'CHAR_CREATE';
@@ -950,6 +941,68 @@ async function hostStartCampaign() {
 
   sfx.stepReveal();
   broadcastState();
+
+  // Asynchronously generate campaign-themed AI characters for bot players
+  const bots = app.state.players.filter(p => p.isBot);
+  if (bots.length > 0) {
+    generateBotCharactersForGame(bots);
+  }
+}
+
+/**
+ * Asynchronously generates campaign-themed character profiles for AI bot players via Gemini.
+ * @param {Array<object>} bots
+ */
+async function generateBotCharactersForGame(bots) {
+  if (!app.isHost || !bots || bots.length === 0) return;
+  const campaign = app.state.activeCampaign;
+  const apiKey = getStoredApiKey();
+
+  let botCharacters = [];
+  try {
+    botCharacters = await generateBotCharactersWithAI({
+      campaignTitle: campaign?.title || 'Unknown Campaign',
+      campaignDescription: campaign?.description || '',
+      genre: campaign?.genre || 'Comedy',
+      count: bots.length,
+      settings: app.state.settings,
+      apiKey
+    });
+  } catch (err) {
+    console.warn('AI bot character generation error:', err);
+  }
+
+  // Guard: Ensure we are still in CHAR_CREATE phase
+  if (app.state.phase !== 'CHAR_CREATE') return;
+
+  bots.forEach((bot, idx) => {
+    const profile = (botCharacters && botCharacters[idx]) || {
+      name: `Agent ${String.fromCharCode(65 + idx)}`,
+      role: `Unsuspecting bystander caught in ${campaign?.title || 'the chaos'}`,
+      startingTrait: {
+        name: 'Unlucky Hunch',
+        type: 'neutral',
+        description: 'Has a persistent bad feeling about whatever happens next'
+      }
+    };
+
+    bot.character = {
+      name: profile.name,
+      role: profile.role,
+      avatar: generateProceduralPortraitDataUrl(),
+      ready: true
+    };
+    bot.name = disambiguatePlayerName(`${profile.name.split(' ')[0]} (Bot)`, app.state.players.filter(p => p.id !== bot.id));
+
+    if (app.state.settings.allowStartingQuirk && profile.startingTrait) {
+      bot.modifiers = [{ ...profile.startingTrait, metaEffect: 'NONE' }];
+    } else {
+      bot.modifiers = [];
+    }
+  });
+
+  checkAllCharactersReady();
+  broadcastState();
 }
 
 /**
@@ -960,10 +1013,9 @@ function hostForceStartFirstRound() {
   clearInterval(app.timerInterval);
   app.state.players.forEach(p => {
     if (!p.character || !p.character.ready) {
-      const sample = RANDOM_CHARACTERS[Math.floor(Math.random() * RANDOM_CHARACTERS.length)];
       p.character = {
         name: p.character?.name || p.name,
-        role: p.character?.role || sample.role,
+        role: p.character?.role || 'Bystander thrown into the chaos',
         avatar: p.character?.avatar || generateProceduralPortraitDataUrl(),
         ready: true
       };
@@ -1174,6 +1226,8 @@ function startScenarioRound(roundIndex) {
   const actionInput = document.getElementById('scenario-action-input');
   if (actionInput) actionInput.value = '';
 
+  const activeBots = [];
+
   app.state.players.forEach(p => {
     const deadMod = getPlayerMetaMod(p, 'DEAD');
     const skipMod = getPlayerMetaMod(p, 'SKIP_TURN');
@@ -1185,7 +1239,7 @@ function startScenarioRound(roundIndex) {
       // B3: Auto-fill move for disconnected players so the round can proceed
       app.state.submissions[p.id] = '(Was away)';
     } else if (p.isBot) {
-      app.state.submissions[p.id] = generateBotAction(p);
+      activeBots.push(p);
     }
   });
 
@@ -1195,23 +1249,63 @@ function startScenarioRound(roundIndex) {
   sfx.stepReveal();
   broadcastState();
   checkAllActionsSubmitted();
+
+  if (activeBots.length > 0) {
+    triggerBotActionsForRound(activeBots, roundIndex);
+  }
 }
 
 /**
- * Procedurally generates an in-character action for an AI bot player.
- * @param {object} bot - Bot player object
- * @returns {string} Comedic action sentence
+ * Asynchronously generates and submits in-character moves for AI bots in the active round.
+ * Bots lock in instantly as soon as Gemini outputs their response.
+ * 
+ * @param {Array<object>} activeBots
+ * @param {number} roundIndex
  */
-function generateBotAction(bot) {
-  const mods = bot.modifiers || [];
-  const modNote = mods.length > 0 ? ` while dealing with my "${mods[0].name}"` : '';
-  const botActions = [
-    `As ${bot.character.name}, I create a loud distraction${modNote} so the others can sneak past, then grab the nearest heavy object as a shield!`,
-    `I use my background as a ${bot.character.role}${modNote} to improvise a tool from the surroundings and rush straight toward the main objective!`,
-    `I try to sweet-talk or bluff our way out of danger${modNote}, while secretly gesturing for someone else to hit the override switch.`,
-    `I dive behind cover${modNote} and rig up a makeshift booby trap using whatever props are in the room!`
-  ];
-  return botActions[Math.floor(Math.random() * botActions.length)];
+async function triggerBotActionsForRound(activeBots, roundIndex) {
+  if (!app.isHost || !activeBots || activeBots.length === 0) return;
+
+  const campaign = app.state.activeCampaign;
+  const roundObj = campaign?.rounds?.[roundIndex];
+  if (!roundObj) return;
+
+  const apiKey = getStoredApiKey();
+  const botProfiles = activeBots.map(b => ({
+    id: b.id,
+    name: b.character?.name || b.name,
+    role: b.character?.role || 'Adventurer',
+    modifiers: b.modifiers || []
+  }));
+
+  let actions = {};
+  try {
+    actions = await generateBotActionsWithAI({
+      scenario: roundObj.scenario,
+      roundTitle: roundObj.title,
+      campaignTitle: campaign.title,
+      campaignDescription: campaign.description,
+      storySoFar: app.state.storySoFar,
+      botProfiles,
+      apiKey
+    });
+  } catch (err) {
+    console.warn('Bot action generation error:', err);
+  }
+
+  // Guard: Ensure we are still in SCENARIO phase and on the exact same round
+  if (app.state.phase !== 'SCENARIO' || app.state.currentRound !== roundIndex) {
+    return;
+  }
+
+  // Bots lock in instantly as soon as Gemini outputs their response
+  activeBots.forEach(bot => {
+    const botAction = actions[bot.id] || `${bot.character?.name || bot.name} panicked and did nothing!`;
+    app.state.submissions[bot.id] = botAction;
+    app.state.hiddenSubmissions[bot.id] = true;
+  });
+
+  broadcastState();
+  checkAllActionsSubmitted();
 }
 
 /**
