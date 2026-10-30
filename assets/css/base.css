@@ -91,6 +91,12 @@ body {
   display: none !important;
 }
 
+/* High-contrast focus outline for keyboard accessibility (only triggers on Tab navigation) */
+:focus-visible {
+  outline: 3px solid var(--accent-cyan) !important;
+  outline-offset: 2px !important;
+}
+
 /* Custom Cartoon Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
