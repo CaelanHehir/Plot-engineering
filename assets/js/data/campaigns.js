@@ -17,29 +17,29 @@
 const PREMADE_CAMPAIGNS = [
   {
     id: 'casino-heist',
-    title: 'The Midnight Casino Heist',
-    genre: 'Crime / Comedy',
-    description: 'An allegedly "foolproof" plan to rob the Golden Kraken Casino during its billionaire gala. None of you rehearsed together.',
+    title: 'The Grail Casino Heist',
+    genre: 'Crime / Mythic Comedy',
+    description: 'An audacious plan to infiltrate the ultra-luxurious The Grail Casino and steal the actual Holy Grail from the billionaire owner\'s penthouse in pursuit of eternal life. Security gets increasingly ridiculous as you climb higher.',
     rounds: [
       {
-        title: 'Getting Past the Velvet Rope',
-        scenario: 'You are all standing outside the Golden Kraken Casino service entrance in the pouring rain. Two heavily armed bouncers are checking VIP passes, a catering truck full of live lobsters is unloading nearby, and a security camera sweeps above the door.',
-        secrets: 'The bouncers are gullible aspiring actors who are easily impressed by absurd VIP personas, culinary drama, or coordinated lobster chaos. The catering truck is packed with chef outfits, rolling carts, and feisty lobsters. Any funny or coordinated plan using disguises, distractions, or the lobsters works great!'
+        title: 'The Red Carpet & Velvet Rope',
+        scenario: 'You are all standing outside the grand entrance of The Grail Casino beneath dazzling neon lights. Two snobbish bouncers with biometric net-worth and dress-code scanners guard the velvet rope. Suddenly, a glamorous celebrity arrives in a stretch limousine, immediately mobbed by flashing paparazzi and private bodyguards.',
+        secrets: 'The celebrity arrival is the ultimate distraction opportunity! She genuinely loves meeting eccentric, interesting strangers and will happily adopt a player into her entourage as an intriguing plus-one, breezing them past the bouncers and scanners. Alternatively, the biometric scanners can be fooled by counterfeit luxury props or triggering an all-out paparazzi frenzy.'
       },
       {
-        title: 'The Laser Hallway',
-        scenario: 'You made it into the staff corridors, but the hallway to the vault elevator is a crisscrossing web of security lasers. At the far end of the hall, a janitor with oversized headphones is mopping right in front of the locked elevator doors.',
-        secrets: 'The janitor is completely lost in his smooth-jazz playlist and has the elevator keycard clipped to his belt. Coordinated acrobatics, reflective props, comedic slapstick sliding on the wet floor, or teaming up to charm/distract the janitor will get the crew into the elevator!'
+        title: 'Riot on the Gaming Floor',
+        scenario: 'You\'ve made it inside the bustling main casino floor, but the gilded staircase and private elevators to the high-roller VIP floor are guarded by an impenetrable phalanx of security. To slip past, you need a massive distraction. Nearby, an unhinged, sleep-deprived gambler is screaming and slamming buttons on a slot machine during a catastrophic losing streak, right next to the "Mega-Jackpot Grail" machine with its sirens, confetti cannons, and pyrotechnics primed to blow.',
+        secrets: 'Loud, over-the-top chaos is the key to clearing the guards! Two prime routes: 1) Agitating or goading the tilted gambler into an all-out vengeful rampage across the floor draws every guard in the sector; or 2) Rigging, triggering, or faking a jackpot on the Mega-Jackpot machine detonates an insane celebration of confetti, fireworks, and staff rushing over with giant novelty checks, leaving the VIP gates completely open!'
       },
       {
-        title: 'Cracking the Vault',
-        scenario: 'You are inside the subterranean vault room! A massive titanium vault door stands closed beside a glowing control console where the casino owner\'s prized Chihuahua is fast asleep. A digital clock on the wall shows a guard patrol arriving in 90 seconds.',
-        secrets: 'The spoiled Chihuahua wears a diamond collar with the vault override tag and loves gourmet treats, belly rubs, or absurd lullabies. Coordinated teamwork to pamper/entertain the dog while working the console—or an over-the-top cartoon heist stunt—pops the vault right open!'
+        title: 'The Posh Penthouse Antechamber',
+        scenario: 'You reach the VIP High-Roller floor. Unlike the chaotic floor below, this space is deathly quiet, dripping with pretentious luxury, absurdly priced modern art, and whispered high-society conversations. Elite security guards scrutinize every corner with virtually no blind spots. Three gilded doors line the back wall: a diamond-studded double door marked "Staff Only", an ornate mirrored archway, and a discreet mahogany door with an antique brass lion knocker. Near a modern sculpture, the celebrity from the red carpet is chatting with an unassuming, modestly dressed guest.',
+        secrets: 'Silly, loud, or slapstick distractions are SEVERELY PENALIZED here—elite security will instantly swarm! To breach the penthouse: 1) The unassuming guest talking to the celebrity is the billionaire owner in disguise! Impressing them through pretentious art critique, delicious gossip, sheer obnoxious snobbery, or a celebrity introduction wins penthouse access. 2) The discreet mahogany door with the lion knocker leads directly to the penthouse; guards will let anyone pass who strides up with utter, unshakeable confidence, assuming they are the disguised owner and their entourage!'
       },
       {
-        title: 'The Rooftop Getaway',
-        scenario: 'Alarms are blaring! You have the bags of cash on the casino roof, but your getaway helicopter is hovering above the neighboring building across a 15-foot gap. SWAT vans are pulling up below, and the roof holds a giant neon Kraken sign, a tiki bar, and a maintenance cable.',
-        secrets: 'The maintenance cable, giant neon Kraken tentacles, and tiki bar umbrellas/blenders can be combined into hilarious improvised zip-lines, catapults, or flashy signals to bring the getaway chopper right to the crew!'
+        title: 'Clash for the Holy Grail',
+        scenario: 'You step inside the opulent penthouse suite! The Holy Grail sits glowing faintly on a pedestal in the center of the room. Suddenly, the billionaire owner confronts you in a dramatic standoff, brandishing the Grail and boasting that they\'ve already tasted from it and cannot be defeated! Through the floor-to-ceiling balcony windows behind them, a private luxury helicopter idles on the rooftop helipad against the night sky, with a dizzying drop to the streets below.',
+        secrets: 'The Grail grants ridiculous, abstract superpowers to anyone who drinks from it! The owner boasts weirdly specific abilities that can either hinder or help the crew\'s actions in bizarre ways. If players manage to take a sip, they unlock their own absurd powers. Once the owner is handled, the team can either steal the rooftop helicopter to flee, or—if they drank from the Grail and gained cartoon immortality—confidently BASE-jump off the skyscraper!'
       }
     ]
   },
