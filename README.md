@@ -9,9 +9,11 @@
 
 > **A silent co-op storytelling game.**
 
-Plot Engineering is a silent co-op storytelling game where players work together to get through different scenes, creating a funny story along the way.
+Plot Engineering is a co-op storytelling game where players work together to get through different scenes, creating a funny story along the way.
 
-Each game has a theme chosen by the host, and consists of multiple rounds. Each round, the group will be put in a tricky situation, and the players have to write out their plans **without communicating with each other**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
+To play the game, one player must host a room. As the host, they get to choose the theme of the multi-round campaign they and their friends will embark on! Each round will present the group with an obstacle, and everyone will write out their plans **without communicating with the others**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
+
+The twist is that players also earn points based on how important their actions were each round, and if the team gets to the end, the player with the most points wins. This means that in order to be at the top, you may have to sabotage your teammates, but be careful not to go too far, or you might accidentally sabotage the entire round too!
 
 ---
 
