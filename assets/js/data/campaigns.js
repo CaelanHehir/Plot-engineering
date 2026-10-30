@@ -101,29 +101,29 @@ const PREMADE_CAMPAIGNS = [
   },
   {
     id: 'petty-lich',
-    title: 'Dungeon of the Petty Lich',
-    genre: 'Fantasy Comedy',
-    description: 'You are a ragtag party of adventurers hired to reclaim a stolen village relic from Malakor the Petty, a lich who loves bureaucratic traps.',
+    title: 'Dungeon of Malakor the Dark',
+    genre: 'Fantasy / D&D Adventure',
+    description: 'A classic D&D dungeon crawl where your party battles through enemy hordes, lethal gothic hazards, and ridiculously over-the-top spiked armor to defeat Malakor the Dark, a brooding edgelord lich bent on apocalyptic doom.',
     rounds: [
       {
-        title: 'The Door of Mild Inconvenience',
-        scenario: 'You stand before the entrance to Malakor\'s Dungeon. A talking stone door hurls snarky insults at your party from across a bubbling moat of foul-smelling gravy, while a bored goblin clerk sits at a wooden toll booth.',
-        secrets: 'The talking door is a drama queen that loves roast battles, absurd compliments, or theatrical performances, and the bored goblin clerk will stamp anything in exchange for snacks, gossip, or a good laugh!'
+        title: 'The Spiked Iron Gates & The Skeleton Phalanx',
+        scenario: 'You stand before the imposing obsidian gatehouse of the dungeon, flanked by jagged gargoyles and a moat of bubbling black tar. Guarding the drawbridge is a phalanx of skeletal warriors clad in comically over-the-top, spike-covered black armor, brandishing flaming obsidian halberds while a cursed skull speaker blares thunderous dark Gregorian chant rock across the ravine.',
+        secrets: 'The skeletons are obsessed with looking dark and menacing, striking theatrical poses in time with their metal music. However, their armor is so excessively covered in curved spikes that bumping into each other gets them permanently hooked together like Velcro! Furthermore, they are deeply insecure about their "dark aesthetic" and easily flustered by dramatic metal poses or edgy compliments. Watch out for the tar moat—a well-timed shove can send an enemy, or an annoying party member, straight in!'
       },
       {
-        title: 'The Room of Suspicious Chests',
-        scenario: 'You enter a vault containing three identical ornate chests on stone pedestals, a heavy chandelier hanging from a frayed rope, and a skeleton guard playing solitaire in the corner. The exit door at the back has a large keyhole.',
-        secrets: 'The middle chest is a dramatic Mimic with a sweet tooth, the left chest holds the exit key, and the skeleton guard is dying for someone to help him win his solitaire game or pull a prank on the Mimic!'
+        title: 'The Hall of Chains & The Shadow Cultist Swarm',
+        scenario: 'You breach the inner keep, entering a colossal gothic hall of towering obsidian pillars. Swinging spiked pendulums and heavy meat hooks sway from the ceiling, while an actual blood fountain churns ominously in the center of the room. A swarm of fanatical shadow cultists in oversized black leather trench coats and spiked iron masks chant edgelord battle hymns as they surge forward to overwhelm your party.',
+        secrets: 'The cultists have zero peripheral vision inside their narrow-slit spiked iron masks and constantly trip over the hems of their heavy leather trench coats. Their fanaticism is rooted in edgelord angst: reciting darker, more brooding despair poetry or out-edging them with dramatic dark flair will completely transfix them or derail their battle hymns! The swinging pendulums follow a predictable arc that can be used to sweep cultists into the blood fountain—or knock a rival adventurer into harm\'s way.'
       },
       {
-        title: 'The Chasm of Screaming Bridges',
-        scenario: 'A deep chasm separates you from the throne room, spanned only by a narrow rope bridge. Directly above the bridge, a massive cave troll sleeps among the stalactites, and an alchemist\'s table covered in strange flasks sits on your ledge.',
-        secrets: 'The rope bridge gossips loudly when stepped on unless muffled or sweet-talked, and the alchemist\'s table has wacky potions (feather-fall, giant-bounce, lullaby mist) that pair hilariously with coordinated team stunts!'
+        title: 'The Obsidian Bridge & The Death Knight Legion',
+        scenario: 'A cavernous abyss opens up before you, with a vast sea of glowing green hellfire churning hundreds of feet below. The only way forward is a narrow obsidian bridge with zero guardrails and brittle stone support pillars. Charging down the bridge toward you is the elite Death Knight Legion—hulking brutes clad in jagged, black-iron plate armor mounted atop skeletal warhorses, lowering heavy lances for a devastating cavalry charge.',
+        secrets: 'This is a brutal, serious tactical test of survival. The Death Knights\' heavy charge has immense momentum; if their path is redirected, dodged, or braced with sudden barriers, their skeletal steeds will overshoot the narrow bridge and plunge into the green hellfire. However, the bridge has no railings, and falling into the hellfire below means instant, permanent death ("DEAD"). A callous adventurer can easily use the chaos to trip or shove a rival into the path of an oncoming lance or over the precipice!'
       },
       {
-        title: 'The Lich\'s Throne Room',
-        scenario: 'Malakor the Petty stands atop his bone altar clutching the village relic and chanting a spell! On the floor below him, a glowing glass jar is strapped to an enchanted sweeping broom zooming around between two suits of animated armor.',
-        secrets: 'Malakor\'s dramatic monologue is easily derailed by heckling or stage antics, while wrangling the zooming broom-jar or tricking the clunky animated armor into colliding wins the relic and saves the village!'
+        title: 'Malakor the Dark\'s Throne Room',
+        scenario: 'You burst into the grand throne room! Malakor the Dark floats menacingly above a throne carved from thousands of obsidian skulls, clad in spiked dark plate armor with six tattered black capes billowing dramatically. Spiked necrotic runes pulse with dark energy around him as he channels a massive apocalyptic doomsday spell, monologuing that "life is a dark abyss and none shall escape the eternal void!" On an altar behind him, his glowing bone phylactery sits unprotected.',
+        secrets: 'Malakor\'s apocalyptic channel requires absolute brooding despair and grim concentration. His focus can be violently shattered in two ways: by shattering the floating spiked runes around him, or—hilariously—by improving his mood! Showering him with sincere compliments, positive thoughts, cheerful jokes, or joyful affirmations derails his edgelord angst, causing his doomsday spell energy to backfire catastrophically into him! Meanwhile, his phylactery on the altar holds his very soul: smashing it destroys the Lich forever, but a greedy party member can snatch it first to blackmail Malakor or claim his necromantic powers for themselves!'
       }
     ]
   }
