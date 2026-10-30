@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=13" />
-  <link rel="stylesheet" href="assets/css/components.css?v=13" />
-  <link rel="stylesheet" href="assets/css/screens.css?v=13" />
+  <link rel="stylesheet" href="assets/css/base.css?v=14" />
+  <link rel="stylesheet" href="assets/css/components.css?v=14" />
+  <link rel="stylesheet" href="assets/css/screens.css?v=14" />
   <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC (A9) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 </head>
@@ -602,6 +602,9 @@
         <div id="gameover-recap-card" class="card wobbly-card podium-recap-card">
           <div class="row-between mb-1">
             <h3>Story recap</h3>
+            <button id="btn-copy-story-recap" type="button" class="btn-small" data-action="copy-story-recap" title="Copy campaign story to clipboard">
+              Copy story
+            </button>
           </div>
           <div id="final-campaign-recap-list" class="panel-scroll mt-1 flex-1"></div>
         </div>
@@ -701,14 +704,14 @@
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Modular Application Scripts (Ordered for file:// compatibility without bundler) -->
-  <script src="assets/js/data/campaigns.js?v=13"></script>
-  <script src="assets/js/ui/utils.js?v=13"></script>
-  <script src="assets/js/services/audio.js?v=13"></script>
-  <script src="assets/js/services/gemini.js?v=13"></script>
-  <script src="assets/js/features/canvas.js?v=13"></script>
-  <script src="assets/js/features/settings.js?v=13"></script>
-  <script src="assets/js/services/network.js?v=13"></script>
-  <script src="assets/js/ui/render.js?v=13"></script>
-  <script src="assets/js/main.js?v=13"></script>
+  <script src="assets/js/data/campaigns.js?v=14"></script>
+  <script src="assets/js/ui/utils.js?v=14"></script>
+  <script src="assets/js/services/audio.js?v=14"></script>
+  <script src="assets/js/services/gemini.js?v=14"></script>
+  <script src="assets/js/features/canvas.js?v=14"></script>
+  <script src="assets/js/features/settings.js?v=14"></script>
+  <script src="assets/js/services/network.js?v=14"></script>
+  <script src="assets/js/ui/render.js?v=14"></script>
+  <script src="assets/js/main.js?v=14"></script>
 </body>
 </html>

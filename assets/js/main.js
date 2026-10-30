@@ -328,6 +328,9 @@ function setupDelegatedEventListeners() {
       case 'set-gameover-window':
         if (actionEl.dataset.window) setGameOverWindow(actionEl.dataset.window);
         break;
+      case 'copy-story-recap':
+        copyStoryRecap();
+        break;
       case 'close-settings-modal':
         closeSettingsModal();
         break;

@@ -1195,3 +1195,101 @@ function renderGameOverScreen() {
   if (playAgainBtn) playAgainBtn.classList.toggle('hidden', !app.isHost);
   if (clientWait) clientWait.classList.toggle('hidden', app.isHost);
 }
+
+/**
+ * Copies the full campaign narrative recap to the player's clipboard.
+ * Formats results into clean, emoji-free markdown/text.
+ */
+function copyStoryRecap() {
+  const camp = app.state.activeCampaign;
+  const history = app.state.roundHistory || [];
+  const players = app.state.players || [];
+  const lastRound = history[history.length - 1];
+  const endedByFailure = lastRound?.judgment?.outcome === 'FAILED';
+  const passedCount = history.filter(h => h.judgment?.passed).length;
+  const totalRounds = camp?.rounds?.length || history.length;
+
+  const resultStatus = endedByFailure
+    ? `Campaign ended in disaster on Round ${history.length} after surviving ${passedCount} act(s).`
+    : `Campaign complete! Survived all ${totalRounds} acts.`;
+
+  const lines = [
+    '=== PLOT ENGINEERING: STORY RECAP ===',
+    `Campaign: ${camp?.title || 'Custom Campaign'}`,
+    `Status: ${resultStatus}`,
+    '',
+    '--- CAST ---'
+  ];
+
+  players.forEach(p => {
+    const cName = p.character?.name || p.name;
+    const cRole = p.character?.role ? ` (${p.character.role})` : '';
+    lines.push(`* ${cName}${cRole} - Played by ${p.name} [${(p.score || 0).toLocaleString()} pts]`);
+  });
+
+  lines.push('', '--- STORYLINE ---');
+
+  history.forEach((h, idx) => {
+    const cleanTitle = (h.roundTitle || `Round ${idx + 1}`).replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
+    const outcome = h.judgment?.outcome === 'FLYING_COLORS'
+      ? 'Flying Colors'
+      : (h.judgment?.outcome === 'BARELY_PASSED' ? 'Barely Passed' : 'Wiped Out');
+
+    lines.push(`\n[Round ${idx + 1}: ${cleanTitle}] - ${outcome}`);
+    if (h.judgment?.headline) {
+      lines.push(`"${h.judgment.headline}"`);
+    }
+    const paragraphs = (h.judgment?.storyParagraphs || []).join('\n\n');
+    if (paragraphs) {
+      lines.push(paragraphs);
+    }
+
+    const moves = [];
+    if (h.submissions) {
+      players.forEach(p => {
+        const move = h.submissions[p.id];
+        if (move && !move.startsWith('(') && move !== '__SECRET_ACTION__' && move !== '__LOCKED_IN__') {
+          moves.push(`  * ${p.character?.name || p.name}: "${move}"`);
+        }
+      });
+    }
+    if (moves.length > 0) {
+      lines.push('Crew moves:');
+      lines.push(...moves);
+    }
+  });
+
+  const fullText = lines.join('\n');
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(fullText).then(() => {
+      showToast('Story recap copied to clipboard!', 'success');
+    }).catch(() => {
+      fallbackCopyText(fullText);
+    });
+  } else {
+    fallbackCopyText(fullText);
+  }
+}
+
+/**
+ * Fallback clipboard copy using a temporary textarea for restricted environments.
+ * @param {string} text
+ */
+function fallbackCopyText(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.setAttribute('readonly', '');
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Story recap copied to clipboard!', 'success');
+  } catch (err) {
+    showToast('Failed to copy to clipboard', 'error');
+  }
+}
