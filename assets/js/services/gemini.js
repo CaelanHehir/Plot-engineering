@@ -506,20 +506,21 @@ async function judgeRoundWithAI({
     brutal: 'TOUGH CRITIC: Demand strong coordination, comedic commitment, and coherence between teammates! If players go off in completely unrelated directions without synergy or write low-effort actions, let their plans hilariously collide and fail.'
   }[strictness] || '';
 
-  const playerProfiles = players.map(p => {
-    const isDead = Boolean(getPlayerMetaMod(p, 'DEAD'));
+  const livingPlayers = players.filter(p => !getPlayerMetaMod(p, 'DEAD'));
+  const deadPlayers = players.filter(p => Boolean(getPlayerMetaMod(p, 'DEAD')));
+
+  const playerProfiles = livingPlayers.map(p => {
     const isLockedOut = Boolean(getPlayerMetaMod(p, 'SKIP_TURN'));
-    const action = isDead
-      ? '(DEAD — Eliminated in a previous round and cannot act)'
-      : isLockedOut
-      ? '(LOCKED OUT THIS TURN due to active status — cannot act unless rescued by a teammate)'
+    const charName = p.character?.name || p.name;
+    const action = isLockedOut
+      ? `(${charName} did nothing, they are locked out)`
       : (submissions[p.id] || '(Stood there frozen and did nothing)');
 
     const mods = (p.modifiers || []).map(m => `${m.name} [${m.type}${m.metaEffect && m.metaEffect !== 'NONE' ? '/' + m.metaEffect : ''}: ${m.description}]`).join('; ') || 'None';
     return {
       playerId: p.id,
       playerName: p.name,
-      characterName: p.character?.name || p.name,
+      characterName: charName,
       characterRole: p.character?.role || 'Adventurer',
       currentModifiers: mods,
       submittedAction: action
@@ -563,18 +564,21 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - LAZY / VAGUE NON-ANSWERS: Generic filler that isn't a real action or story beat (e.g., "I solve the problem", "I win the round", "I do something cool", or leaving it blank). Lazy non-answers accomplish nothing and rank at the bottom!
    - IGNORING ACTIVE MODIFIERS: If a player has an active injury/restriction (e.g., "Broken Arm", "Handcuffed") and lazily ignores it without a funny workaround, have it backfire comedically.
 
-5. CONCRETE OR META PERKS & STATUS EFFECTS (WHEN THE TEAM PASSES):
-   - CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails!
-   - When the team PASSES ("FLYING_COLORS" or "BARELY_PASSED"), any modifier in "modifiersAdded" MUST be concrete and fun:
-     A) CONCRETE ITEM / PERK OR COMEDIC CONDITION ("metaEffect": "NONE"):
-        - Buffs ("type": "buff"): Concrete items/perks gained from the scene (e.g., "Lobster Mech Suit", "Guard's Keycard", "Velvet Rope Lasso", "VIP Champagne Bottle").
-        - Debuffs ("type": "debuff"): Concrete physical/comedic conditions (e.g., "Covered in Gravy", "Lobster Pinched Nose", "Sprained Ankle", "Tangled in Tape").
-     B) META GAME-ALTERING STATUS ("type": "meta"):
-        - "SKIP_TURN": Character is captured, trapped, or incapacitated for 1 round (e.g., "Stuffed in Laundry Cart", "Jailed").
-        - "DEAD": Character did something fatally self-destructive (permanently eliminates them).
-        - "WORD_LIMIT": Character is winded, gagged, or out of breath (max 5 words next round).
-        - "BLINDED_SCENARIO": Character has sauce/paint/blindfold in their eyes (redacts half the scenario text next round).
+5. TRAITS & MODIFIERS (STRICT NOTEWORTHINESS & DAMAGING TRAITS):
+   - STRICT NOTEWORTHINESS RULE: A trait/modifier should ONLY be given to reflect genuinely noteworthy physical, environmental, or bodily occurrences that happened to that character during the round (e.g. rolling in mud -> "Muddy", doused in melted cheese -> "Cheese-Glazed", drenched in red wine -> "Wine-Soaked", lost pants -> "Pantsless", got zapped by a fuse box -> "Static Charged", arm trapped in a dumbwaiter -> "Sore Shoulder", stole a guard's keycard -> "Security Keycard").
+   - ABSOLUTELY NO ABSTRACT TRAITS: Strictly avoid abstract adjectives, skills, or personality traits (FORBIDDEN: "Confident Speaker", "Charismatic", "Quick Thinker", "Brave Leader", "Sharp Mind", "Smooth Talker", "Observant", "Good Listener", "Determined").
+   - If a character performed a normal action and nothing physically transformative, hazardous, or memorable happened to them, DO NOT award any trait! Set "modifiersAdded": []. In fact, in most normal rounds, several players should receive NO trait at all! Only award traits when genuinely earned by the story!
+   - MORE DAMAGING TRAITS, DEATH & LOCKOUT:
+     * There must be real, damaging consequences! Do NOT protect characters with invincible plot armor.
+     * It is completely possible and encouraged for players to die or be locked out of the rest of the game depending on what happens.
+     * If a player does something recklessly fatal, attempts a catastrophic stunt into lethal danger, or is fatally caught in a lethal trap or backfire:
+       - Award a FATAL trait with "metaEffect": "DEAD" (e.g., "Incinerated by Lasers", "Crushed by Falling Chandelier", "Impaled on Spikes", "Vaporized into Ash", "Dropped into the Void").
+       - When a character dies ("metaEffect": "DEAD"), they are permanently eliminated from the campaign! In all future rounds, they do not act, their action is fixed to "<name> did nothing, they are dead", and they are excluded from the judge prompt.
+       - A round CAN still pass ("FLYING_COLORS" or "BARELY_PASSED") for the surviving players even if one reckless character died in the process!
+     * For non-fatal incapacitation, award a lockout trait with "metaEffect": "SKIP_TURN" (e.g., "Locked in Freezing Meat Locker", "Tangled in Heavy Chain", "Knocked Unconscious by Flying Pan") or severe physical debuffs (e.g. "Broken Arm", "Concussed & Seeing Stars", "Covered in Hot Tar", "Glued to the Floor").
+     * Other meta conditions: "WORD_LIMIT" (gagged/out of breath, max 5 words), "BLINDED_SCENARIO" (sauce/paint in eyes).
    - If a locked-out ("SKIP_TURN") teammate is rescued by another player's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
+   - CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails!
 
 6. STORY LENGTH & PACING:
    - Write 2 to 3 vivid, hilarious paragraphs in "storyParagraphs" (90 to 160 words total combined) so you have plenty of room to explicitly depict what EVERY character did and how their actions combined!
@@ -629,7 +633,10 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
     storySoFar: storySoFar || 'Opening act.',
     currentScenario: scenarioText,
     sceneComedicHooks: scenarioSecrets || 'Play into the comedy! Allow funny and creative actions to succeed when they coordinate and cohere.',
-    playersAndActions: playerProfiles
+    playersAndActions: playerProfiles,
+    ...(deadPlayers.length > 0 ? {
+      deceasedPlayers: deadPlayers.map(p => `${p.character?.name || p.name} (DEAD — already eliminated; do not evaluate, grade, or award points or traits to them)`)
+    } : {})
   }, null, 2);
 
   const res = await callGeminiJSON(systemPrompt, userPrompt, apiKey, {
@@ -678,6 +685,7 @@ function normalizeJudgeResult(raw, players, settings = {}) {
   for (const r of rawRankings) {
     const p = players.find(pl => pl.id === r.playerId || pl.name === r.playerId || pl.character?.name === r.playerId);
     if (p && !seenIds.has(p.id)) {
+      if (getPlayerMetaMod(p, 'DEAD')) continue; // Dead players handled separately at the end
       seenIds.add(p.id);
       const cleanModsAdded = !passed
         ? []
@@ -707,11 +715,14 @@ function normalizeJudgeResult(raw, players, settings = {}) {
 
   for (const p of players) {
     if (!seenIds.has(p.id)) {
+      seenIds.add(p.id);
+      const isDead = Boolean(getPlayerMetaMod(p, 'DEAD'));
+      const charName = p.character?.name || p.name;
       normalizedRankings.push({
         playerId: p.id,
         rank: normalizedRankings.length + 1,
-        title: 'Background Extra',
-        evaluation: 'Watched the chaos unfold.',
+        title: isDead ? 'Deceased' : 'Background Extra',
+        evaluation: isDead ? `${charName} did nothing, they are dead.` : 'Watched the chaos unfold.',
         modifiersAdded: [],
         modifiersRemoved: []
       });
@@ -722,12 +733,18 @@ function normalizeJudgeResult(raw, players, settings = {}) {
   const rankBonusTable = [500, 350, 250, 175, 125, 100, 75, 50];
 
   normalizedRankings.forEach((item, idx) => {
-    if (!passed) {
+    const pl = players.find(p => p.id === item.playerId);
+    const wasAlreadyDead = Boolean(getPlayerMetaMod(pl, 'DEAD'));
+    if (!passed || wasAlreadyDead) {
       item.teamBonus = 0;
       item.rankBonus = 0;
       item.pointsAwarded = 0;
       item.modifiersAdded = [];
       item.modifiersRemoved = [];
+      if (wasAlreadyDead) {
+        item.title = 'Deceased';
+        item.evaluation = `${pl.character?.name || pl.name} did nothing, they are dead.`;
+      }
     } else {
       const teamBonus = Math.round(baseTeamBonus * multiplier);
       const rankBonus = Math.round((rankBonusTable[idx] ?? 50) * multiplier);
@@ -823,29 +840,28 @@ function mockJudgeRound({ players, submissions, settings }) {
   ];
 
   const buffMods = [
-    { name: 'Prop Department Megaphone', type: 'buff', metaEffect: 'NONE', description: 'Amplifies dramatic bluffs and distractions' },
-    { name: 'Unstoppable Momentum', type: 'buff', metaEffect: 'NONE', description: 'Bonus flair on absurd physical stunts' },
-    { name: 'Pocket Confetti Cannon', type: 'buff', metaEffect: 'NONE', description: 'Instant distraction in tight spots' },
-    { name: 'Stunt Double Armor', type: 'buff', metaEffect: 'NONE', description: 'Absorbs one clumsy misstep' },
-    { name: 'Audience Applause Booster', type: 'buff', metaEffect: 'NONE', description: 'Elevates morale and crowd favor' },
-    { name: 'Lucky Rubber Chicken', type: 'buff', metaEffect: 'NONE', description: 'Bounces out of danger unexpectedly' },
-    { name: 'Director Bullhorn', type: 'buff', metaEffect: 'NONE', description: 'Overrides chaos with commanding authority' },
-    { name: 'Plot Armor Vest', type: 'buff', metaEffect: 'NONE', description: 'Survives narrative explosions intact' }
+    { name: 'Stolen Security Keycard', type: 'buff', metaEffect: 'NONE', description: 'Opens restricted access doors' },
+    { name: 'Velvet Rope Lasso', type: 'buff', metaEffect: 'NONE', description: 'Sturdy improvised restraint rope' },
+    { name: 'Pocket Firecracker', type: 'buff', metaEffect: 'NONE', description: 'Instant explosive distraction' },
+    { name: 'Stolen Chef Apron', type: 'buff', metaEffect: 'NONE', description: 'Blends into service staff corridors' },
+    { name: 'Grappling Hook', type: 'buff', metaEffect: 'NONE', description: 'Scales chandeliers and ledges' },
+    { name: 'Heavy Champagne Bottle', type: 'buff', metaEffect: 'NONE', description: 'High-class luxury bludgeon' }
   ];
 
   const debuffMods = [
-    { name: 'Dizzy from Slapstick', type: 'debuff', metaEffect: 'NONE', description: 'Wobbly aim on delicate tasks' },
-    { name: 'Slippery Banana Peel', type: 'debuff', metaEffect: 'NONE', description: 'Comedic balance hazard' },
-    { name: 'Loud Creaky Shoes', type: 'debuff', metaEffect: 'NONE', description: 'Subtle stealth attempts are ruined' },
-    { name: 'Stage Fright Hiccups', type: 'debuff', metaEffect: 'NONE', description: 'Interrupts dramatic declarations' },
-    { name: 'Broken Prop Handle', type: 'debuff', metaEffect: 'NONE', description: 'Tools come apart at inopportune times' },
-    { name: 'Camera Glare', type: 'debuff', metaEffect: 'NONE', description: 'Squinting through bright spotlight beams' },
-    { name: 'Wardrobe Malfunction', type: 'debuff', metaEffect: 'NONE', description: 'Distracted by tangled costume pieces' },
-    { name: 'Wrong Cue Card', type: 'debuff', metaEffect: 'NONE', description: 'Occasional verbal slip-ups under pressure' }
+    { name: 'Mud-Caked', type: 'debuff', metaEffect: 'NONE', description: 'Drips thick mud and leaves obvious tracks' },
+    { name: 'Gravy-Soaked', type: 'debuff', metaEffect: 'NONE', description: 'Smells strongly of poultry and attracts animals' },
+    { name: 'Singed Eyebrows', type: 'debuff', metaEffect: 'NONE', description: 'Face covered in black soot from explosion' },
+    { name: 'Sprained Ankle', type: 'debuff', metaEffect: 'NONE', description: 'Limps heavily and cannot sprint' },
+    { name: 'Pantsless', type: 'debuff', metaEffect: 'NONE', description: 'Lost trousers in a trap, deeply embarrassed' },
+    { name: 'Concussed & Seeing Stars', type: 'debuff', metaEffect: 'NONE', description: 'Swaying dizzily with cartoon birds circling head' },
+    { name: 'Trapped in Meat Locker', type: 'meta', metaEffect: 'SKIP_TURN', description: 'Frozen solid and unable to act this turn' },
+    { name: 'Squashed by Falling Safe', type: 'meta', metaEffect: 'DEAD', description: 'Flattened completely and eliminated from the game' }
   ];
 
-  // B9: Rank by a mix of action length and fuzz rather than join order
-  const scoredPlayers = players.map((p, i) => {
+  // Living players are ranked by action length and fuzz; dead players are handled separately
+  const livingPlayers = players.filter(p => !getPlayerMetaMod(p, 'DEAD'));
+  const scoredPlayers = livingPlayers.map((p, i) => {
     const act = (submissions[p.id] || '').trim();
     const fuzz = Math.sin(i * 3.7 + act.length) * 15;
     return { p, score: act.length + fuzz };
@@ -854,14 +870,15 @@ function mockJudgeRound({ players, submissions, settings }) {
   const availableMods = outcome === 'FLYING_COLORS' ? [...buffMods] : [...debuffMods];
 
   const rankings = scoredPlayers.map(({ p }, rankIdx) => {
-    // Unique modifier per player in the round
+    // Only genuinely noteworthy occurrences grant a trait (top/bottom performers)
+    const getsMod = outcome !== 'FAILED' && (rankIdx === 0 || rankIdx === scoredPlayers.length - 1);
     const chosenMod = availableMods[rankIdx % availableMods.length];
     return {
       playerId: p.id,
       rank: rankIdx + 1,
       title: sampleTitles[rankIdx % sampleTitles.length],
       evaluation: sampleEvaluations[rankIdx % sampleEvaluations.length],
-      modifiersAdded: outcome === 'FAILED' ? [] : [chosenMod],
+      modifiersAdded: getsMod ? [chosenMod] : [],
       modifiersRemoved: []
     };
   });

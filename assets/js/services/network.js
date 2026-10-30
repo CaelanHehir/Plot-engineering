@@ -487,13 +487,14 @@ function getPublicState(forPlayerId = null) {
     const pid = p.id;
     const deadMod = getPlayerMetaMod(p, 'DEAD');
     const skipMod = getPlayerMetaMod(p, 'SKIP_TURN');
+    const charName = p.character?.name || p.name;
 
     if (deadMod) {
       submissionKinds[pid] = 'dead';
-      maskedSubmissions[pid] = '(Eliminated from the campaign)';
+      maskedSubmissions[pid] = `${charName} did nothing, they are dead`;
     } else if (skipMod) {
       submissionKinds[pid] = 'locked';
-      maskedSubmissions[pid] = `(Locked out this round: ${skipMod.name})`;
+      maskedSubmissions[pid] = `${charName} did nothing, they are locked out`;
     } else if (p.disconnected) {
       submissionKinds[pid] = 'away';
       maskedSubmissions[pid] = '(Was away)';

@@ -1237,10 +1237,11 @@ function startScenarioRound(roundIndex) {
   app.state.players.forEach(p => {
     const deadMod = getPlayerMetaMod(p, 'DEAD');
     const skipMod = getPlayerMetaMod(p, 'SKIP_TURN');
+    const charName = p.character?.name || p.name;
     if (deadMod) {
-      app.state.submissions[p.id] = '(DEAD — Eliminated from the campaign)';
+      app.state.submissions[p.id] = `${charName} did nothing, they are dead`;
     } else if (skipMod) {
-      app.state.submissions[p.id] = `(LOCKED OUT THIS TURN [${skipMod.name}] — Cannot act unless rescued by a teammate!)`;
+      app.state.submissions[p.id] = `${charName} did nothing, they are locked out`;
     } else if (p.disconnected) {
       // B3: Auto-fill move for disconnected players so the round can proceed
       app.state.submissions[p.id] = '(Was away)';

@@ -579,12 +579,12 @@ function renderScenarioScreen() {
       if (myDeadMod) {
         lockedArea.innerHTML = `
           <div class="big-locked-stamp" style="background:var(--accent-red); color:#fff;">ELIMINATED</div>
-          <p class="text-muted small">Your character met an untimely demise and is spectating the survivors.</p>
+          <p class="text-muted small">${escapeHtml(me.character?.name || me.name)} did nothing, they are dead.</p>
         `;
       } else if (mySkipMod) {
         lockedArea.innerHTML = `
           <div class="big-locked-stamp" style="background:var(--accent-gold); color:var(--ink);">${escapeHtml(mySkipMod.name)}</div>
-          <p class="text-muted small">${escapeHtml(mySkipMod.description || 'You cannot act this round unless a teammate rescues you!')}</p>
+          <p class="text-muted small">${escapeHtml(me.character?.name || me.name)} did nothing, they are locked out.</p>
         `;
       } else {
         lockedArea.innerHTML = `
@@ -674,9 +674,9 @@ function renderRevealScreen() {
 
     let quoteHtml = '';
     if (kind === 'dead') {
-      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-red); font-weight:700;">Eliminated from the campaign</div>`;
+      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-red); font-weight:700;">${escapeHtml(actionText || `${p.character?.name || p.name} did nothing, they are dead`)}</div>`;
     } else if (kind === 'locked') {
-      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-gold); font-weight:700;">Locked out this round</div>`;
+      quoteHtml = `<div class="action-quote-status" style="color:var(--accent-gold); font-weight:700;">${escapeHtml(actionText || `${p.character?.name || p.name} did nothing, they are locked out`)}</div>`;
     } else if (kind === 'away') {
       quoteHtml = `<div class="action-quote-status text-muted">Away during this round</div>`;
     } else {
