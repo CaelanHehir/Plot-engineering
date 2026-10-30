@@ -587,6 +587,7 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
        - Death ("DEAD"): If a character does something fatally reckless, steps into lethal danger, or is fatally caught in a deadly trap/backfire (e.g., incinerated by lasers, crushed by a vault door, plummeting from a skyscraper), award "DEAD". They are permanently eliminated from the campaign! In all future rounds, they do not act, their action is fixed to "<name> did nothing, they are dead", and they are excluded from the judge prompt.
      * A round CAN still pass ("PASSED") for the surviving players even if one or more characters died, got arrested, or were locked out in the process!
      * Other meta conditions: "WORD_LIMIT" (gagged/out of breath, max 5 words), "BLINDED_SCENARIO" (sauce/paint in eyes).
+   - FINAL ROUND TRAIT RULE: If this is the final round of the campaign (roundNumber === totalRounds), DO NOT award any traits or modifiers! Set "modifiersAdded": [] for every player, as the campaign concludes immediately after this round and new traits are pointless.
    - If a locked-out ("SKIP_TURN") teammate is rescued by another player's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
    - CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails!
 
@@ -649,11 +650,12 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
     } : {})
   }, null, 2);
 
+  const isLastRound = Boolean(totalRounds && (roundIndex + 1 >= totalRounds));
   const res = await callGeminiJSON(systemPrompt, userPrompt, apiKey, {
     timeoutMs: 45000,
     signal: options.signal
   });
-  const normalized = normalizeJudgeResult(res, players, settings);
+  const normalized = normalizeJudgeResult(res, players, settings, { isLastRound });
   normalized.judgedBy = 'ai';
   return normalized;
 }
@@ -666,9 +668,11 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
  * @param {object} raw - Parsed LLM JSON
  * @param {Array<object>} players - Player list
  * @param {object} settings - Host settings
+ * @param {object} [options] - Additional options (isLastRound)
  * @returns {object} Clean judgment object
  */
-function normalizeJudgeResult(raw, players, settings = {}) {
+function normalizeJudgeResult(raw, players, settings = {}, options = {}) {
+  const isLastRound = Boolean(options.isLastRound);
   let outcome = String(raw.outcome || '').toUpperCase().trim();
   // Support both storyCoherentAndFunny and deliberateSolutionExists (backward compatibility)
   if (raw.storyCoherentAndFunny === false || raw.deliberateSolutionExists === false) {
@@ -699,7 +703,7 @@ function normalizeJudgeResult(raw, players, settings = {}) {
     if (p && !seenIds.has(p.id)) {
       if (getPlayerMetaMod(p, 'DEAD')) continue; // Dead players handled separately at the end
       seenIds.add(p.id);
-      const cleanModsAdded = !passed
+      const cleanModsAdded = (!passed || isLastRound)
         ? []
         : (Array.isArray(r.modifiersAdded) ? r.modifiersAdded.slice(0, 2) : []).map(m => ({
             name: m.name || 'Condition',
@@ -817,7 +821,7 @@ function normalizeJudgeResult(raw, players, settings = {}) {
  * @param {object} params.settings - Host settings
  * @returns {object} Normalized judgment payload
  */
-function mockJudgeRound({ players, submissions, settings }) {
+function mockJudgeRound({ players, submissions, settings, isLastRound = false }) {
   const actions = players.map(p => (submissions[p.id] || '').trim());
   const detailedCount = actions.filter(a => a.length >= 15).length;
   const nonEmptyCount = actions.filter(a => a.length >= 4).length;
@@ -907,8 +911,8 @@ function mockJudgeRound({ players, submissions, settings }) {
   const availableMods = outcome === 'FLYING_COLORS' ? [...buffMods] : [...debuffMods];
 
   const rankings = scoredPlayers.map(({ p }, rankIdx) => {
-    // Only genuinely noteworthy occurrences grant a trait (top/bottom performers)
-    const getsMod = outcome !== 'FAILED' && (rankIdx === 0 || rankIdx === scoredPlayers.length - 1);
+    // Only genuinely noteworthy occurrences grant a trait (top/bottom performers); never on the last round
+    const getsMod = !isLastRound && outcome !== 'FAILED' && (rankIdx === 0 || rankIdx === scoredPlayers.length - 1);
     const chosenMod = availableMods[rankIdx % availableMods.length];
     return {
       playerId: p.id,
@@ -924,13 +928,13 @@ function mockJudgeRound({ players, submissions, settings }) {
     outcome,
     headline: outcome === 'FLYING_COLORS'
       ? 'Pure Comedic Genius!'
-      : outcome === 'BARELY_PASSED'
+      : outcome === 'PASSED'
       ? 'Slapstick Survival!'
       : 'Plot Totally Derailed!',
     storyParagraphs,
     continuityBridge: outcome === 'FAILED' ? 'The curtain falls on this disaster.' : 'The crew stumbles triumphantly into the next act.',
     rankings
-  }, players, settings);
+  }, players, settings, { isLastRound });
 
   res.judgedBy = 'demo';
   return res;

@@ -1490,7 +1490,8 @@ async function evaluateCurrentRound() {
         judgment = mockJudgeRound({
           players: app.state.players,
           submissions: app.state.submissions,
-          settings: app.state.settings
+          settings: app.state.settings,
+          isLastRound: (roundIndex + 1) >= campaign.rounds.length
         });
         judgment.judgeNotice = 'The AI judge was unavailable, so a fallback judge decided this round.';
       }
@@ -1500,7 +1501,8 @@ async function evaluateCurrentRound() {
     judgment = mockJudgeRound({
       players: app.state.players,
       submissions: app.state.submissions,
-      settings: app.state.settings
+      settings: app.state.settings,
+      isLastRound: (roundIndex + 1) >= campaign.rounds.length
     });
   }
 
@@ -1508,6 +1510,7 @@ async function evaluateCurrentRound() {
 
   const maxMods = Number(app.state.settings.maxModifiers) || 99;
   const roundFailed = judgment.outcome === 'FAILED';
+  const isFinalRound = (roundIndex + 1) >= campaign.rounds.length;
 
   for (const rankItem of judgment.rankings) {
     const player = app.state.players.find(p => p.id === rankItem.playerId);
@@ -1520,6 +1523,10 @@ async function evaluateCurrentRound() {
       rankItem.modifiersAdded = [];
       rankItem.modifiersRemoved = [];
       continue;
+    }
+
+    if (isFinalRound) {
+      rankItem.modifiersAdded = [];
     }
 
     player.score = (player.score || 0) + (rankItem.pointsAwarded || 0);
@@ -1537,7 +1544,7 @@ async function evaluateCurrentRound() {
       player.modifiers = (player.modifiers || []).filter(m => !removeSet.has(m.name.toLowerCase()));
     }
 
-    if (Array.isArray(rankItem.modifiersAdded)) {
+    if (!isFinalRound && Array.isArray(rankItem.modifiersAdded)) {
       for (const mod of rankItem.modifiersAdded) {
         if (mod && mod.name) {
           const exists = (player.modifiers || []).some(m => m.name.toLowerCase() === mod.name.toLowerCase());
