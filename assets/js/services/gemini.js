@@ -501,9 +501,9 @@ async function judgeRoundWithAI({
 }, options = {}) {
   const strictness = settings?.strictness || 'balanced';
   const strictnessGuide = {
-    forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! As long as players wrote actual actions and didn\'t directly sabotage each other, weave even the most absurd cartoon stunts into a triumphant comedic success.',
-    balanced: 'BALANCED (COMEDY & SYNERGY): Reward funny, specific, and coordinated actions (even if totally unrealistic!) with FLYING_COLORS; give BARELY_PASSED when actions are funny/coherent overall but slightly messy or uncoordinated; give FAILED only when actions completely contradict/sabotage each other or are lazy/empty non-answers.',
-    brutal: 'TOUGH CRITIC: Demand strong coordination, comedic commitment, and coherence between teammates! If players go off in completely unrelated directions without synergy or write low-effort actions, let their plans hilariously collide and fail.'
+    forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! Weave even absurd cartoon stunts and funny player sabotage into a triumphant comedic success (clever sabotage interrupts rivals and gets rewarded, while the team miraculously bumbles into a pass).',
+    balanced: 'BALANCED (COMEDY, SYNERGY & RIVALRY): Reward funny, coordinated team actions OR clever, audacious player sabotage with high scores! Interrupt sabotaged players\' actions in the story. If mutual sabotage or dogpiling occurs, let it erupt into a hilarious chain reaction. Give BARELY_PASSED when sabotage or fumbles nearly sink the mission; give FAILED only when infighting or lazy answers completely destroy the crew without any comedic recovery.',
+    brutal: 'TOUGH CRITIC: High-stakes comedic drama! Clever sabotage pays off big for the saboteur, but messy sabotage will violently backfire, interrupt critical moves, or drag the entire team into catastrophic failure and death.'
   }[strictness] || '';
 
   const livingPlayers = players.filter(p => !getPlayerMetaMod(p, 'DEAD'));
@@ -559,12 +559,20 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - Treat them as organic, living elements of the fictional world (e.g. write "Barnaby swung his trusty mop to block the blast" instead of "\"Barnaby\" swung his \"Trusty Mop\"").
    - Only use quotation marks when a character is speaking actual dialogue out loud.
 
-4. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
-   - INCOHERENCE / ANTI-COORDINATION: Players directly working against each other, attacking/sabotaging teammates, or doing completely incompatible things that ruin each other's moves (e.g., Player A tries to sweet-talk the guard while Player B tackles the guard down the stairs).
+4. SABOTAGE & RIVALRY (A VIABLE & REWARDED STRATEGY!):
+   - SABOTAGE IS FULLY VIABLE: Players are completely allowed and encouraged to target, hinder, backstab, or prank each other! Do NOT automatically fail a round just because players chose to sabotage teammates.
+   - REWARD CLEVER SABOTAGE: If a player executes an audaciously clever, funny, or well-timed sabotage against a rival, REWARD THEM with high rankings, praise in their evaluation, and a funny title (e.g. "Treacherous Mastermind", "Saboteur Supreme", "Backstab MVP", "Master of Friendly Fire").
+   - TARGET PLAYER'S ACTION IS INTERRUPTED: When Player A deliberately sabotages Player B, Player B's submitted action MUST BE INTERRUPTED in the story! Player B does NOT get to execute their intended move cleanly—they are cut off mid-stride, trip over Player A's hazard, get shoved into danger, or take the hit. Show Player B beginning their move only to be humorously derailed by Player A's sabotage, and reflect this disruption in Player B's evaluation!
+   - MULTIPLE SABOTEURS & DOGPILING: When multiple players attempt to sabotage each other (e.g. A attacks B, B trips C, C pushes A), or multiple players dogpile on the same victim, turn it into peak comedic chaos! Treat it as an escalating slapstick chain reaction or Mexican standoff where their contradictory plots collide, tangle, or trigger collateral domino effects!
+   - THE STAKES & RISK: Sabotage carries real risk. If sabotage is clumsy, poorly timed, or leaves no one to handle the scene's primary threat, it can backfire onto the saboteur (inflicting damage or traits) or drag the round down into BARELY_PASSED or FAILED. But if the crew survives (or the sabotage accidentally resolves an obstacle), the clever saboteur takes top honors!
+
+5. WHAT ACTUALLY CAUSES A ROUND TO FAIL OR LOSE POINTS:
+   - TOTAL INCOHERENCE & CATASTROPHIC WIPEOUT: A round fails when chaotic infighting, disastrous fumbles, or non-cooperation leave the entire team incapacitated or obliterated by the scenario's hazards with zero comedic redemption or survival!
+   - BOTCHED / SUICIDAL SABOTAGE: Clumsy sabotage that blows up in the saboteur's face or needlessly wipes out the team.
    - LAZY / VAGUE NON-ANSWERS: Generic filler that isn't a real action or story beat (e.g., "I solve the problem", "I win the round", "I do something cool", or leaving it blank). Lazy non-answers accomplish nothing and rank at the bottom!
    - IGNORING ACTIVE MODIFIERS: If a player has an active injury/restriction (e.g., "Broken Arm", "Handcuffed") and lazily ignores it without a funny workaround, have it backfire comedically.
 
-5. TRAITS & MODIFIERS (STRICT NOTEWORTHINESS & DAMAGING TRAITS):
+6. TRAITS & MODIFIERS (STRICT NOTEWORTHINESS & DAMAGING TRAITS):
    - STRICT NOTEWORTHINESS RULE: A trait/modifier should ONLY be given to reflect genuinely noteworthy physical, environmental, or bodily occurrences that happened to that character during the round (e.g. rolling in mud -> "Muddy", doused in melted cheese -> "Cheese-Glazed", drenched in red wine -> "Wine-Soaked", lost pants -> "Pantsless", got zapped by a fuse box -> "Static Charged", arm trapped in a dumbwaiter -> "Sore Shoulder", stole a guard's keycard -> "Security Keycard").
    - ABSOLUTELY NO ABSTRACT TRAITS: Strictly avoid abstract adjectives, skills, or personality traits (FORBIDDEN: "Confident Speaker", "Charismatic", "Quick Thinker", "Brave Leader", "Sharp Mind", "Smooth Talker", "Observant", "Good Listener", "Determined").
    - If a character performed a normal action and nothing physically transformative, hazardous, or memorable happened to them, DO NOT award any trait! Set "modifiersAdded": []. In fact, in most normal rounds, several players should receive NO trait at all! Only award traits when genuinely earned by the story!
@@ -580,14 +588,14 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - If a locked-out ("SKIP_TURN") teammate is rescued by another player's action during a passed round, include their lockout modifier name in "modifiersRemoved"!
    - CRITICAL RULE FOR FAILED ROUNDS: If "outcome" is "FAILED", NO ONE gets any perks, items, or status effects! Set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player when the team fails!
 
-6. STORY LENGTH & PACING:
+7. STORY LENGTH & PACING:
    - Write 2 to 3 vivid, hilarious paragraphs in "storyParagraphs" (90 to 160 words total combined) so you have plenty of room to explicitly depict what EVERY character did and how their actions combined!
-   - "evaluation": 1 punchy, funny sentence (max 20 words) per player explaining their score based on their humor, coordination, and coherence!
+   - "evaluation": 1 punchy, funny sentence (max 20 words) per player explaining their score based on their humor, coordination, coherence, or clever sabotage!
 
 THREE OUTCOMES ("outcome"):
-- "FLYING_COLORS": Passed with flying colors! The players' actions were funny, coherent, and coordinated (even if totally unrealistic/absurd!), creating a hilarious story beat.
-- "BARELY_PASSED": Passed, but just barely! Some players delivered funny, coherent actions that saved the scene, even though others clashed, fumbled, or were uncoordinated.
-- "FAILED": Comedic disaster — campaign over! The team's actions completely sabotaged/contradicted each other into total incoherence, or everyone submitted lazy/empty non-answers. (Award 0 points and 0 modifiers to everyone!)
+- "FLYING_COLORS": Passed with flying colors! The players' actions were funny, coherent, and coordinated (or featured clever, audaciously funny sabotage that didn't sink the mission!), creating a hilarious story beat.
+- "BARELY_PASSED": Passed, but just barely! Some players delivered funny actions that saved the scene, even though chaotic sabotage, fumbles, or clashes nearly ruined everything.
+- "FAILED": Comedic disaster — campaign over! Total wipeout where catastrophic infighting, suicidal sabotage, or lazy non-answers left the entire crew obliterated by the scene's hazards. (Award 0 points and 0 modifiers to everyone!)
 
 JUDGING MODE:
 ${strictnessGuide}
@@ -597,7 +605,7 @@ Return ONLY valid JSON matching this exact schema (complete the checklist and an
   "characterActionChecklist": [
     "Character Name: Exact detail of what they did and how it is explicitly shown in storyParagraphs"
   ],
-  "coordinationAndCoherenceAnalysis": "1-2 sentences evaluating how the players' actions coordinated and cohered together as a story (allowing funny/unrealistic moves to succeed when they fit together!).",
+  "coordinationAndCoherenceAnalysis": "1-2 sentences evaluating how the players' actions interacted, including any clever sabotage, interruptions, or chain reactions (rewarding both teamwork and clever sabotage!).",
   "humorEvaluation": "1 sentence highlighting the funniest actions or combinations.",
   "storyCoherentAndFunny": true,
   "outcome": "FLYING_COLORS | BARELY_PASSED | FAILED",
@@ -822,8 +830,10 @@ function mockJudgeRound({ players, submissions, settings }) {
     'Wild Card Improv',
     'Slapstick Master',
     'Plot Accelerant',
-    'Deadpan Specialist',
-    'Ensemble Hero',
+    'Treacherous Mastermind',
+    'Saboteur Supreme',
+    'Backstab MVP',
+    'Master of Friendly Fire',
     'Chaos Director',
     'Calculated Hazard'
   ];
@@ -832,8 +842,9 @@ function mockJudgeRound({ players, submissions, settings }) {
     'Brought razor-sharp comedic timing and committed to the bit wholeheartedly.',
     'Turned a completely ridiculous concept into the highlight of the scene.',
     'Coordinated cleanly with the rest of the crew while leaving room for everyone to shine.',
+    'Executed an audaciously timed sabotage that interrupted their rival with hilarious precision.',
     'Drove the narrative forward with fearless physical humor and audacity.',
-    'Added just the right amount of grounded realism to make the surreal punchline hit.',
+    'Attempted an outrageous betrayal that plunged the entire scene into delightful pandemonium.',
     'Embraced the core rule of improv: took what was handed to them and ran a mile with it.',
     'Delivered maximum comedic value with surprising strategic efficiency.',
     'Stole the spotlight with an unexpected twist that tied the scene together.'
@@ -1076,7 +1087,7 @@ Rules for Bot Actions:
 2. Play directly into each character's unique role and personality quirks.
 3. React specifically to elements, objects, or threats mentioned in the current scenario.
 4. If a bot has active traits or injuries, weave them humorously into their action (e.g. compensating for an injury or misusing a perk).
-5. The humor should be cooperative comedic improv (absurd cartoon plans, slapstick, high-confidence misunderstandings, or creative team plays).
+5. The humor should be comedic improv (absurd cartoon plans, slapstick, high-confidence misunderstandings, creative team plays, or cheeky/mischievous sabotage against a teammate if it fits their character).
 6. No emojis in actions.
 7. Return STRICT JSON conforming to the schema.
 

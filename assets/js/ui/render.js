@@ -560,7 +560,7 @@ function renderScenarioScreen() {
   if (actionInput) {
     actionInput.placeholder = myWordLimitMod
       ? `"${myWordLimitMod.name}" active: You may only type up to 5 words this round!`
-      : 'Write your character\'s move! Funny or unrealistic ideas work great if they coordinate and cohere with your crew!';
+      : 'Write your character\'s move! Coordinate with your crew or pull off a clever sabotage against a rival (high risk, high reward!)...';
     updateScenarioWordCount();
   }
 
