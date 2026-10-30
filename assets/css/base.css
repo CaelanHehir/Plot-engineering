@@ -91,6 +91,14 @@ body {
   display: none !important;
 }
 
+/* Clean keyboard focus indicator: only applies to buttons and links that aren't already active/selected */
+button:focus-visible:not(.active):not(.selected),
+a:focus-visible,
+summary:focus-visible {
+  outline: 2.5px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
 /* Custom Cartoon Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
