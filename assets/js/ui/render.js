@@ -1181,7 +1181,7 @@ function renderGameOverScreen() {
           </p>
           ${roundMoves ? `
             <div class="mt-1">
-              <span class="tiny text-muted"><strong>Crew moves:</strong></span>
+              <span class="tiny text-muted"><strong>Crew actions:</strong></span>
               ${roundMoves}
             </div>
           ` : ''}
@@ -1254,7 +1254,7 @@ function copyStoryRecap() {
       });
     }
     if (moves.length > 0) {
-      lines.push('Crew moves:');
+      lines.push('Crew actions:');
       lines.push(...moves);
     }
   });
