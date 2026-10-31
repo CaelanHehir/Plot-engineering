@@ -38,6 +38,7 @@ The game is hosted for free on GitHub Pages. You can play it in your web browser
 
 ### Requirements
 - A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one).
+- Your imagination!!!1 🦄✨🥰🌈🧙
 
 ---
 
@@ -92,7 +93,7 @@ Right-click `index.html` and click **"Open with Live Server"**.
 ---
 
 ## Security
-- **API Key Storage:** Stored in plain text in your browser's localStorage on this device; sent only to Google's API; clear it from the key dialog.
+- **API Key Storage:** Your API key is stored in plain text in your browser's localStorage on your device. It is only ever sent to the LLM provider
 - **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
 
 ---
