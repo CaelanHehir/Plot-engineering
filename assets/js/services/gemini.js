@@ -169,7 +169,12 @@ async function validateAndDiscoverModels(apiKey) {
     'gemini-3-flash',
     'gemini-3-flash-preview',
     'gemini-3.0-flash',
-    'gemini-3.0-flash-preview'
+    'gemini-3.0-flash-preview',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-001',
+    'gemini-2.0-flash-exp',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-latest'
   ];
 
   const sorted = [];
@@ -185,7 +190,6 @@ async function validateAndDiscoverModels(apiKey) {
     const lower = s.toLowerCase();
     if (
       isAllowedModel(lower) &&
-      (lower.includes('gemini-3') || lower.includes('gemini-3.0')) &&
       lower.includes('flash') &&
       !sorted.includes(s)
     ) {
@@ -193,9 +197,11 @@ async function validateAndDiscoverModels(apiKey) {
     }
   }
 
-  // Always ensure gemini-3-flash is available as first choice
-  if (!sorted.includes('gemini-3-flash')) {
-    sorted.unshift('gemini-3-flash');
+  // Always ensure standard fallbacks are in sorted list
+  for (const fallback of ['gemini-3-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']) {
+    if (isAllowedModel(fallback) && !sorted.includes(fallback)) {
+      sorted.push(fallback);
+    }
   }
 
   cachedModelName = sorted[0];
@@ -224,17 +230,15 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {
 
   const timeoutMs = options.timeoutMs || 45000;
 
-  // B13: Cache the discovered model. Re-discover only after a 404 on the cached model.
+  // Multi-model cascade: start with cached model if valid, then cascade through standard flash fallbacks
+  const standardFallbacks = ['gemini-3-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter(isAllowedModel);
   let modelsToTry = [];
   if (cachedModelName && isAllowedModel(cachedModelName)) {
     modelsToTry.push(cachedModelName);
-  } else {
-    try {
-      const candidateModels = await validateAndDiscoverModels(cleanKey);
-      modelsToTry = candidateModels.filter(isAllowedModel);
-    } catch (discErr) {
-      console.warn('Initial model discovery failed, falling back to gemini-3-flash:', discErr);
-      modelsToTry = ['gemini-3-flash'];
+  }
+  for (const fb of standardFallbacks) {
+    if (!modelsToTry.includes(fb)) {
+      modelsToTry.push(fb);
     }
   }
 
@@ -298,8 +302,8 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {
           rediscovered = true;
           try {
             const fresh = await validateAndDiscoverModels(cleanKey);
-            const remaining = fresh.filter(m => isAllowedModel(m) && !modelsToTry.slice(0, i + 1).includes(m));
-            modelsToTry = modelsToTry.slice(0, i + 1).concat(remaining);
+            const remaining = fresh.filter(m => isAllowedModel(m) && !modelsToTry.includes(m));
+            modelsToTry = modelsToTry.concat(remaining);
             continue;
           } catch (rediscErr) {
             console.warn('Model re-discovery after 404 failed:', rediscErr);
@@ -307,14 +311,15 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {
         }
 
         if (response.status === 400 && msg.toLowerCase().includes('api key')) {
+          isApiKeyVerified = false;
+          if (typeof updateApiKeyBadge === 'function') updateApiKeyBadge(false);
           const err = new Error(`Invalid Gemini API Key: ${msg}`);
           err.code = 'INVALID';
           throw err;
         }
         if (response.status === 429) {
-          const err = new Error(`Rate limit exceeded: ${msg}`);
-          err.code = 'RATE';
-          throw err;
+          console.warn(`Model ${model} hit rate limit (429), cascading to next available model...`);
+          continue;
         }
         continue;
       }
@@ -337,18 +342,33 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {
       if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
 
       if (err.name === 'AbortError') {
-        const cancelOrTimeout = new Error(options.signal?.aborted ? 'Operation cancelled.' : `AI request timed out after ${Math.round(timeoutMs / 1000)}s.`);
-        cancelOrTimeout.code = 'TIMEOUT';
-        throw cancelOrTimeout;
+        if (options.signal?.aborted) {
+          const cancelErr = new Error('Operation cancelled.');
+          cancelErr.name = 'AbortError';
+          throw cancelErr;
+        }
+        console.warn(`Model ${model} timed out after ${Math.round(timeoutMs / 1000)}s, cascading to next model...`);
+        errors.push(`${model}: Timeout`);
+        continue;
       }
-      if (err.code === 'INVALID' || err.code === 'RATE') {
+      if (err.code === 'INVALID') {
         throw err;
+      }
+      if (err.code === 'RATE') {
+        console.warn(`Model ${model} rate limited, cascading...`);
+        errors.push(`${model}: Rate limit`);
+        continue;
       }
       errors.push(`${model}: ${err.message}`);
     }
   }
 
-  throw new Error(errors[0] || 'Failed to call Gemini API.');
+  const allRateLimited = errors.length > 0 && errors.every(e => e.includes('429') || e.includes('Rate limit'));
+  const finalErr = new Error(errors[0] || 'Failed to call Gemini API across models.');
+  if (allRateLimited) {
+    finalErr.code = 'RATE';
+  }
+  throw finalErr;
 }
 
 /**
