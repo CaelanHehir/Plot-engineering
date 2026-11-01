@@ -284,7 +284,13 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {
           generationConfig: {
             temperature: 0.75,
             responseMimeType: 'application/json'
-          }
+          },
+          safetySettings: [
+            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
+          ]
         }),
         signal: controller.signal
       });
@@ -325,11 +331,17 @@ async function callGeminiJSON(systemInstruction, userPrompt, apiKey, options = {
       }
 
       const data = await response.json();
-      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const candidate = data?.candidates?.[0];
+      if (candidate?.finishReason === 'SAFETY') {
+        console.warn(`Model ${model} response blocked by safety filter, cascading...`);
+        errors.push(`${model}: Blocked by safety filter`);
+        continue;
+      }
+      const parts = candidate?.content?.parts || [];
       const textPart = parts.find(p => typeof p.text === 'string' && !p.thought) || parts[0];
       const rawText = textPart?.text;
       if (!rawText) {
-        errors.push(`${model}: Empty response`);
+        errors.push(`${model}: Empty response (${candidate?.finishReason || 'no candidates'})`);
         continue;
       }
 
