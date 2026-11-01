@@ -1449,54 +1449,46 @@ async function evaluateCurrentRound() {
 
   let judgment = null;
   if (apiKey && isApiKeyVerified) {
-    try {
-      judgment = await judgeRoundWithAI({
-        campaign,
-        roundIndex,
-        totalRounds: campaign.rounds.length,
-        scenarioText: roundObj.scenario,
-        scenarioSecrets: roundObj.secrets || '',
-        storySoFar: app.state.storySoFar,
-        players: app.state.players,
-        submissions: app.state.submissions,
-        settings: app.state.settings,
-        apiKey
-      });
-      updateApiKeyBadge(true);
-    } catch (err) {
-      console.warn('Initial AI judging error:', err);
-      // B12: Retry once with short delay on rate limit or 503
-      const isRetryable = err?.message?.includes('429') || err?.message?.includes('503') || err?.code === 'RATE';
-      if (isRetryable) {
-        await new Promise(r => setTimeout(r, 1500));
-        try {
-          judgment = await judgeRoundWithAI({
-            campaign,
-            roundIndex,
-            totalRounds: campaign.rounds.length,
-            scenarioText: roundObj.scenario,
-            scenarioSecrets: roundObj.secrets || '',
-            storySoFar: app.state.storySoFar,
-            players: app.state.players,
-            submissions: app.state.submissions,
-            settings: app.state.settings,
-            apiKey
-          });
-          updateApiKeyBadge(true);
-        } catch (retryErr) {
-          console.warn('Retry AI judging error:', retryErr);
-        }
-      }
-
-      if (!judgment) {
-        judgment = mockJudgeRound({
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        judgment = await judgeRoundWithAI({
+          campaign,
+          roundIndex,
+          totalRounds: campaign.rounds.length,
+          scenarioText: roundObj.scenario,
+          scenarioSecrets: roundObj.secrets || '',
+          storySoFar: app.state.storySoFar,
           players: app.state.players,
           submissions: app.state.submissions,
           settings: app.state.settings,
-          isLastRound: (roundIndex + 1) >= campaign.rounds.length
+          apiKey
         });
-        judgment.judgeNotice = 'The AI judge was unavailable, so a fallback judge decided this round.';
+        if (judgment) {
+          updateApiKeyBadge(true);
+          break;
+        }
+      } catch (err) {
+        console.warn(`AI judging attempt ${attempt}/${maxAttempts} failed:`, err);
+        if (err?.code === 'INVALID') {
+          // Unrecoverable invalid API key
+          break;
+        }
+        if (attempt < maxAttempts) {
+          const backoffMs = attempt === 1 ? 1500 : 3000;
+          await new Promise(r => setTimeout(r, backoffMs));
+        }
       }
+    }
+
+    if (!judgment) {
+      judgment = mockJudgeRound({
+        players: app.state.players,
+        submissions: app.state.submissions,
+        settings: app.state.settings,
+        isLastRound: (roundIndex + 1) >= campaign.rounds.length
+      });
+      judgment.judgeNotice = 'The AI judge was unavailable after multiple attempts, so a fallback judge decided this round.';
     }
   } else {
     await new Promise(r => setTimeout(r, 1500));

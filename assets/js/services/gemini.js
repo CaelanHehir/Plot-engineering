@@ -395,15 +395,23 @@ function parseCleanJSON(text) {
     return JSON.parse(text);
   } catch (e) {
     const match = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-    if (match) {
-      return JSON.parse(match[1]);
-    }
-    const firstBrace = text.indexOf('{');
-    const lastBrace = text.lastIndexOf('}');
+    let candidate = match ? match[1].trim() : text.trim();
+    const firstBrace = candidate.indexOf('{');
+    const lastBrace = candidate.lastIndexOf('}');
     if (firstBrace !== -1 && lastBrace !== -1) {
-      return JSON.parse(text.slice(firstBrace, lastBrace + 1));
+      candidate = candidate.slice(firstBrace, lastBrace + 1);
     }
-    throw new Error('Could not parse AI JSON response.');
+    try {
+      return JSON.parse(candidate);
+    } catch (innerErr) {
+      // Clean trailing commas before closing braces/brackets
+      const cleaned = candidate.replace(/,\s*([}\]])/g, '$1');
+      try {
+        return JSON.parse(cleaned);
+      } catch (finalErr) {
+        throw new Error('Could not parse AI JSON response.');
+      }
+    }
   }
 }
 
