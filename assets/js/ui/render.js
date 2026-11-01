@@ -740,11 +740,25 @@ function renderRevealScreen() {
   if (step1View) step1View.classList.add('hidden');
   if (step2View) step2View.classList.remove('hidden');
 
+  const retryBtn = document.getElementById('btn-host-retry-judge');
+  const isFallback = Boolean(j && j.judgedBy === 'demo');
+  if (retryBtn) {
+    if (app.isHost && isFallback && !app.state.isJudging) {
+      retryBtn.classList.remove('hidden');
+    } else {
+      retryBtn.classList.add('hidden');
+    }
+  }
+
   // B12: Show notice above story if demo judge was used as fallback
   const noticeEl = document.getElementById('reveal-judge-notice');
   if (noticeEl) {
     if (j.judgeNotice) {
-      noticeEl.textContent = j.judgeNotice;
+      if (app.isHost && isFallback) {
+        noticeEl.innerHTML = `<span>${escapeHtml(j.judgeNotice)}</span> <button type="button" class="btn-small btn-warn ml-2" data-action="retry-ai-judge">🔄 Retry AI</button>`;
+      } else {
+        noticeEl.textContent = j.judgeNotice;
+      }
       noticeEl.classList.remove('hidden');
     } else {
       noticeEl.classList.add('hidden');

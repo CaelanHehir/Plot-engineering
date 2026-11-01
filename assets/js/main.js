@@ -316,6 +316,9 @@ function setupDelegatedEventListeners() {
       case 'skip-story':
         skipStoryTypewriter();
         break;
+      case 'retry-ai-judge':
+        hostRetryAiJudge();
+        break;
       case 'host-next-reveal-step':
         hostNextRevealStep();
         break;
@@ -1434,6 +1437,16 @@ function hostForceEvaluateRound() {
 async function evaluateCurrentRound() {
   if (!app.isHost || app.state.isJudging) return;
 
+  // Snapshot pre-round state so host can cleanly retry if fallback judge runs
+  app.state._preRoundSnapshot = {
+    players: app.state.players.map(p => ({
+      id: p.id,
+      score: p.score || 0,
+      modifiers: (p.modifiers || []).map(m => ({ ...m }))
+    })),
+    storySoFar: app.state.storySoFar || ''
+  };
+
   stopTypewriter();
   app.state.phase = 'REVEAL';
   app.state.revealStep = 1;
@@ -1577,6 +1590,59 @@ async function evaluateCurrentRound() {
   });
 
   broadcastState();
+}
+
+/**
+ * Allows the host to re-evaluate the current round using the AI judge
+ * if it previously fell back to the local demo judge.
+ */
+async function hostRetryAiJudge() {
+  if (!app.isHost || app.state.isJudging || app.state.phase !== 'REVEAL') return;
+  const j = app.state.currentJudgment;
+  if (!j || j.judgedBy !== 'demo') {
+    showToast('AI judgment already active.', 'info');
+    return;
+  }
+
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    showToast('Please enter an AI key in settings first.', 'warn');
+    openApiKeyModal();
+    return;
+  }
+
+  isApiKeyVerified = true;
+  updateApiKeyBadge(true);
+
+  // Roll back scores and modifiers from the fallback round
+  if (app.state._preRoundSnapshot) {
+    const snap = app.state._preRoundSnapshot;
+    for (const p of app.state.players) {
+      const snapP = snap.players.find(sp => sp.id === p.id);
+      if (snapP) {
+        p.score = snapP.score;
+        p.modifiers = (snapP.modifiers || []).map(m => ({ ...m }));
+      }
+    }
+    app.state.storySoFar = snap.storySoFar || '';
+  }
+
+  // Remove the last roundHistory entry if it matches this round
+  if (app.state.roundHistory.length > 0 &&
+      app.state.roundHistory[app.state.roundHistory.length - 1].roundIndex === app.state.currentRound) {
+    app.state.roundHistory.pop();
+  }
+
+  stopTypewriter();
+  app.typewriter.activeKey = '';
+  app.typewriter.finished = false;
+  app.state.currentJudgment = null;
+  app.state.revealStep = 1;
+  app.state.isJudging = true;
+  broadcastState();
+
+  showToast('Retrying AI Judge with Gemini...', 'info');
+  await evaluateCurrentRound();
 }
 
 /**
