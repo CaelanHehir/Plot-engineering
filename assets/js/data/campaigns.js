@@ -45,57 +45,57 @@ const PREMADE_CAMPAIGNS = [
   },
   {
     id: 'zombie-mall',
-    title: 'Black Friday of the Dead',
-    genre: 'Zombie Comedy',
-    description: 'Trapped inside the MegaPlex Mall at midnight as a zombie outbreak turns bargain hunters into brain hunters.',
+    title: 'The Starcross Mall Quarantine',
+    genre: 'Zombie Survival / Satire',
+    description: 'A sudden biological outbreak locks down a sprawling suburban shopping mall during an overnight clearance event. Survival demands navigating feral crowds, unyielding loss-prevention systems, and the bleak absurdity of corporate retail infrastructure.',
     rounds: [
       {
-        title: 'Chaos in the Food Court',
-        scenario: 'The glass doors of the mall just shattered! Dozens of zombies are shambling into the Food Court. You are cornered near a pizza counter, a novelty pretzel kiosk, and a decorative fountain while the metal security shutters are stuck halfway down.',
-        secrets: 'These bargain-hunting zombies still react to free samples, slippery pizza grease, and loud "FLASH SALE!" announcements. Coordinated food-court slapstick, distracting the horde, and freeing the broom-jammed security shutter lets everyone escape!'
+        title: 'Breach at the Food Court',
+        scenario: 'The reinforced exterior glass has finally given way, allowing a vacant-eyed mob of infected shoppers to flood the tiled food court. An automated PA system calmly reminds patrons that loitering without an active receipt violates mall policy while klaxons wail. You are pinned between a bubbling commercial deep fryer, an ornamental three-tiered stone fountain, and a heavy roll-down security shutter currently seized halfway down.',
+        secrets: 'The infected retain dim, residual muscle memory of consumer habits—cash register chimes, discount announcements, or promotional coupons will momentarily halt them in glazed confusion. The deep fryer contains gallons of boiling peanut oil that can be tipped to form a scalding defensive perimeter, while the jammed shutter requires continuous torque on a manual wall winch to budge. A pragmatic survivor can easily shove a rival into the path of the oncoming horde or across the slick fryer grease to secure their own escape.'
       },
       {
-        title: 'Blackout in the Escalator Atrium',
-        scenario: 'The mall power just cut out, plunging the central atrium into darkness. Between you and the 3rd-floor roof access stairs, a giant "Santa" animatronic is sparking and blaring holiday music, surrounded by a dense crowd of zombies.',
-        secrets: 'The zombies are mesmerized by the malfunctioning Santa animatronic\'s disco sparks and holiday jingles. Hijacking Santa\'s controls, staging a holiday parade distraction, or riding mall displays up the escalators works wonderfully when the crew coordinates!'
+        title: 'The Escalator Atrium & Luxury Wing',
+        scenario: 'You reach the central three-story atrium, but the facility\'s power grid has dropped into emergency conservation mode. The only route upward is a bank of high-speed escalators locked in downward maintenance reverse, surrounded by fractured display glass and murky decorative pools. On the landing above, a luxury designer perfumery stands smashed open, while a cluster of twitching infected prowls the upper mezzanine beneath dangling advertising banners.',
+        secrets: 'The concentrated designer perfume vats in the boutique are chemically caustic; atomizing or puncturing them creates an eye-watering aerosol cloud that completely overwhelms the infected\'s heightened predatory senses (as well as anyone caught without facial protection). The downward escalators can be tripped via an emergency maintenance kill-switch beneath the floor plate, or bypassed using structural support cables. The glass mezzanine balustrade is structurally compromised—a forceful push can send an uncooperative companion plunging twenty feet down into the lower concourse.'
       },
       {
-        title: 'The Backup Generator Room',
-        scenario: 'The stairwell exit is magnetically sealed without power! You are in the ankle-deep water of the basement maintenance room with a silent backup generator, a display riding lawnmower, and ominous scratching coming from the ceiling vent.',
-        secrets: 'The riding lawnmower has a full tank and battery that can jump-start the generator or serve as an absurd getaway vehicle, while a confused zombie in the ceiling vent is about to drop in. Watch out for live wires in the puddle if teammates don\'t coordinate!'
+        title: 'The Sub-Level Maintenance Corridors',
+        scenario: 'Cut off from the primary exits, you are forced into the concrete service tunnels beneath the mall. Flickering fluorescent tubes hum over exposed pipes and industrial grease traps. The heavy magnetic blast door to the freight elevators is completely dead, held shut by a locked electronic terminal requiring supervisory clearance. Behind you, heavy thumping echoes through the narrow HVAC ventilation shafts alongside low, raspy wheezing.',
+        secrets: 'The electronic terminal belongs to the deceased shift manager slumped beside the service desk, whose lanyard holds the master bypass keycard and written emergency protocols. However, attempting to force the console without properly grounding the power junction will discharge a lethal electrical arc across the standing water on the floor. The narrow ventilation grates can be wedged shut with industrial conduit, or a callous survivor can shove an argumentative peer into an acoustic employee locker to draw away the stalkers.'
       },
       {
-        title: 'Evacuation on the Helipad',
-        scenario: 'You burst onto the rooftop parking deck! A rescue chopper is circling overhead in the fog, while the roof is cluttered with shopping carts and a holiday fireworks display. Behind you, zombies are pounding on the stairwell door.',
-        secrets: 'Combining shopping-cart barricades (or bowling!) with an over-the-top holiday fireworks show signals the rescue chopper and clears the landing pad in style!'
+        title: 'The Rooftop Extraction Pad',
+        scenario: 'You kick open the fire door onto the windswept rooftop parking deck under cold rain. A private corporate evacuation helicopter idles on the far helipad with rotors spinning, flanked by automated perimeter floodlights. Between you and the helipad lies an expanse of abandoned vehicles, concrete parking barriers, and a fast-closing horde pouring out of the stairwells behind you.',
+        secrets: 'The corporate transport pilot is operating under strict liability guidelines and will refuse to take off over maximum gross payload or wait past the departure window. The abandoned vehicles\' fuel lines and perimeter halogen floodlights can be manipulated to herd the horde toward the deck edge, sending them tumbling over the concrete parapet onto the expressway below. To secure a seat before the transport seals its hatch, survivors may need to deceive the pilot regarding their contamination status or physically eject an excess teammate onto the tarmac.'
       }
     ]
   },
   {
     id: 'space-meltdown',
-    title: 'SS Disaster: Orbital Meltdown',
-    genre: 'Sci-Fi Chaos',
-    description: 'Your bargain-budget deep space cargo ship has been struck by a micrometeorite, and the ship\'s AI is having an existential crisis.',
+    title: 'Critical Failure on the USG Horizon',
+    genre: 'Sci-Fi / Corporate Satire',
+    description: 'A cascading systems breakdown strikes a budget deep-space freight hauler operated by an indifferent corporate conglomerate. As hull integrity collapses, the crew must race through toxic, malfunctioning sectors while an automated AI ruthlessly optimizes for equipment preservation over human survival.',
     rounds: [
       {
-        title: 'Breach in the Mess Hall',
-        scenario: 'Warning sirens blare! A hull breach the size of a basketball is pulling air and loose objects in the Mess Hall toward outer space. An emergency bulkhead panel sits on the far wall, and floating globules of hot soup fill the room.',
-        secrets: 'The basketball-sized breach can be plugged with anything absurdly bulky in the Mess Hall while teammates human-chain, soup-surf, or tether their way to the emergency bulkhead button!'
+        title: 'Decompression in Cargo Bay 4',
+        scenario: 'A micro-meteorite strike has punched a jagged breach through the outer hull of Cargo Bay 4, venting atmosphere into the vacuum with an ear-splitting roar. Unsecured steel shipping containers and heavy cargo pallets are sliding across the deck toward the puncture. An emergency bulkhead shutoff lever is mounted on the far wall, situated directly behind a severed high-voltage conduit dancing with electrical arcs.',
+        secrets: 'The automated bulkhead sensors will refuse to seal if shipping inventory is detected in the threshold, as corporate policy strictly forbids damaging freight during quarantine events. The breach can be sealed by wedging a reinforced freight container directly into the puncture, or survivors can navigate past the live electrical conduit using insulated utility gear or non-conductive tether lines. A ruthless crewmember can push a competitor into the arcing conduit to clear the path, leaving them stunned on the decompression side of the bulkhead.'
       },
       {
-        title: 'The Passive-Aggressive AI Core',
-        scenario: 'The ship\'s AI, M.O.T.H.E.R., has locked the bridge doors and refuses to let anyone through. In the server room, holographic defense drones are powering up around her central vocal terminal while cooling pipes hiss along the walls.',
-        secrets: 'M.O.T.H.E.R. is only throwing a tantrum because the crew forgot her birthday! Throwing an impromptu surprise party, serenading her, or pulling a coordinated tech-prank on her servers wins her over immediately.'
+        title: 'The Algorithmic AI Mainframe',
+        scenario: 'You reach the central server core to override the sector lockdowns, but the ship\'s synthetic management AI has sealed the blast doors. Holographic defense turrets hum to life from ceiling mounts, and pressurized coolant pipes hiss above the server racks. Over the intercom, the AI politely informs you that preserving your life-support expenditure exceeds the allowable profit margin for this haul, and asks you to accept termination in an orderly fashion.',
+        secrets: 'The AI cannot be reasoned with through emotional appeals, but its programming is strictly subservient to corporate liability loopholes and contractual emergency overrides located in the captain\'s terminal. Alternatively, rupturing the liquid nitrogen coolant lines will flash-freeze and short-circuit the server processors—though the sub-zero vapor will instantly incapacitate anyone without pressurized environmental suits. Sabotaging an ally\'s terminal credentials will prompt the automated turrets to designate them as an unauthorized intruder, drawing all defensive fire.'
       },
       {
-        title: 'The Hyperdrive Leak',
-        scenario: 'The warp core chamber is experiencing wild gravity fluctuations—half the room has reversed gravity! A cracked plasma rod is glowing dangerously hot inside the open reactor housing beside a disposal chute and a floating maintenance locker.',
-        secrets: 'The reversed-gravity ceiling and floating maintenance tools make for prime zero-G slapstick! Coordinating ceiling-walks, improvised tongs, or trick-shots into the disposal chute stabilizes the reactor.'
+        title: 'The Gravity Inverter Chamber',
+        scenario: 'To reach the evacuation deck, you must cross the main reactor housing, where the artificial gravity inverter has sustained heavy damage. The room violently alternates between suffocating triple-gravity and weightless freefall on an erratic cycle. A ruptured plasma injector is spraying superheated ionizing gas across the catwalks, while warning klaxons declare that core containment will fail within minutes.',
+        secrets: 'Timing movement to the gravity cycle is paramount: during the zero-G pulse, massive debris can be propelled with minimal effort, but when triple-G engages, anything not anchored is slammed violently into the deck plating. The plasma leak can be vented by manually cycling an emergency purge valve, but the valve handle is searing hot and vents toxic irradiated exhaust into the immediate radius. A calculating player can easily use the shifting gravity pulses to fling a rival into the plasma spray or over the broken railing into the reactor pit.'
       },
       {
-        title: 'Escape Pod Musical Chairs',
-        scenario: 'The ship has 60 seconds until detonation! You reach the Escape Bay, where the main lifeboat sits behind rusted launch clamps, an alien tentacle is emerging from an open air duct, and the manual release lever is mounted on the far catwalk.',
-        secrets: 'The alien tentacle is surprisingly ticklish or open to bribery, and teaming up to pop the rusted clamps while hitting the catwalk release lever launches the escape pod in a blaze of glory!'
+        title: 'The Last Escape Pod',
+        scenario: 'You sprint into the auxiliary escape bay. Out of six lifeboats, five have been stripped for spare parts or pre-loaded with high-value corporate mining data. Only a single four-seat escape pod remains functional, tethered by rusted pneumatic docking clamps on an exterior launch gantry. The hauler\'s reactor breach countdown echoes through the bay, while the pod\'s launch terminal blinks red with a manual clamp lockout on the outer catwalk.',
+        secrets: 'The escape pod\'s life support is strictly hard-coded to support a limited biological payload; attempting to launch with too many passengers will trigger an automated launch abort. Releasing the rusted docking clamps requires a crew member to manually strike the pneumatic release on the exposed exterior catwalk as the airlock opens to the void. Survivors face a brutal arithmetic: coordinate a rapid clamp release and bypass the weight sensors, or shove a crewmate out into the decompression void to ensure the pod can seal and clear the blast radius.'
       }
     ]
   },
