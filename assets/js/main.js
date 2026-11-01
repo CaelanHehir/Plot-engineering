@@ -504,9 +504,11 @@ async function initUI() {
   const keyInput = document.getElementById('api-key-input');
   if (savedKey) {
     if (keyInput) keyInput.value = savedKey;
+    isApiKeyVerified = true;
     updateApiKeyBadge(true);
   } else {
     if (keyInput) keyInput.value = '';
+    isApiKeyVerified = false;
     updateApiKeyBadge(false);
   }
 

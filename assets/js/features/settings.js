@@ -268,7 +268,7 @@ function updateApiKeyBadge(verified = isApiKeyVerified) {
 function openApiKeyModal() {
   const input = document.getElementById('api-key-input');
   if (input) {
-    input.value = isApiKeyVerified ? getStoredApiKey() : '';
+    input.value = getStoredApiKey();
     input.classList.add('key-masked');
   }
   const toggleBtn = document.getElementById('btn-toggle-key-visibility');

@@ -31,7 +31,7 @@ if (!isAllowedModel(cachedModelName)) {
 }
 
 /** Flag tracking whether the stored API key has been verified against Google's endpoint */
-let isApiKeyVerified = false;
+let isApiKeyVerified = Boolean(localStorage.getItem('plot_engineering_gemini_key'));
 
 /**
  * Maps raw API/network errors to friendly messages for players.
@@ -76,6 +76,7 @@ function setStoredApiKey(key) {
   const clean = (key || '').trim();
   if (clean) {
     localStorage.setItem('plot_engineering_gemini_key', clean);
+    isApiKeyVerified = true;
   } else {
     localStorage.removeItem('plot_engineering_gemini_key');
     localStorage.removeItem('plot_engineering_gemini_model');
