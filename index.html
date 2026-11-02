@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=22" />
-  <link rel="stylesheet" href="assets/css/components.css?v=22" />
-  <link rel="stylesheet" href="assets/css/screens.css?v=22" />
+  <link rel="stylesheet" href="assets/css/base.css?v=23" />
+  <link rel="stylesheet" href="assets/css/components.css?v=23" />
+  <link rel="stylesheet" href="assets/css/screens.css?v=23" />
   <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC (A9) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 </head>
@@ -520,14 +520,14 @@
       </div>
 
       <!-- STEP 1 VIEW: What Everyone Decided To Do (Speech Bubbles!) -->
-      <div id="reveal-step1-view" class="card wobbly-card flex-1">
+      <div id="reveal-step1-view" class="card wobbly-card flex-1-min0">
         <div class="row-between mb-2">
           <h3>Moves locked in</h3>
           <div id="reveal-ai-generating-box" class="badge badge-warn boiling-badge hidden">
             The Judge is deciding what happens...
           </div>
         </div>
-        <div id="reveal-actions-grid" class="actions-grid-compact panel-scroll"></div>
+        <div id="reveal-actions-grid" class="actions-grid-compact panel-scroll flex-1"></div>
       </div>
 
       <!-- Mobile/Compact Window Switcher for Reveal Step 2 -->
@@ -576,7 +576,7 @@
       <div class="nav-bar-sub">
         <div class="row-gap">
           <span id="finale-main-title" class="finale-banner-title">Campaign complete</span>
-          <span id="finale-campaign-summary" class="text-muted small"></span>
+          <span id="finale-campaign-summary" class="text-muted small desktop-only-inline"></span>
         </div>
         <div class="row-gap">
           <span id="client-gameover-waiting" class="text-muted small hidden">Waiting for host to return to lobby...</span>
@@ -606,7 +606,7 @@
             <h3>Results</h3>
           </div>
           <div id="final-podium-stage" class="podium-stage mb-2"></div>
-          <div id="final-runners-up-list" class="panel-scroll flex-1 hidden"></div>
+          <div id="final-runners-up-list" class="hidden"></div>
         </div>
 
         <!-- Card 2: Player summaries (In the middle) -->
@@ -726,30 +726,30 @@
   <script type="importmap">
   {
     "imports": {
-      "./assets/js/main.js": "./assets/js/main.js?v=22",
-      "./assets/js/data/campaigns.js": "./assets/js/data/campaigns.js?v=22",
-      "./assets/js/state/store.js": "./assets/js/state/store.js?v=22",
-      "./assets/js/state/session.js": "./assets/js/state/session.js?v=22",
-      "./assets/js/ui/utils.js": "./assets/js/ui/utils.js?v=22",
-      "./assets/js/ui/render.js": "./assets/js/ui/render.js?v=22",
-      "./assets/js/ui/screens/lobby.js": "./assets/js/ui/screens/lobby.js?v=22",
-      "./assets/js/ui/screens/charCreate.js": "./assets/js/ui/screens/charCreate.js?v=22",
-      "./assets/js/ui/screens/scenario.js": "./assets/js/ui/screens/scenario.js?v=22",
-      "./assets/js/ui/screens/reveal.js": "./assets/js/ui/screens/reveal.js?v=22",
-      "./assets/js/ui/screens/gameOver.js": "./assets/js/ui/screens/gameOver.js?v=22",
-      "./assets/js/features/canvas.js": "./assets/js/features/canvas.js?v=22",
-      "./assets/js/features/settings.js": "./assets/js/features/settings.js?v=22",
-      "./assets/js/services/audio.js": "./assets/js/services/audio.js?v=22",
-      "./assets/js/services/network.js": "./assets/js/services/network.js?v=22",
-      "./assets/js/services/gemini/index.js": "./assets/js/services/gemini/index.js?v=22",
-      "./assets/js/services/gemini/client.js": "./assets/js/services/gemini/client.js?v=22",
-      "./assets/js/services/gemini/campaign.js": "./assets/js/services/gemini/campaign.js?v=22",
-      "./assets/js/services/gemini/judge.js": "./assets/js/services/gemini/judge.js?v=22",
-      "./assets/js/services/gemini/fallbackJudge.js": "./assets/js/services/gemini/fallbackJudge.js?v=22",
-      "./assets/js/services/gemini/bots.js": "./assets/js/services/gemini/bots.js?v=22"
+      "./assets/js/main.js": "./assets/js/main.js?v=23",
+      "./assets/js/data/campaigns.js": "./assets/js/data/campaigns.js?v=23",
+      "./assets/js/state/store.js": "./assets/js/state/store.js?v=23",
+      "./assets/js/state/session.js": "./assets/js/state/session.js?v=23",
+      "./assets/js/ui/utils.js": "./assets/js/ui/utils.js?v=23",
+      "./assets/js/ui/render.js": "./assets/js/ui/render.js?v=23",
+      "./assets/js/ui/screens/lobby.js": "./assets/js/ui/screens/lobby.js?v=23",
+      "./assets/js/ui/screens/charCreate.js": "./assets/js/ui/screens/charCreate.js?v=23",
+      "./assets/js/ui/screens/scenario.js": "./assets/js/ui/screens/scenario.js?v=23",
+      "./assets/js/ui/screens/reveal.js": "./assets/js/ui/screens/reveal.js?v=23",
+      "./assets/js/ui/screens/gameOver.js": "./assets/js/ui/screens/gameOver.js?v=23",
+      "./assets/js/features/canvas.js": "./assets/js/features/canvas.js?v=23",
+      "./assets/js/features/settings.js": "./assets/js/features/settings.js?v=23",
+      "./assets/js/services/audio.js": "./assets/js/services/audio.js?v=23",
+      "./assets/js/services/network.js": "./assets/js/services/network.js?v=23",
+      "./assets/js/services/gemini/index.js": "./assets/js/services/gemini/index.js?v=23",
+      "./assets/js/services/gemini/client.js": "./assets/js/services/gemini/client.js?v=23",
+      "./assets/js/services/gemini/campaign.js": "./assets/js/services/gemini/campaign.js?v=23",
+      "./assets/js/services/gemini/judge.js": "./assets/js/services/gemini/judge.js?v=23",
+      "./assets/js/services/gemini/fallbackJudge.js": "./assets/js/services/gemini/fallbackJudge.js?v=23",
+      "./assets/js/services/gemini/bots.js": "./assets/js/services/gemini/bots.js?v=23"
     }
   }
   </script>
-  <script type="module" src="assets/js/main.js?v=22"></script>
+  <script type="module" src="assets/js/main.js?v=23"></script>
 </body>
 </html>

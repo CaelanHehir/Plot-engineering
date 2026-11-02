@@ -28,13 +28,19 @@ The twist is that players also earn points based on how important their actions 
 
 ## Technical Features
 - **AI Storytelling**: The game uses an LLM to analyze player input, generate the story, decide who contributed the most, whether the team succeeded or not, etc... It requires the player hosting the room to input a Gemini API key in order to work (check out the [Security](#security) section for privacy concerns).
-- **Peer-to-Peer Multiplayer**: Creating a room works using PeerJS WebRTC, which allows players themselves to host the room on their device. No backend is required to keep the game running.
+- **Peer-to-Peer Multiplayer & Room Hosting**: Creating a room works using PeerJS WebRTC, allowing the Host's browser to run the authoritative game room directly on their device without a dedicated game backend:
+  - When the Host creates a 4-letter room code (e.g., `ABCD`), their browser registers a deterministic Peer ID (`plot-eng-room-ABCD`) with the PeerJS signaling broker.
+  - Joining devices look up that Peer ID and establish a direct WebRTC DataChannel using configured Google and Twilio STUN servers (`stun.l.google.com`, `global.stun.twilio.com`) for NAT traversal across Wi-Fi and mobile networks.
+  - Once connected, the client sends a `JOIN_REQUEST` over the DataChannel and the Host broadcasts sanitized `STATE_UPDATE` snapshots to all connected peers.
 - **Procedural Audio System**: Sounds are generated using the Web Audio API, meaning no external audio assets need to be loaded.
 
 ---
 
 ## Playing the game
 The game is hosted for free on GitHub Pages. You can play it in your web browser **[here](https://caelanhehir.github.io/Plot-engineering/)**!
+
+> **Joining from Another Device (Phones / Tablets / Laptops):**
+> To connect multiple devices together, open the **[GitHub Pages link](https://caelanhehir.github.io/Plot-engineering/)** on each device (or scan the Host's in-game QR code). If you are testing locally across multiple devices on the same Wi-Fi, bind your local server to `0.0.0.0` and visit your machine's LAN IP (`http://192.168.x.x:8000`) rather than `localhost`.
 
 ### Requirements
 - A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one).
@@ -50,25 +56,42 @@ Plot-engineering/
 ├── LICENSE                   # MIT License
 ├── README.md                 # That's me!
 ├── index.html                # Application entrypoint & screen templates
+├── tests/
+│   └── judge.test.js         # Unit tests for scoring & Judge normalization
 └── assets/
     ├── css/
-    │   ├── base.css          # Design tokens, typography, and reset styles
+    │   ├── base.css          # Design tokens, typography, and responsive grids
     │   ├── components.css    # Cards, buttons, modals, badges, and HUD
     │   └── screens.css       # Screen layouts, podiums, and animations
     └── js/
         ├── main.js           # App bootstrapping, routing, and event delegation
         ├── data/
         │   └── campaigns.js  # Scenario library and campaign templates
+        ├── state/
+        │   ├── store.js      # Centralized reactive application state
+        │   └── session.js    # Session persistence and room code storage
         ├── features/
         │   ├── canvas.js     # Character drawing canvas controller
         │   └── settings.js   # Game house rules and API key management
         ├── services/
         │   ├── audio.js      # Procedural sound effect synthesizer
-        │   ├── gemini.js     # Google Gemini API integration and judge prompt
-        │   └── network.js    # WebRTC host/client room networking
+        │   ├── network.js    # WebRTC host/client room networking & STUN config
+        │   └── gemini/       # Modular Google Gemini API client, judge & bots
+        │       ├── index.js
+        │       ├── client.js
+        │       ├── campaign.js
+        │       ├── judge.js
+        │       ├── fallbackJudge.js
+        │       └── bots.js
         └── ui/
-            ├── render.js     # Screen renderers, podiums, and view updates
-            └── utils.js      # HTML sanitization and UI helper utilities
+            ├── render.js     # Top-level phase router and HUD controller
+            ├── utils.js      # HTML sanitization and UI helper utilities
+            └── screens/      # Per-screen renderers and controllers
+                ├── lobby.js
+                ├── charCreate.js
+                ├── scenario.js
+                ├── reveal.js
+                └── gameOver.js
 ```
 
 ---
@@ -110,5 +133,3 @@ node --test tests/judge.test.js
 
 ## License
 Distributed under the MIT License. See [LICENSE](LICENSE) for full details.
-
-
