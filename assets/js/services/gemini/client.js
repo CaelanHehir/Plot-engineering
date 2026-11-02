@@ -282,6 +282,7 @@ export async function callGeminiJSON(systemInstruction, userPrompt, apiKey, opti
   }
 
   const timeoutMs = options.timeoutMs || 45000;
+  const deadline = Date.now() + (options.totalTimeoutMs || 90000);
 
   // Multi-model cascade: start with cached model if valid, then cascade through standard flash fallbacks
   const standardFallbacks = ['gemini-3-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter(isAllowedModel);
@@ -299,6 +300,7 @@ export async function callGeminiJSON(systemInstruction, userPrompt, apiKey, opti
   let rediscovered = false;
 
   for (let i = 0; i < modelsToTry.length; i++) {
+    if (i > 0 && Date.now() > deadline) break;
     const model = modelsToTry[i];
     if (!isAllowedModel(model)) continue;
 
