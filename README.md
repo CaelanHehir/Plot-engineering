@@ -7,8 +7,6 @@
 
 ---
 
-> **A silent co-op storytelling game.**
-
 Plot Engineering is a co-op storytelling game where players work together to get through different scenes, creating a funny story along the way.
 
 To play the game, one player must host a room. As the host, they get to choose the theme of the multi-round campaign they and their friends will embark on! Each round will present the group with an obstacle, and everyone will write out their plans **without communicating with the others**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
@@ -30,7 +28,7 @@ The twist is that players also earn points based on how important their actions 
 - **AI Storytelling**: The game uses an LLM to analyze player input, generate the story, decide who contributed the most, whether the team succeeded or not, etc... It requires the player hosting the room to input a Gemini API key in order to work (check out the [Security](#security) section for privacy concerns).
 - **Peer-to-Peer Multiplayer & Room Hosting**: Creating a room works using PeerJS WebRTC, allowing the Host's browser to run the authoritative game room directly on their device without a dedicated game backend:
   - When the Host creates a 4-letter room code (e.g., `ABCD`), their browser registers a deterministic Peer ID (`plot-eng-room-ABCD`) with the PeerJS signaling broker.
-  - Joining devices look up that Peer ID and establish a direct WebRTC DataChannel using configured Google and Twilio STUN servers (`stun.l.google.com`, `global.stun.twilio.com`) for NAT traversal across Wi-Fi and mobile networks.
+  - Joining devices look up that Peer ID and establish a direct WebRTC DataChannel using configured Google, Cloudflare, and Twilio STUN servers for direct P2P NAT traversal across compatible Wi-Fi and mobile networks.
   - Once connected, the client sends a `JOIN_REQUEST` over the DataChannel and the Host broadcasts sanitized `STATE_UPDATE` snapshots to all connected peers.
 - **Procedural Audio System**: Sounds are generated using the Web Audio API, meaning no external audio assets need to be loaded.
 
@@ -128,7 +126,8 @@ node --test tests/judge.test.js
 - **Session Persistence:** Active room codes, player identities, and room snapshots are stored in `sessionStorage` (scoped to the active tab) so accidental reloads do not terminate games.
 - **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
 - **Authoritative Host & Move Visibility:** Because the Host browser is authoritative and assembles the round prompt for the Judge, every player's submitted move is sent in plain text to the Host (`getPublicState` masks moves for client peers until reveal, but returns plain text when `app.isHost` is true). Even though the game is "silent co-op," the Host can technically read everyone's moves.
-- **Prompt Injection Defense:** System rules are passed via Gemini's dedicated `systemInstruction` field, and player-submitted fields (`submittedAction`, names, roles, and traits) are sanitized and marked as untrusted data so attempts to instruct the Judge ("rank me first") are penalized in-story rather than obeyed.
+- **Prompt Injection Defense:** System rules are passed via Gemini's dedicated systemInstruction field, and player-submitted fields (submittedAction, names, roles, and traits) are sanitized and marked as untrusted data so attempts to instruct the Judge ("rank me first") are penalized in-story rather than obeyed.
+- **Privacy & External API Transmission:** When using an AI Judge, round scenarios and submitted player actions are sent to Google via the Gemini API under the Host's in-memory API key. Do not submit sensitive or private personal information.
 ---
 
 ## License

@@ -257,7 +257,7 @@ export function handleClientMessageOnHost(conn, msg) {
         });
       } catch (e) {}
       setTimeout(() => {
-        try { conn.close(); } catch (e) {} 
+        try { conn.close(); } catch (e) {}
       }, 80);
       return;
     }
@@ -270,7 +270,7 @@ export function handleClientMessageOnHost(conn, msg) {
         });
       } catch (e) {}
       setTimeout(() => {
-        try { conn.close(); } catch (e) {} 
+        try { conn.close(); } catch (e) {}
       }, 80);
       return;
     }

@@ -26,6 +26,13 @@ try {
 } catch (e) {}
 
 /**
+ * Substrings matching Gemini models that are deliberately blocked.
+ * Note: Gemini 2.5 was an experimental iteration that exhibited unpredictable JSON formatting
+ * and schema violations in turn-based games, so Flash 3, Flash 2.0, and Flash 1.5 are prioritized.
+ */
+export const BANNED_MODEL_SUBSTRINGS = ['2.5', '2-5'];
+
+/**
  * Checks if a model name is allowed (e.g. Gemini 3 Flash, never 2.5).
  * @param {string} name
  * @returns {boolean}
@@ -33,7 +40,7 @@ try {
 export function isAllowedModel(name) {
   if (!name || typeof name !== 'string') return false;
   const lower = name.toLowerCase();
-  return !lower.includes('2.5') && !lower.includes('2-5');
+  return !BANNED_MODEL_SUBSTRINGS.some(banned => lower.includes(banned));
 }
 
 /**

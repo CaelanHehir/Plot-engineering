@@ -473,7 +473,7 @@ export async function evaluateCurrentRound() {
 
   let judgment = null;
   if (apiKey && isKeyVerified()) {
-    const maxAttempts = 3;
+    const maxAttempts = 2;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         judgment = await judgeRoundWithAI({
