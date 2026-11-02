@@ -74,7 +74,7 @@ Plot-engineering/
 ---
 
 ## Local Development
-Plot Engineering uses zero build steps, which makes working on it really easy. You can run and modify it immediately using any local static file server.
+Plot Engineering uses zero build steps and native ES modules (`type="module"`). You can run and modify it immediately using any local static file server.
 
 ### Example 1: Python
 ```bash
@@ -92,10 +92,20 @@ Right-click `index.html` and click **"Open with Live Server"**.
 
 ---
 
-## Security
-- **API Key Storage:** Your API key is stored in plain text in your browser's localStorage on your device. It is only ever sent to the LLM provider
-- **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
+### Running Tests
+Unit tests use the built-in Node.js test runner (`node:test`) with zero external dependencies:
+```bash
+node --test tests/judge.test.js
+```
 
+---
+
+## Security
+- **API Key Security:** The Gemini API key is stored exclusively in-memory for the duration of the active browser session. It is never saved to `localStorage` or disk, and closing or reloading the tab immediately purges the key.
+- **Session Persistence:** Active room codes, player identities, and room snapshots are stored in `sessionStorage` (scoped to the active tab) so accidental reloads do not terminate games.
+- **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
+- **Authoritative Host & Move Visibility:** Because the Host browser is authoritative and assembles the round prompt for the Judge, every player's submitted move is sent in plain text to the Host (`getPublicState` masks moves for client peers until reveal, but returns plain text when `app.isHost` is true). Even though the game is "silent co-op," the Host can technically read everyone's moves.
+- **Prompt Injection Defense:** System rules are passed via Gemini's dedicated `systemInstruction` field, and player-submitted fields (`submittedAction`, names, roles, and traits) are sanitized and marked as untrusted data so attempts to instruct the Judge ("rank me first") are penalized in-story rather than obeyed.
 ---
 
 ## License
