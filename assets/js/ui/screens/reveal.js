@@ -521,6 +521,7 @@ export async function evaluateCurrentRound() {
       settings: app.state.settings,
       isLastRound: (roundIndex + 1) >= campaign.rounds.length
     });
+    judgment.judgeNotice = 'No AI key is set, so the demo judge decided this round.';
   }
 
   if (app.state.phase !== 'REVEAL') return;
