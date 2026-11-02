@@ -586,11 +586,44 @@ export function getPublicState(forPlayerId = null) {
     };
   });
 
+  const isEarlyReveal = app.state.phase === 'REVEAL' && app.state.revealStep < 2;
+
+  let publicPlayers = app.state.players;
+  let publicStorySoFar = app.state.storySoFar;
+  let publicJudgment = app.state.currentJudgment;
+  let publicRoundHistory = sanitizedHistory;
+
+  if (isEarlyReveal) {
+    if (app.state.currentJudgment) {
+      publicJudgment = { pending: true };
+    }
+    if (app.state._preRoundSnapshot) {
+      const snap = app.state._preRoundSnapshot;
+      if (typeof snap.storySoFar === 'string') {
+        publicStorySoFar = snap.storySoFar;
+      }
+      if (Array.isArray(snap.players)) {
+        publicPlayers = app.state.players.map(p => {
+          const snapP = snap.players.find(sp => sp.id === p.id);
+          return snapP ? { ...p, score: snapP.score, modifiers: snapP.modifiers } : p;
+        });
+      }
+      if (publicRoundHistory.length > 0) {
+        publicRoundHistory = publicRoundHistory.slice(0, -1);
+      }
+    }
+  }
+
+  const { _preRoundSnapshot, ...safeState } = app.state;
+
   return {
-    ...app.state,
+    ...safeState,
+    players: publicPlayers,
+    storySoFar: publicStorySoFar,
+    currentJudgment: publicJudgment,
     activeCampaign: stripCampaignSecrets(app.state.activeCampaign),
     customCampaign: stripCampaignSecrets(app.state.customCampaign),
-    roundHistory: sanitizedHistory,
+    roundHistory: publicRoundHistory,
     submissions: maskedSubmissions,
     submissionKinds
   };
