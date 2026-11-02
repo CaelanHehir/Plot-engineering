@@ -296,6 +296,7 @@ export function handleClientMessageOnHost(conn, msg) {
   }
 
   if (msg.type === 'SUBMIT_CHARACTER') {
+    if (app.state.phase !== 'CHAR_CREATE') return;
     const senderId = conn.playerId;
     if (!senderId) return;
     const p = app.state.players.find(pl => pl.id === senderId);
@@ -323,6 +324,7 @@ export function handleClientMessageOnHost(conn, msg) {
   }
 
   if (msg.type === 'UNLOCK_CHARACTER') {
+    if (app.state.phase !== 'CHAR_CREATE') return;
     const senderId = conn.playerId;
     if (!senderId) return;
     const p = app.state.players.find(pl => pl.id === senderId);
