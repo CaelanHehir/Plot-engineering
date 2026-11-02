@@ -266,6 +266,11 @@ export function toggleApiKeyVisibility() {
 
 export function closeApiKeyModal() {
   closeAccessibleModal('api-key-modal');
+  if (typeof app._onApiKeySaved === 'function') {
+    const cb = app._onApiKeySaved;
+    app._onApiKeySaved = null;
+    cb();
+  }
 }
 
 export function saveApiKeyFromModal() {
@@ -289,6 +294,11 @@ export function saveApiKeyFromModal() {
     updateApiKeyBadge(true);
     closeApiKeyModal();
     showToast(`API key verified! Active model: ${models[0]}`, 'success');
+    if (typeof app._onApiKeySaved === 'function') {
+      const cb = app._onApiKeySaved;
+      app._onApiKeySaved = null;
+      cb();
+    }
   }).catch(err => {
     setLoadingOverlay(false);
     if (err.code === 'INVALID') {

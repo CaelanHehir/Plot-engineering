@@ -8,7 +8,8 @@ import { loadSessionFromStorage, clearSessionStorage } from './state/session.js'
 import {
   escapeHtml,
   setLoadingOverlay,
-  showToast
+  showToast,
+  getPlayerMetaMod
 } from './ui/utils.js';
 import { sfx, updateMuteButton, toggleSound } from './services/audio.js';
 import {
@@ -86,6 +87,8 @@ import {
   hostAddExtraTime,
   openScenarioPopup,
   closeScenarioPopup,
+  startTimer,
+  triggerBotActionsForRound,
   hostForceStartFirstRound,
   hostStartFirstRound,
   submitMyAction,
@@ -584,20 +587,47 @@ async function initUI() {
         app.peer = peer;
 
         peer.on('open', () => {
-          showToast(`Resumed room ${activeSession.roomCode}!`, 'success');
           const key = getStoredApiKey();
           if (!key) {
-            showToast('Re-enter your AI key in Settings to enable AI judging.', 'warn');
+            showToast(`Resumed room ${activeSession.roomCode}. Enter your AI key to resume AI judging.`, 'warn');
+          } else {
+            showToast(`Resumed room ${activeSession.roomCode}!`, 'success');
           }
+
           if (app.state.phase === 'REVEAL' && app.state.isJudging) {
             app.state.isJudging = false;
-            evaluateCurrentRound();
+            if (!key) {
+              app._onApiKeySaved = () => {
+                evaluateCurrentRound();
+              };
+              openApiKeyModal();
+            } else {
+              evaluateCurrentRound();
+            }
+          } else if (app.state.phase === 'SCENARIO') {
+            if (app.state.timeLeft > 0) {
+              startTimer(app.state.timeLeft);
+            }
+            const unsubmittedBots = (app.state.players || []).filter(p =>
+              p.isBot && !app.state.submissions?.[p.id] && !getPlayerMetaMod(p, 'DEAD') && !getPlayerMetaMod(p, 'SKIP_TURN')
+            );
+            if (unsubmittedBots.length > 0) {
+              triggerBotActionsForRound(unsubmittedBots, app.state.currentRound);
+            }
           }
           renderState();
         });
 
         peer.on('connection', (conn) => {
           setupHostClientConnection(conn);
+        });
+
+        peer.on('disconnected', () => {
+          try {
+            peer.reconnect();
+          } catch (e) {
+            console.warn('Host Peer reconnect failed:', e);
+          }
         });
 
         peer.on('error', (err) => {
