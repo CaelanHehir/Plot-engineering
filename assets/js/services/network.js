@@ -488,7 +488,7 @@ export function getPublicState(forPlayerId = null) {
     } else if (p.disconnected) {
       submissionKinds[pid] = 'away';
       maskedSubmissions[pid] = '(Was away)';
-    } else if (pid === forPlayerId || app.isHost || canRevealMoves) {
+    } else if (pid === forPlayerId || canRevealMoves) {
       submissionKinds[pid] = 'text';
       maskedSubmissions[pid] = app.state.submissions[pid] || '';
     } else {
@@ -498,7 +498,7 @@ export function getPublicState(forPlayerId = null) {
   }
 
   const sanitizedHistory = (app.state.roundHistory || []).map(h => {
-    if (app.isHost || app.state.settings?.revealMovesAfterStory) {
+    if (app.state.settings?.revealMovesAfterStory) {
       return h;
     }
     const safeSubmissions = {};
