@@ -39,6 +39,7 @@ import {
 } from './features/settings.js';
 import {
   PEER_PREFIX,
+  PEER_OPTIONS,
   setNetworkHooks,
   hostCreateRoom,
   setupHostClientConnection,
@@ -134,6 +135,21 @@ if (typeof document !== 'undefined') {
  */
 function setupDelegatedEventListeners() {
   document.addEventListener('click', (e) => {
+    // Close top menu drawer on outside click
+    const drawer = document.getElementById('top-menu-drawer');
+    const toggleBtn = document.getElementById('btn-top-menu');
+    if (drawer && !drawer.classList.contains('hidden')) {
+      if (!drawer.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+        closeTopMenu();
+      }
+    }
+    // Dismiss sketchpad tool popups on outside click
+    if (!e.target.closest('.sketch-tool-group')) {
+      const colorMenu = document.getElementById('sketch-color-menu');
+      const thickMenu = document.getElementById('sketch-thickness-menu');
+      if (colorMenu) colorMenu.classList.add('hidden');
+      if (thickMenu) thickMenu.classList.add('hidden');
+    }
     if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
       const modalId = e.target.id;
       if (modalId === 'qr-popup-modal') closeQrPopup();
@@ -558,7 +574,7 @@ async function initUI() {
       app.lobbyView = activeSession.lobbyView || 'cast';
       app.charCreateStep = activeSession.charCreateStep || 1;
 
-      const peer = new window.Peer(PEER_PREFIX + activeSession.roomCode);
+      const peer = new window.Peer(PEER_PREFIX + activeSession.roomCode, PEER_OPTIONS);
       app.peer = peer;
 
       peer.on('open', () => {

@@ -18,6 +18,19 @@ import { stopTypewriter } from '../ui/screens/reveal.js';
 
 export const PEER_PREFIX = 'plot-engineering-';
 
+export const PEER_OPTIONS = {
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      { urls: 'stun:stun4.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' }
+    ]
+  }
+};
+
 let hooks = {
   checkAllCharactersReady: () => {},
   checkAllActionsSubmitted: () => {},
@@ -54,7 +67,7 @@ export function hostCreateRoom(retryCount = 0) {
 
   try {
     const peerId = PEER_PREFIX + code;
-    const peer = new window.Peer(peerId);
+    const peer = new window.Peer(peerId, PEER_OPTIONS);
     app.peer = peer;
 
     peer.on('open', () => {
@@ -140,26 +153,30 @@ export function initHostGameState(code, hostName) {
 }
 
 export function setupHostClientConnection(conn) {
-  conn.on('open', () => {
-    conn.on('data', (msg) => {
-      handleClientMessageOnHost(conn, msg);
-    });
-    conn.on('close', () => {
-      if (!conn.playerId) return;
-      if (app.state.phase === 'LOBBY') {
-        app.state.players = app.state.players.filter(p => p.id !== conn.playerId);
-        delete app.clientConns[conn.playerId];
+  conn.on('data', (msg) => {
+    handleClientMessageOnHost(conn, msg);
+  });
+
+  const handleClose = () => {
+    if (!conn.playerId) return;
+    if (app.state.phase === 'LOBBY') {
+      app.state.players = app.state.players.filter(p => p.id !== conn.playerId);
+      delete app.clientConns[conn.playerId];
+      broadcastState();
+    } else {
+      const p = app.state.players.find(pl => pl.id === conn.playerId);
+      if (p) {
+        p.disconnected = true;
         broadcastState();
-      } else {
-        const p = app.state.players.find(pl => pl.id === conn.playerId);
-        if (p) {
-          p.disconnected = true;
-          broadcastState();
-          if (app.state.phase === 'CHAR_CREATE') hooks.checkAllCharactersReady();
-          if (app.state.phase === 'SCENARIO') hooks.checkAllActionsSubmitted();
-        }
+        if (app.state.phase === 'CHAR_CREATE') hooks.checkAllCharactersReady();
+        if (app.state.phase === 'SCENARIO') hooks.checkAllActionsSubmitted();
       }
-    });
+    }
+  };
+
+  conn.on('close', handleClose);
+  conn.on('error', (err) => {
+    console.warn('Host client connection error:', err);
   });
 }
 
@@ -326,29 +343,43 @@ export function clientJoinRoom() {
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 
-  const peer = new window.Peer();
+  const peer = new window.Peer(PEER_OPTIONS);
   app.peer = peer;
 
   peer.on('open', () => {
     const conn = peer.connect(PEER_PREFIX + code, { reliable: true });
     app.hostConn = conn;
 
+    let joinAccepted = false;
     const timeout = setTimeout(() => {
-      setLoadingOverlay(false);
-      showToast(`Could not find Room ${code}. Check the code with the Host!`, 'error');
-    }, 9000);
+      if (!joinAccepted) {
+        setLoadingOverlay(false);
+        showToast(`Could not connect to Room ${code}. Check the code with the Host!`, 'error');
+      }
+    }, 15000);
 
+    const sendJoinReq = () => {
+      if (joinAccepted) return;
+      try {
+        conn.send({
+          type: 'JOIN_REQUEST',
+          playerId: app.myId,
+          playerName: app.myName
+        });
+      } catch (e) {}
+    };
+
+    if (conn.open) {
+      sendJoinReq();
+    }
     conn.on('open', () => {
-      clearTimeout(timeout);
-      conn.send({
-        type: 'JOIN_REQUEST',
-        playerId: app.myId,
-        playerName: app.myName
-      });
+      sendJoinReq();
     });
 
     conn.on('data', (msg) => {
       if (msg.type === 'JOIN_ACCEPTED') {
+        joinAccepted = true;
+        clearTimeout(timeout);
         setLoadingOverlay(false);
         app.myId = msg.playerId;
         app.state = msg.state;
@@ -388,6 +419,8 @@ export function clientJoinRoom() {
         saveSessionToStorage();
         renderState();
       } else if (msg.type === 'JOIN_REJECTED') {
+        joinAccepted = true;
+        clearTimeout(timeout);
         setLoadingOverlay(false);
         showToast(msg.reason || 'Cannot join: The Host has already started the game!', 'error');
         leaveRoomToHome();
