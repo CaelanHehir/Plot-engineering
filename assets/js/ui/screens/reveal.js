@@ -275,44 +275,50 @@ export function renderRevealRankingsList(j) {
   const listEl = document.getElementById('reveal-rankings-list');
   if (!listEl || !j || !Array.isArray(j.rankings)) return;
 
-  listEl.innerHTML = j.rankings.map(r => {
-    const p = app.state.players.find(pl => pl.id === r.playerId);
-    const isMe = r.playerId === app.myId;
-    const avatarSrc = p?.character?.avatar ? p.character.avatar : '';
-    const charName = p?.character?.name || p?.name || 'Player';
-    const role = p?.character?.role || '';
-    const points = r.pointsAwarded || 0;
-
-    const rankBadgeClass = r.rank === 1 ? 'rank-1' : (r.rank === 2 ? 'rank-2' : (r.rank === 3 ? 'rank-3' : ''));
-
+  const showMoves = Boolean(app.state.settings?.revealMovesAfterStory || app.isHost);
+  listEl.innerHTML = j.rankings.map((r, i) => {
+    const p = app.state.players.find(pl => pl.id === r.playerId) || { name: 'Player' };
+    const playerMove = app.state.submissions ? app.state.submissions[p.id] : '';
+    const hasReadableMove = showMoves && playerMove && !playerMove.startsWith('(') && playerMove !== '__SECRET_ACTION__' && playerMove !== '__LOCKED_IN__';
+    const medal = i === 0 ? '1st' : (i === 1 ? '2nd' : (i === 2 ? '3rd' : `#${i + 1}`));
     const modsAddedHtml = (r.modifiersAdded || []).map(m => {
-      const meta = getModifierDisplayMeta(m);
-      return `<span class="badge ${meta.className}" title="${escapeHtml(meta.title)}">${escapeHtml(meta.label)}</span>`;
-    }).join(' ');
+      const { prefix, chipClass } = getModifierDisplayMeta(m);
+      return `
+        <span class="mod-chip mod-${chipClass}">
+          ${prefix ? `${escapeHtml(prefix)} ` : ''}<strong>${escapeHtml(m.name)}</strong>${m.description ? ` (${escapeHtml(m.description)})` : ''}
+        </span>
+      `;
+    }).join('');
 
     return `
-      <div class="ranking-item ${isMe ? 'ranking-item-me' : ''}">
+      <div class="ranking-card rank-${i + 1}" style="animation-delay: ${i * 0.07}s;">
         <div class="row-between">
-          <div class="row-gap" style="gap:0.75rem;">
-            <div class="ranking-rank-pill ${rankBadgeClass}">#${r.rank}</div>
-            ${renderAvatarHtml(avatarSrc, 'avatar-img-sm')}
+          <div class="rank-player-info">
+            <span class="rank-medal">${medal}</span>
+            ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
             <div>
-              <strong>${escapeHtml(charName)} ${isMe ? '<small style="color:var(--accent-gold);">(You)</small>' : ''}</strong>
-              <div class="text-muted tiny">${escapeHtml(role)}</div>
+              <strong>${escapeHtml(p.character?.name || p.name)}</strong>
+              ${i === 0 ? '<span class="rank-mvp-badge">★ MVP</span>' : ''}
+              <span class="award-title-badge">${escapeHtml(r.title)}</span>
             </div>
           </div>
-          <div class="ranking-points-col">
-            <span class="rank-points-num" data-target-pts="${points}">+0 pts</span>
-            <span class="badge badge-award">${escapeHtml(r.title || 'Scene Stealer')}</span>
+          <div class="rank-points">
+            <span class="rank-points-num" data-target-pts="${r.pointsAwarded || 0}">+${(r.pointsAwarded || 0).toLocaleString()} pts</span>
+            <div class="tiny text-muted">Total ${(p.score || 0).toLocaleString()}</div>
           </div>
         </div>
-        <div class="ranking-evaluation-text">${escapeHtml(r.evaluation || '')}</div>
+        ${hasReadableMove ? `
+          <div class="rank-move-quote">
+            <span class="tiny text-muted">Move:</span>
+            <blockquote class="action-quote">"${escapeHtml(hyphenateLongWords(playerMove))}"</blockquote>
+          </div>
+        ` : ''}
+        <p class="rank-eval">${escapeHtml(r.evaluation)}</p>
         ${modsAddedHtml ? `<div class="new-mods-row">${modsAddedHtml}</div>` : ''}
       </div>
     `;
   }).join('');
 }
-
 export function animateNumberCountUp(element, targetNum, duration = 600) {
   if (!element) return;
   if (targetNum <= 0) {

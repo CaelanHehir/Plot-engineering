@@ -135,41 +135,41 @@ export function renderGameOverScreen() {
 
   const leaderboardEl = document.getElementById('final-leaderboard-list');
   if (leaderboardEl) {
-    leaderboardEl.innerHTML = sorted.map((p, idx) => {
-      const isDead = Boolean(getPlayerMetaMod(p, 'DEAD'));
-      const activeMods = p.modifiers || [];
-      const rankLabel = getRankLabel(idx);
-
+    leaderboardEl.innerHTML = sorted.map((p, i) => {
+      const rankLabel = getRankLabel(i);
+      const rankNum = ranks[i];
+      const isWinner = rankNum === 1;
+      const rankClass = rankNum === 1 ? 'rank-gold' : (rankNum === 2 ? 'rank-silver' : (rankNum === 3 ? 'rank-bronze' : 'rank-default'));
       return `
-        <div class="leaderboard-item">
-          <div class="row-between">
-            <div class="row-gap" style="gap:0.75rem;">
-              <span class="leaderboard-rank">${rankLabel}</span>
-              ${renderAvatarHtml(p.character?.avatar, 'avatar-img-sm')}
-              <div>
-                <strong>${escapeHtml(p.character?.name || p.name)}</strong>
-                <div class="text-muted tiny">Played by ${escapeHtml(p.name)} &bull; ${escapeHtml(p.character?.role || 'Adventurer')}</div>
-              </div>
+        <div class="player-summary-card ${isWinner ? 'player-summary-winner' : ''}">
+          <div class="player-summary-header">
+            <div class="player-summary-avatar-wrap">
+              <span class="player-summary-rank-badge ${rankClass}">${rankLabel}</span>
+              ${renderAvatarHtml(p.character?.avatar, 'avatar-img')}
             </div>
-            <div style="text-align:right;">
-              <span class="leaderboard-score">${(p.score || 0).toLocaleString()} pts</span>
-              ${isDead ? '<div><span class="badge" style="background:var(--accent-red); color:#fff; font-size:0.65rem;">Dead</span></div>' : ''}
+            <div class="player-summary-info">
+              <h4 class="player-summary-char-name">${escapeHtml(p.character?.name || p.name)}</h4>
+              <div class="player-summary-meta">
+                <span class="player-summary-by">Played by <strong>${escapeHtml(p.name)}</strong></span>
+              </div>
+              <div class="player-summary-role">${escapeHtml(p.character?.role || 'Adventurer')}</div>
+            </div>
+            <div class="player-summary-score-badge">
+              <span class="score-num">${(p.score || 0).toLocaleString()}</span>
+              <span class="score-label">PTS</span>
             </div>
           </div>
-          ${activeMods.length > 0 ? `
-            <div class="mt-1" style="border-top:1px dashed var(--border); padding-top:0.35rem;">
-              <span class="tiny text-muted uppercase">Final Enduring Conditions:</span>
-              <div class="mt-tight">${renderModifierChips(activeMods)}</div>
-            </div>
-          ` : ''}
+          <div class="player-summary-traits">
+            <div class="player-summary-traits-label">Condition &amp; Modifiers</div>
+            <div class="modifier-chips">${renderModifierChips(p.modifiers)}</div>
+          </div>
         </div>
       `;
     }).join('');
   }
-
   const recapListEl = document.getElementById('final-campaign-recap-list');
   if (recapListEl) {
-    const showRecapMoves = Boolean(app.state.settings?.revealMovesAfterStory);
+    const showRecapMoves = Boolean(app.state.settings?.revealMovesAfterStory || app.isHost);
     recapListEl.innerHTML = roundHistory.map((h, idx) => {
       const cleanTitle = (h.roundTitle || `Round ${idx + 1}`).replace(/^(Act|Round)\s+[IVX0-9]+:\s*/i, '');
       const badgeClass = h.judgment?.outcome === 'FLYING_COLORS'
