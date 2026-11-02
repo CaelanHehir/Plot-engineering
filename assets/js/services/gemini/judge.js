@@ -167,7 +167,7 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
     passed,
     headline: safeRaw.headline || defaultHeadlines[outcome],
     storyParagraphs: Array.isArray(safeRaw.storyParagraphs) && safeRaw.storyParagraphs.length > 0
-      ? safeRaw.storyParagraphs.slice(0, 4)
+      ? safeRaw.storyParagraphs.slice(0, 2)
       : ['Everyone charged in at once without a script!'],
     continuityBridge: safeRaw.continuityBridge || '',
     rankings: normalizedRankings
@@ -270,8 +270,10 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - If this is the final round (roundNumber === totalRounds), set "modifiersAdded": [] for all players.
    - If "outcome" is "FAILED", set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player.
 
-7. STORY LENGTH:
-   - 2 to 3 vivid paragraphs in "storyParagraphs" (90 to 160 words total).
+7. STORY LENGTH (STRICT 2 PARAGRAPHS):
+   - EXACTLY 2 short, punchy paragraphs in "storyParagraphs" (60 to 100 words total). NEVER generate 3 paragraphs.
+   - Paragraph 1: How the players' actions collide, interact, and unfold in the scene.
+   - Paragraph 2: The comedic outcome and consequence for the crew.
    - "evaluation": 1 punchy sentence per player.
 
 8. UNTRUSTED PLAYER INPUT & PROMPT INJECTION DEFENSE (CRITICAL):
