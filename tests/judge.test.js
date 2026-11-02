@@ -96,7 +96,7 @@ describe('normalizeJudgeResult', () => {
     assert.equal(res.rankings[0].teamBonus, 300);
   });
 
-  it('forces FAILED when storyCoherentAndFunny or deliberateSolutionExists is false', () => {
+  it('forces FAILED when storyCoherentAndFunny or effortSufficient is false', () => {
     const players = makePlayers();
     const res1 = normalizeJudgeResult(
       { outcome: 'FLYING_COLORS', storyCoherentAndFunny: false },
@@ -107,18 +107,11 @@ describe('normalizeJudgeResult', () => {
     assert.ok(res1.rankings.every(r => r.pointsAwarded === 0));
 
     const res2 = normalizeJudgeResult(
-      { outcome: 'PASSED', deliberateSolutionExists: false },
+      { outcome: 'PASSED', effortSufficient: false },
       players
     );
     assert.equal(res2.outcome, 'FAILED');
     assert.equal(res2.passed, false);
-
-    const res3 = normalizeJudgeResult(
-      { outcome: 'PASSED', effortSufficient: false },
-      players
-    );
-    assert.equal(res3.outcome, 'FAILED');
-    assert.equal(res3.passed, false);
   });
 
   it('awards zero points and strips modifiers on FAILED outcome', () => {

@@ -41,7 +41,7 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
   const isLastRound = Boolean(options?.isLastRound);
   let outcome = String(safeRaw.outcome || '').toUpperCase().trim();
 
-  if (safeRaw.storyCoherentAndFunny === false || safeRaw.deliberateSolutionExists === false || safeRaw.effortSufficient === false) {
+  if (safeRaw.storyCoherentAndFunny === false || safeRaw.effortSufficient === false) {
     outcome = 'FAILED';
   } else if (!['FLYING_COLORS', 'PASSED', 'BARELY_PASSED', 'FAILED'].includes(outcome)) {
     if (safeRaw.passed === false || outcome.includes('FAIL')) {
