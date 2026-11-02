@@ -169,6 +169,53 @@ describe('normalizeJudgeResult', () => {
     assert.ok(p3Rank.pointsAwarded > 0);
   });
 
+  it('downgrades FLYING_COLORS to PASSED, marks sabotaged: true, zeroes points, and preserves debuffs for sabotaged players and failed saboteurs', () => {
+    const players = makePlayers();
+    const raw = {
+      outcome: 'FLYING_COLORS',
+      rankings: [
+        { playerId: 'p1', rank: 1, title: 'Sneaky Saboteur' },
+        {
+          playerId: 'p2',
+          rank: 2,
+          title: 'Tripped Victim',
+          sabotaged: true,
+          modifiersAdded: [{ name: 'Grease-Stained', type: 'debuff', metaEffect: 'NONE', description: 'Covered in slime' }]
+        },
+        {
+          playerId: 'p3',
+          rank: 3,
+          title: 'Clumsy Attacker',
+          sabotaged: true,
+          modifiersAdded: [{ name: 'Sprained Ankle', type: 'debuff', metaEffect: 'NONE', description: 'Tripped during failed lunge' }]
+        }
+      ]
+    };
+
+    const res = normalizeJudgeResult(raw, players);
+    assert.equal(res.outcome, 'PASSED');
+
+    const p2Rank = res.rankings.find(r => r.playerId === 'p2');
+    assert.equal(p2Rank.sabotaged, true);
+    assert.equal(p2Rank.teamBonus, 0);
+    assert.equal(p2Rank.rankBonus, 0);
+    assert.equal(p2Rank.pointsAwarded, 0);
+    assert.equal(p2Rank.modifiersAdded.length, 1);
+    assert.equal(p2Rank.modifiersAdded[0].name, 'Grease-Stained');
+    assert.equal(p2Rank.modifiersAdded[0].type, 'debuff');
+
+    const p3Rank = res.rankings.find(r => r.playerId === 'p3');
+    assert.equal(p3Rank.sabotaged, true);
+    assert.equal(p3Rank.pointsAwarded, 0);
+    assert.equal(p3Rank.modifiersAdded.length, 1);
+    assert.equal(p3Rank.modifiersAdded[0].name, 'Sprained Ankle');
+
+    const p1Rank = res.rankings.find(r => r.playerId === 'p1');
+    assert.equal(p1Rank.sabotaged, false);
+    assert.ok(p1Rank.pointsAwarded > 0);
+    assert.equal(p1Rank.rank, 1);
+  });
+
   it('excludes already-DEAD players from scoring and marks them Deceased', () => {
     const players = makePlayers();
     players[0].modifiers = [{ name: 'Vaporized', type: 'meta', metaEffect: 'DEAD', description: 'Gone' }];

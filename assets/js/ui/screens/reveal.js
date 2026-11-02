@@ -299,6 +299,7 @@ export function renderRevealRankingsList(j) {
             <div>
               <strong>${escapeHtml(p.character?.name || p.name)}</strong>
               ${i === 0 ? '<span class="rank-mvp-badge">★ MVP</span>' : ''}
+              ${r.sabotaged ? '<span class="rank-sabotaged-badge">Sabotaged</span>' : ''}
               <span class="award-title-badge">${escapeHtml(r.title)}</span>
             </div>
           </div>

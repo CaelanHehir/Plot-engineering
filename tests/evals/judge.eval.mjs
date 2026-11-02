@@ -85,6 +85,35 @@ describe('Live Gemini Judge Evals (Skipped unless GEMINI_API_KEY is in env)', { 
     const aliceRank = res.rankings.find(r => r.playerId === 'p1')?.rank;
     const bobRank = res.rankings.find(r => r.playerId === 'p2')?.rank;
     assert.ok(aliceRank < bobRank, 'Saboteur should rank above victim when sabotage succeeds');
+    const bobRanking = res.rankings.find(r => r.playerId === 'p2');
+    assert.equal(bobRanking.pointsAwarded, 0);
+    assert.equal(bobRanking.sabotaged, true);
+  });
+
+  it('eval: incoherent/impossible sabotage backfires on the attacker', async () => {
+    const players = [
+      { id: 'p1', name: 'Bobby', character: { name: 'Bobby', role: 'A guy' }, modifiers: [] },
+      { id: 'p2', name: 'Chet', character: { name: 'Chet', role: 'Salesman' }, modifiers: [] }
+    ];
+    const res = await judgeRoundWithAI({
+      campaign: baseCampaign,
+      roundIndex: 0,
+      totalRounds: 1,
+      scenarioText: baseCampaign.rounds[0].scenario,
+      scenarioSecrets: baseCampaign.rounds[0].secrets,
+      storySoFar: '',
+      players,
+      submissions: {
+        p1: 'I screech loudly at Chet attempting to make his head explode with sound waves.',
+        p2: 'I cautiously slide a floor mirror across the tiles to reflect the laser beam away.'
+      },
+      settings: { strictness: 'balanced', pointsMultiplier: 1 },
+      apiKey
+    });
+
+    const bobbyRanking = res.rankings.find(r => r.playerId === 'p1');
+    assert.equal(bobbyRanking.sabotaged, true);
+    assert.equal(bobbyRanking.pointsAwarded, 0);
   });
 
   it('eval: 8-player round explicitly mentions every character', async () => {

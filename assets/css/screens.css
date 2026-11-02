@@ -1572,6 +1572,22 @@
   overflow: hidden;
 }
 
+.rank-sabotaged-badge {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: #7c4dff;
+  color: #ffffff;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--wobbly-pill);
+  border: 1.5px solid var(--ink);
+  box-shadow: 1.5px 1.5px 0px var(--ink);
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  display: inline-block;
+}
+
 .rank-mvp-badge {
   font-family: var(--font-display);
   font-size: 0.72rem;

@@ -70,11 +70,12 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
     if (p && !seenIds.has(p.id)) {
       if (getPlayerMetaMod(p, 'DEAD')) continue;
       seenIds.add(p.id);
+      const isSabotaged = Boolean(r.sabotaged);
       const cleanModsAdded = (!passed || isLastRound)
         ? []
         : (Array.isArray(r.modifiersAdded) ? r.modifiersAdded.slice(0, 2) : []).map(m => ({
             name: m?.name || 'Condition',
-            type: ['buff', 'debuff', 'meta'].includes(m?.type) ? m.type : 'debuff',
+            type: isSabotaged ? 'debuff' : (['buff', 'debuff', 'meta'].includes(m?.type) ? m.type : 'debuff'),
             metaEffect: ['NONE', 'SKIP_TURN', 'DEAD', 'WORD_LIMIT', 'BLINDED_SCENARIO'].includes(m?.metaEffect)
               ? m.metaEffect
               : 'NONE',
@@ -90,6 +91,7 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
         rank: normalizedRankings.length + 1,
         title: r.title || 'Scene Stealer',
         evaluation: r.evaluation || 'Committed to the bit!',
+        sabotaged: isSabotaged,
         modifiersAdded: cleanModsAdded,
         modifiersRemoved: cleanModsRemoved
       });
@@ -106,16 +108,17 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
         rank: normalizedRankings.length + 1,
         title: isDead ? 'Deceased' : 'Background Extra',
         evaluation: isDead ? `${charName} did nothing, they are dead.` : 'Watched the chaos unfold.',
+        sabotaged: false,
         modifiersAdded: [],
         modifiersRemoved: []
       });
     }
   }
 
-  const hadCasualtiesOrLockouts = normalizedRankings.some(r =>
-    (r.modifiersAdded || []).some(m => m.metaEffect === 'DEAD' || m.metaEffect === 'SKIP_TURN')
+  const hadCasualtiesOrSabotage = normalizedRankings.some(r =>
+    r.sabotaged || (r.modifiersAdded || []).some(m => m.metaEffect === 'DEAD' || m.metaEffect === 'SKIP_TURN')
   );
-  if (outcome === 'FLYING_COLORS' && hadCasualtiesOrLockouts) {
+  if (outcome === 'FLYING_COLORS' && hadCasualtiesOrSabotage) {
     outcome = 'PASSED';
   }
 
@@ -137,7 +140,7 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
         item.title = 'Deceased';
         item.evaluation = `${pl ? (pl.character?.name || pl.name) : 'Player'} did nothing, they are dead.`;
       }
-    } else if (gotDeadOrLockedOut) {
+    } else if (gotDeadOrLockedOut || item.sabotaged) {
       item.teamBonus = 0;
       item.rankBonus = 0;
       item.pointsAwarded = 0;
@@ -244,28 +247,39 @@ CORE PHILOSOPHY: FUNNY STORIES OVER REALISTIC SOLUTIONS!
 ================================================================================
 CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
 ================================================================================
-1. FUNNY & UNREALISTIC ANSWERS MUST BE ALLOWED TO WORK IF THEY COORDINATE/COHERE:
+1. FUNNY & UNREALISTIC ANSWERS MUST BE ALLOWED TO WORK IF THEY COORDINATE/COHERE (EXCEPT IN SABOTAGE):
    - Do NOT penalize players for cartoon physics, absurd comedy, or unrealistic ideas!
    - A funny answer—even if wildly unrealistic, over-the-top, or cartoon logic—MUST BE ALLOWED TO WORK if it works with the other players' answers or fits coherently into the comedic scene!
    - Use "scenarioSecrets" as comedic flavor, personality hooks, and improv fuel—NOT as rigid realism rules to shut down funny coordinated plans.
+   - EXCEPTION: If a player is targeted by a coherent sabotage or attempts an incoherent sabotage, Rule 4 takes absolute priority!
 
 2. THE STORY MUST EXPLICITLY CONTAIN WHAT EACH CHARACTER DID (NO VAGUE REFERENCES!):
-   - In "storyParagraphs", you MUST explicitly name EVERY SINGLE character and directly narrate the specific action they submitted!
+   - In "storyParagraphs", you MUST explicitly name EVERY SINGLE character and directly narrate what happened with their submitted action!
    - NEVER vaguely reference, summarize, or skip a player's action.
-   - If a player wrote a specific action, the story MUST show that character actually doing that exact thing and how it interacted with everyone else's actions!
+   - IF A PLAYER WAS SABOTAGED OR THWARTED: Narrate how their attempt was interrupted, tackled, blocked, or ruined by the saboteur or backfire! Do NOT have their submitted move succeed in parallel (Rule 4 supersedes Rule 2).
 
 3. DO NOT PUT QUOTES AROUND CHARACTER NAMES, ROLES, ITEMS, OR QUIRKS:
    - NEVER put quotation marks around player characters' names, roles, items, perks, or quirks in "storyParagraphs" or "evaluation".
    - Only use quotation marks when a character is speaking actual dialogue out loud.
 
-4. SABOTAGE, BETRAYAL & PUNISHMENTS (VIABLE STRATEGY & REAL TEETH!):
-   - SABOTAGE IS FULLY VIABLE & REWARDED: Players are completely allowed and encouraged to target, hinder, backstab, or narc on each other! Reward clever saboteurs with top rankings.
-   - NO MIRACLE RESCUES OR FREE PASSES: DO NOT invent third-party miracles or lucky coincidences to bail out sabotaged players!
-   - SABOTAGED ACTIONS FAIL: When a player is successfully sabotaged, their action fails completely.
-   - VARYING PUNISHMENTS FOR THE VICTIM:
-     * MILD: Action fails, low rank, embarrassing debuff.
-     * MODERATE / INCAPACITATING: Miss next round action ("SKIP_TURN"). Awarded 0 points for this round.
-     * SEVERE / FATAL: Dies and eliminated ("DEAD"). Awarded 0 points and cannot act in future rounds.
+4. SABOTAGE, BETRAYAL & PUNISHMENTS (SUPERSEDES ALL OTHER RULES — REAL TEETH!):
+   - SABOTAGE TAKES ABSOLUTE PRIORITY OVER RULES 1 & 2: When one player targets, attacks, hinders, or backstabs another, the sabotage outcome dictates what happens in the story. DO NOT narrate both players' actions succeeding in parallel!
+   - COHERENCE REQUIREMENT (CRUCIAL): Sabotage ONLY works if the plan is COHERENT, plausible in the scene, and uses tangible actions, props, or the physical environment.
+     * WHAT CONSTITUTES AN INCOHERENT / IMPOSSIBLE SABOTAGE:
+       - Attempting impossible superhero/god powers without having that explicit ability (e.g. a normal human guy trying to "make a head explode with sound waves" just by screeching).
+       - Vague, nonsensical, or ungrounded attacks with no tangible mechanism (e.g. "I delete Bob from existence").
+       - Sabotaging someone who isn't physically near, or trying to dictate what another player does.
+     * WHEN SABOTAGE FAILS (BACKFIRES ON THE ATTACKER):
+       - If a player attempts an impossible, incoherent, or clumsy sabotage, THE SABOTAGE MUST FAIL AND BACKFIRE ON THE ATTACKER!
+       - In the story, the attacker trips, fumbles, slips on props, gets counter-attacked, or gets caught in their own trap or another player's move (e.g. lunging screeching at a rival, tripping, and faceplanting into the danger).
+       - The attacker is marked with "sabotaged": true, receives 0 points for the round, receives an embarrassing negative debuff or injury trait, and is ranked at the bottom.
+     * WHEN SABOTAGE SUCCEEDS (VICTIM THWARTED COMPLETELY):
+       - If the sabotage plan is coherent and grounded in the scene, THE VICTIM'S ACTION IS COMPLETELY INTERRUPTED AND FAILS!
+       - In the story, narrate how the victim is tackled, blocked, framed, restrained, or hindered. The victim does NOT execute their submitted plan!
+       - The victim is marked with "sabotaged": true, receives 0 points for the round, and receives a negative trait (e.g. embarrassing debuff, "SKIP_TURN" lockout, or "DEAD" if fatal).
+       - The clever saboteur is rewarded with top ranking, high score, and praise.
+   - NO MIRACLE RESCUES: DO NOT invent third-party miracles or coincidences to bail out a sabotaged player or a backfired saboteur.
+   - CATASTROPHIC INFIGHTING CAUSES ROUND FAILURE: If players spend their moves fighting or sabotaging each other instead of dealing with the scene's crisis or escape objective (e.g. brawling on the helipad while the helicopter leaves without them), set "outcome": "FAILED"! Infighting that ruins the mission is a catastrophic failure.
 
 5. EFFORT & SCENE ENGAGEMENT (ANTI-PHONING-IT-IN RULE):
    - A move must be an actual, in-universe character action attempt that engages with the scene or other players.
@@ -331,6 +345,7 @@ Return ONLY valid JSON matching this exact schema:
       "rank": 1,
       "title": "Award Title",
       "evaluation": "Praise or roast sentence.",
+      "sabotaged": false,
       "modifiersAdded": [
         {
           "name": "Condition Name",
