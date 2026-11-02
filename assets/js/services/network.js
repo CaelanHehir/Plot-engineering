@@ -206,19 +206,32 @@ export function handleClientMessageOnHost(conn, msg) {
       }
 
       const recordedToken = app.playerTokens[existing.id];
-      if (recordedToken && recordedToken !== providedToken) {
-        try {
-          conn.send({
-            type: 'JOIN_REJECTED',
-            reason: 'Seat authentication failed. Please rejoin with a new name.'
-          });
-        } catch (e) {}
-        setTimeout(() => { try { conn.close(); } catch (e) {} }, 80);
-        return;
-      }
-
-      if (providedToken && !recordedToken) {
-        app.playerTokens[existing.id] = providedToken;
+      if (recordedToken) {
+        if (recordedToken !== providedToken) {
+          try {
+            conn.send({
+              type: 'JOIN_REJECTED',
+              reason: 'Seat authentication failed. Please rejoin with a new name.'
+            });
+          } catch (e) {}
+          setTimeout(() => { try { conn.close(); } catch (e) {} }, 80);
+          return;
+        }
+      } else {
+        const isCurrentlyConnected = Boolean(app.clientConns[existing.id] && app.clientConns[existing.id].open);
+        if (isCurrentlyConnected) {
+          try {
+            conn.send({
+              type: 'JOIN_REJECTED',
+              reason: 'Seat is currently occupied.'
+            });
+          } catch (e) {}
+          setTimeout(() => { try { conn.close(); } catch (e) {} }, 80);
+          return;
+        }
+        if (providedToken) {
+          app.playerTokens[existing.id] = providedToken;
+        }
       }
 
       const playerId = existing.id;
@@ -377,11 +390,12 @@ export function clientJoinRoom() {
   sessionStorage.setItem('plot_engineering_player_id', app.myId);
   sessionStorage.setItem('plot_engineering_room_code', code);
   sessionStorage.setItem('plot_engineering_player_name', name);
-  let playerToken = sessionStorage.getItem('plot_engineering_player_token');
+  const roomTokenKey = `plot_engineering_player_token_${code}`;
+  let playerToken = sessionStorage.getItem(roomTokenKey) || sessionStorage.getItem('plot_engineering_player_token');
   if (!playerToken) {
     playerToken = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now().toString(36));
-    sessionStorage.setItem('plot_engineering_player_token', playerToken);
   }
+  sessionStorage.setItem(roomTokenKey, playerToken);
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 
