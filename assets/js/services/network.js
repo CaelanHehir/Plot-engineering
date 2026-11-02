@@ -188,14 +188,43 @@ export function handleClientMessageOnHost(conn, msg) {
   if (msg.type === 'JOIN_REQUEST') {
     const rawId = typeof msg.playerId === 'string' ? msg.playerId.trim() : '';
     const safeProvidedId = /^[a-z0-9-]{3,24}$/i.test(rawId) ? rawId : null;
+    const providedToken = typeof msg.token === 'string' ? msg.token.trim() : '';
+
+    if (!app.playerTokens) app.playerTokens = {};
 
     let existing = safeProvidedId ? app.state.players.find(p => p.id === safeProvidedId) : null;
     if (existing) {
+      if (existing.isHost || existing.isBot) {
+        try {
+          conn.send({
+            type: 'JOIN_REJECTED',
+            reason: 'Cannot claim host or bot seat.'
+          });
+        } catch (e) {}
+        setTimeout(() => { try { conn.close(); } catch (e) {} }, 80);
+        return;
+      }
+
+      const recordedToken = app.playerTokens[existing.id];
+      if (recordedToken && recordedToken !== providedToken) {
+        try {
+          conn.send({
+            type: 'JOIN_REJECTED',
+            reason: 'Seat authentication failed. Please rejoin with a new name.'
+          });
+        } catch (e) {}
+        setTimeout(() => { try { conn.close(); } catch (e) {} }, 80);
+        return;
+      }
+
+      if (providedToken && !recordedToken) {
+        app.playerTokens[existing.id] = providedToken;
+      }
+
       const playerId = existing.id;
       conn.playerId = playerId;
       app.clientConns[playerId] = conn;
       existing.disconnected = false;
-      if (msg.playerName) existing.name = msg.playerName.slice(0, 24);
 
       conn.send({
         type: 'JOIN_ACCEPTED',
@@ -215,7 +244,7 @@ export function handleClientMessageOnHost(conn, msg) {
         });
       } catch (e) {}
       setTimeout(() => {
-        try { conn.close(); } catch (e) {}
+        try { conn.close(); } catch (e) {} 
       }, 80);
       return;
     }
@@ -228,7 +257,7 @@ export function handleClientMessageOnHost(conn, msg) {
         });
       } catch (e) {}
       setTimeout(() => {
-        try { conn.close(); } catch (e) {}
+        try { conn.close(); } catch (e) {} 
       }, 80);
       return;
     }
@@ -236,8 +265,12 @@ export function handleClientMessageOnHost(conn, msg) {
     const playerId = safeProvidedId || ('p-' + Math.random().toString(36).slice(2, 9));
     conn.playerId = playerId;
     app.clientConns[playerId] = conn;
+    if (providedToken) {
+      app.playerTokens[playerId] = providedToken;
+    }
 
-    const finalName = disambiguatePlayerName(msg.playerName || 'Player', app.state.players);
+    const rawPlayerName = typeof msg.playerName === 'string' ? msg.playerName.trim() : '';
+    const finalName = disambiguatePlayerName(rawPlayerName || 'Player', app.state.players);
 
     const newPlayer = {
       id: playerId,
@@ -342,6 +375,11 @@ export function clientJoinRoom() {
   sessionStorage.setItem('plot_engineering_player_id', app.myId);
   sessionStorage.setItem('plot_engineering_room_code', code);
   sessionStorage.setItem('plot_engineering_player_name', name);
+  let playerToken = sessionStorage.getItem('plot_engineering_player_token');
+  if (!playerToken) {
+    playerToken = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now().toString(36));
+    sessionStorage.setItem('plot_engineering_player_token', playerToken);
+  }
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 
@@ -366,7 +404,8 @@ export function clientJoinRoom() {
         conn.send({
           type: 'JOIN_REQUEST',
           playerId: app.myId,
-          playerName: app.myName
+          playerName: app.myName,
+          token: playerToken
         });
       } catch (e) {}
     };
@@ -577,6 +616,7 @@ export function leaveRoomToHome() {
   const hostConnToClose = app.hostConn;
 
   app.clientConns = {};
+  app.playerTokens = {};
   app.hostConn = null;
   app.peer = null;
   app.isHost = false;

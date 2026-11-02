@@ -19,6 +19,7 @@ export function saveSessionToStorage() {
       myId: app.myId,
       lobbyView: app.lobbyView,
       charCreateStep: app.charCreateStep,
+      playerTokens: app.isHost ? (app.playerTokens || {}) : undefined,
       state: app.isHost ? app.state : {
         phase: app.state.phase,
         roomCode: app.state.roomCode,

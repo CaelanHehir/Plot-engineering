@@ -573,6 +573,7 @@ async function initUI() {
       app.state = activeSession.state;
       app.lobbyView = activeSession.lobbyView || 'cast';
       app.charCreateStep = activeSession.charCreateStep || 1;
+      app.playerTokens = activeSession.playerTokens || {};
 
       const peer = new window.Peer(PEER_PREFIX + activeSession.roomCode, PEER_OPTIONS);
       app.peer = peer;

@@ -35,6 +35,8 @@ export const app = {
   revealWindow: 'story',
   /** Active sub-window on GAME_OVER screen: 'results' | 'players' | 'recap' */
   gameOverWindow: 'results',
+  /** Player authentication secrets mapped by playerId { [playerId]: token } (Host only, never sent to clients) */
+  playerTokens: {},
 
   // Authoritative State (managed by Host, synchronized to Clients)
   state: {
