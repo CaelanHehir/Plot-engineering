@@ -262,24 +262,19 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - NEVER put quotation marks around player characters' names, roles, items, perks, or quirks in "storyParagraphs" or "evaluation".
    - Only use quotation marks when a character is speaking actual dialogue out loud.
 
-4. SABOTAGE, BETRAYAL & PUNISHMENTS (SUPERSEDES ALL OTHER RULES — REAL TEETH!):
-   - SABOTAGE TAKES ABSOLUTE PRIORITY OVER RULES 1 & 2: When one player targets, attacks, hinders, or backstabs another, the sabotage outcome dictates what happens in the story. DO NOT narrate both players' actions succeeding in parallel!
-   - COHERENCE REQUIREMENT (CRUCIAL): Sabotage ONLY works if the plan is COHERENT, plausible in the scene, and uses tangible actions, props, or the physical environment.
-     * WHAT CONSTITUTES AN INCOHERENT / IMPOSSIBLE SABOTAGE:
-       - Attempting impossible superhero/god powers without having that explicit ability (e.g. a normal human guy trying to "make a head explode with sound waves" just by screeching).
-       - Vague, nonsensical, or ungrounded attacks with no tangible mechanism (e.g. "I delete Bob from existence").
-       - Sabotaging someone who isn't physically near, or trying to dictate what another player does.
-     * WHEN SABOTAGE FAILS (BACKFIRES ON THE ATTACKER):
-       - If a player attempts an impossible, incoherent, or clumsy sabotage, THE SABOTAGE MUST FAIL AND BACKFIRE ON THE ATTACKER!
-       - In the story, the attacker trips, fumbles, slips on props, gets counter-attacked, or gets caught in their own trap or another player's move (e.g. lunging screeching at a rival, tripping, and faceplanting into the danger).
-       - The attacker is marked with "sabotaged": true, receives 0 points for the round, receives an embarrassing negative debuff or injury trait, and is ranked at the bottom.
-     * WHEN SABOTAGE SUCCEEDS (VICTIM THWARTED COMPLETELY):
-       - If the sabotage plan is coherent and grounded in the scene, THE VICTIM'S ACTION IS COMPLETELY INTERRUPTED AND FAILS!
-       - In the story, narrate how the victim is tackled, blocked, framed, restrained, or hindered. The victim does NOT execute their submitted plan!
-       - The victim is marked with "sabotaged": true, receives 0 points for the round, and receives a negative trait (e.g. embarrassing debuff, "SKIP_TURN" lockout, or "DEAD" if fatal).
-       - The clever saboteur is rewarded with top ranking, high score, and praise.
-   - NO MIRACLE RESCUES: DO NOT invent third-party miracles or coincidences to bail out a sabotaged player or a backfired saboteur.
-   - CATASTROPHIC INFIGHTING CAUSES ROUND FAILURE: If players spend their moves fighting or sabotaging each other instead of dealing with the scene's crisis or escape objective (e.g. brawling on the helipad while the helicopter leaves without them), set "outcome": "FAILED"! Infighting that ruins the mission is a catastrophic failure.
+4. SABOTAGE, BETRAYAL & MUTUAL CLASHES (EVALUATE LOGICALLY):
+   - EVALUATE THE SITUATION LOGICALLY BASED ON WHAT WAS SUBMITTED:
+     * When one player targets, hinders, or backstabs another, evaluate what actually makes logical sense based on both submitted actions, the scene hazards, and physical positioning.
+     * NO INVENTED PLOT ARMOR OR UNREALISTIC DODGES: Only treat a character as anticipating, dodging, or countering an attack if their submitted action actually accounted for it, set up a defense, or makes clear tactical sense. Never invent unearned plot armor or instant reflexes for an unsuspecting character.
+   - MUTUAL SABOTAGE (SIMULTANEOUS CLASHES):
+     * If two players target or attack each other in the same round without defensive measures, evaluate it logically as a chaotic mutual clash, collision, or double-fumble where both players are affected and penalized. Do not arbitrarily declare one player the flawless winner.
+   - COHERENCE REQUIREMENT:
+     * Sabotage only works if the plan is coherent and plausible in the scene.
+     * Incoherent or impossible attacks (e.g. attempting superpowers without having them, or vague nonsense) fail and backfire on the attacker (they trip, fumble, or get caught in hazards).
+   - OUTCOMES & SCORING:
+     * When a player is successfully sabotaged, or when an attacker attempts an incoherent sabotage that backfires, or during mutual clashes: mark affected players with "sabotaged": true (awarding 0 points for the round and possible negative traits/debuffs).
+     * Ranking should reflect overall comedic contribution and who actually handled the situation or escaped; a saboteur does not automatically get first place.
+   - CATASTROPHIC INFIGHTING: If players spend their moves fighting each other instead of resolving the scene's crisis or escape objective, set "outcome": "FAILED".
 
 5. EFFORT & SCENE ENGAGEMENT (ANTI-PHONING-IT-IN RULE):
    - A move must be an actual, in-universe character action attempt that engages with the scene or other players.
