@@ -385,6 +385,26 @@ export function clientJoinRoom() {
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 
+  // Teardown any lingering previous connection and peer before creating a new one
+  if (app.hostConn) {
+    try {
+      if (typeof app.hostConn.removeAllListeners === 'function') {
+        app.hostConn.removeAllListeners();
+      }
+      app.hostConn.close();
+    } catch (e) {}
+    app.hostConn = null;
+  }
+  if (app.peer) {
+    try {
+      if (typeof app.peer.removeAllListeners === 'function') {
+        app.peer.removeAllListeners();
+      }
+      app.peer.destroy();
+    } catch (e) {}
+    app.peer = null;
+  }
+
   const peer = new window.Peer(PEER_OPTIONS);
   app.peer = peer;
 
