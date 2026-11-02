@@ -264,11 +264,11 @@ summary:focus-visible {
 /* ==================== STEP 5 & 7: MOBILE-FIRST DASHBOARDS ==================== */
 /* Base mobile layout: single-column stack, auto-fitting content */
 .dashboard-2col,
-.dashboard-lobby,
 .dashboard-equal,
 .dashboard-3col {
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr);
   gap: 0.75rem;
   flex: 1;
   min-height: 0;
@@ -276,12 +276,30 @@ summary:focus-visible {
   padding: 0.25rem;
 }
 
+.dashboard-lobby {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.25rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-lobby > #lobby-left-col,
+.dashboard-lobby > #lobby-right-col {
+  flex: 0 0 auto;
+}
+
 .dashboard-2col > .card,
 .dashboard-lobby > .card,
 .dashboard-equal > .card,
 .dashboard-3col > .card {
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Responsive flex rows: allow wrapping and permit children to shrink */
@@ -439,8 +457,17 @@ summary:focus-visible {
   }
 
   .dashboard-lobby {
+    display: grid;
     grid-template-columns: minmax(18rem, 22rem) 1fr;
+    grid-template-rows: minmax(0, 1fr);
     gap: 1.125rem;
+    overflow: hidden;
+  }
+
+  .dashboard-lobby > #lobby-left-col,
+  .dashboard-lobby > #lobby-right-col {
+    min-height: 0;
+    height: 100%;
   }
 
   .dashboard-equal {

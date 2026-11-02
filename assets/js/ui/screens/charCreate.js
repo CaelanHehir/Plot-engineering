@@ -95,6 +95,9 @@ export function renderCharCreateScreen() {
   if (stepBtn1) stepBtn1.classList.toggle('active', step === 1);
   if (stepBtn2) stepBtn2.classList.toggle('active', step === 2);
   updateCharCreateStepProgress();
+  if (step === 2 && !isReady) {
+    requestAnimationFrame(() => syncCanvasToContainer());
+  }
 
   const statusEl = document.getElementById('char-ready-list');
   if (statusEl) {

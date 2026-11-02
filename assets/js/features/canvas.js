@@ -158,10 +158,30 @@ export function initDrawingCanvas() {
 export function syncCanvasToContainer(forceRepaint = false) {
   const canvas = drawState.canvas;
   if (!canvas) return;
-  const rect = canvas.getBoundingClientRect();
-  const targetW = Math.round(rect.width);
-  const targetH = Math.round(rect.height);
-  const side = Math.min(targetW, targetH);
+
+  const areaEl = canvas.closest('.full-sketchpad-canvas-area');
+  const layoutEl = canvas.closest('.sketchpad-stage-layout');
+  const toolbarEl = layoutEl?.querySelector('.sketchpad-side-toolbar');
+
+  let side = 0;
+  if (layoutEl && areaEl) {
+    const layoutRect = layoutEl.getBoundingClientRect();
+    const toolbarW = toolbarEl ? toolbarEl.getBoundingClientRect().width : 44;
+    const availW = Math.max(0, layoutRect.width - toolbarW - 14);
+    const availH = Math.max(0, layoutRect.height - 4);
+    side = Math.floor(Math.min(availW, availH));
+    if (side >= 40) {
+      areaEl.style.width = `${side}px`;
+      areaEl.style.height = `${side}px`;
+    }
+  }
+
+  if (side < 40) {
+    const rect = canvas.getBoundingClientRect();
+    const targetW = Math.round(rect.width);
+    const targetH = Math.round(rect.height);
+    side = Math.min(targetW, targetH);
+  }
   if (side < 40) return;
 
   const sizeChanged = Math.abs(canvas.width - side) > 2 || Math.abs(canvas.height - side) > 2;
