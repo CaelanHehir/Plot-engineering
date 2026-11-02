@@ -95,7 +95,8 @@ export function friendlyAiError(err) {
   if (err.name === 'AbortError' || err.code === 'TIMEOUT' || err.message?.includes('aborted') || err.message?.includes('timed out')) {
     return 'The AI request timed out. Please try again.';
   }
-  if (err.code === 'INVALID' || err.message?.toLowerCase().includes('api key') || err.message?.includes('400') || err.message?.includes('401') || err.message?.includes('403')) {
+  const errMsg = String(err.message || '');
+  if (err.code === 'INVALID' || errMsg.toLowerCase().includes('api key') || /\b40[13]\b/.test(errMsg)) {
     return 'Invalid AI key. Please check your key in the menu.';
   }
   if (err.code === 'RATE' || err.message?.includes('429')) {
