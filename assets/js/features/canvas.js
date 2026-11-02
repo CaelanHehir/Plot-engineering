@@ -10,8 +10,11 @@
  * 6. Procedural fallback vector portrait generator for AI bots and AFK players.
  */
 
+import { DRAW_COLORS } from '../data/campaigns.js';
+import { updateCharCreateStepProgress } from '../ui/screens/charCreate.js';
+
 /** Drawing state singleton */
-const drawState = {
+export const drawState = {
   /** @type {HTMLCanvasElement|null} */
   canvas: null,
   /** @type {CanvasRenderingContext2D|null} */
@@ -31,7 +34,7 @@ const drawState = {
 /**
  * Initializes the character sketchpad canvas element, event listeners, and color palette.
  */
-function initDrawingCanvas() {
+export function initDrawingCanvas() {
   const canvas = document.getElementById('char-canvas');
   if (!canvas) return;
   drawState.canvas = canvas;
@@ -85,7 +88,7 @@ function initDrawingCanvas() {
     saveCanvasSnapshot();
     drawState.isDrawing = true;
     drawState.hasDrawn = true;
-    if (typeof updateCharCreateStepProgress === 'function') updateCharCreateStepProgress();
+    updateCharCreateStepProgress();
     const pos = getPos(e);
     drawState.lastX = pos.x;
     drawState.lastY = pos.y;
@@ -152,7 +155,7 @@ function initDrawingCanvas() {
  * 
  * @param {boolean} [forceRepaint=false] - Force re-initialization and fill with white
  */
-function syncCanvasToContainer(forceRepaint = false) {
+export function syncCanvasToContainer(forceRepaint = false) {
   const canvas = drawState.canvas;
   if (!canvas) return;
   const rect = canvas.getBoundingClientRect();
@@ -198,7 +201,7 @@ function syncCanvasToContainer(forceRepaint = false) {
  * Selects active drawing color from the palette and disables eraser mode.
  * @param {string} color - Hex color code
  */
-function selectDrawColor(color) {
+export function selectDrawColor(color) {
   drawState.color = color;
   drawState.isEraser = (color.toLowerCase() === '#ffffff');
   const indicator = document.getElementById('sketch-color-indicator');
@@ -214,7 +217,7 @@ function selectDrawColor(color) {
  * Toggles or sets dedicated eraser mode with a wider brush.
  * @param {boolean} [active=true]
  */
-function setEraserMode(active = true) {
+export function setEraserMode(active = true) {
   drawState.isEraser = Boolean(active);
   if (drawState.isEraser) {
     selectDrawColor('#ffffff');
@@ -227,7 +230,7 @@ function setEraserMode(active = true) {
  * Selects brush width in pixels.
  * @param {number} size - Stroke width (3, 6, 12, etc.)
  */
-function selectBrushSize(size) {
+export function selectBrushSize(size) {
   const numSize = Number(size) || 6;
   drawState.brushSize = numSize;
   const indicator = document.getElementById('sketch-thickness-indicator');
@@ -245,7 +248,7 @@ function selectBrushSize(size) {
 /**
  * Saves a snapshot of the current canvas to the undo history stack (max 15 steps).
  */
-function saveCanvasSnapshot() {
+export function saveCanvasSnapshot() {
   if (!drawState.canvas) return;
   if (drawState.history.length >= 15) drawState.history.shift();
   drawState.history.push(drawState.canvas.toDataURL());
@@ -254,13 +257,13 @@ function saveCanvasSnapshot() {
 /**
  * Reverts the canvas to the most recent snapshot in the undo history stack.
  */
-function undoCanvasStroke() {
+export function undoCanvasStroke() {
   if (!drawState.canvas || drawState.history.length === 0) return;
   const lastUrl = drawState.history.pop();
   if (drawState.history.length === 0) {
     drawState.hasDrawn = false;
   }
-  if (typeof updateCharCreateStepProgress === 'function') updateCharCreateStepProgress();
+  updateCharCreateStepProgress();
   const img = new Image();
   img.onload = () => {
     drawState.ctx.clearRect(0, 0, drawState.canvas.width, drawState.canvas.height);
@@ -273,14 +276,13 @@ function undoCanvasStroke() {
  * Clears the drawing canvas back to white paper.
  * @param {boolean} recordUndo - Whether to record snapshot before wiping
  */
-function clearCharacterCanvas(recordUndo = true) {
+export function clearCharacterCanvas(recordUndo = true) {
   if (!drawState.canvas) return;
   drawState.hasDrawn = false;
-  if (typeof updateCharCreateStepProgress === 'function') updateCharCreateStepProgress();
+  updateCharCreateStepProgress();
   if (recordUndo) {
     saveCanvasSnapshot();
   } else {
-    // B15: Reset undo history when canvas is cleared without recording undo (e.g. new game)
     drawState.history = [];
   }
   const ctx = drawState.ctx;
@@ -290,13 +292,13 @@ function clearCharacterCanvas(recordUndo = true) {
 
 /**
  * Exports a square 240x240 compressed avatar from the canvas for efficient
- * peer-to-peer WebRTC network synchronization (B24).
+ * peer-to-peer WebRTC network synchronization.
  * Exports image/jpeg at quality 0.7 on white background with 20KB cap fallback.
  * 
  * @param {HTMLCanvasElement} sourceCanvas - Source drawing canvas
  * @returns {string} Data URL (image/jpeg)
  */
-function exportCompactAvatar(sourceCanvas) {
+export function exportCompactAvatar(sourceCanvas) {
   const out = document.createElement('canvas');
   out.width = 240;
   out.height = 240;
@@ -332,7 +334,7 @@ function exportCompactAvatar(sourceCanvas) {
  * @param {HTMLCanvasElement} [targetCanvas] - Optional canvas to paint directly onto
  * @returns {string} Compact image data URL
  */
-function generateProceduralPortraitDataUrl(targetCanvas) {
+export function generateProceduralPortraitDataUrl(targetCanvas) {
   if (targetCanvas === drawState.canvas) {
     syncCanvasToContainer();
   }

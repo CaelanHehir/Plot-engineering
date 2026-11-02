@@ -1,26 +1,35 @@
 /**
  * WebRTC Internet Multiplayer Service (PeerJS Host & Client Room Sync)
- * 
- * Architecture:
- * - Star topology: The host is the authoritative central node with Peer ID "plot-engineering-{ROOM_CODE}".
- * - Free PeerJS Cloud Broker is used strictly for initial WebRTC signaling (SDP handshake).
- * - After connection, all state synchronization, action submissions, and judging broadcasts
- *   flow directly peer-to-peer via DataChannels without central server costs or limits.
- * - Host Authority: Clients send intent messages (JOIN_REQUEST, SUBMIT_CHARACTER, SUBMIT_ACTION)
- *   and the Host validates them, updates state, and broadcasts STATE_UPDATE.
- * - Game Integrity: Mid-game connections are rejected with JOIN_REJECTED so players cannot
- *   drop in midway through an active campaign. Secrets and unrevealed actions are masked in
- *   public state so clients cannot inspect hidden judge lore or other players' locked moves.
  */
 
-/** Shared PeerJS ID namespace prefix */
-const PEER_PREFIX = 'plot-engineering-';
+import { app } from '../state/store.js';
+import { saveSessionToStorage, clearSessionStorage } from '../state/session.js';
+import {
+  disambiguatePlayerName,
+  setLoadingOverlay,
+  showToast,
+  sanitizeAvatar,
+  getPlayerMetaMod
+} from '../ui/utils.js';
+import { sfx } from './audio.js';
+import { clearCharacterCanvas } from '../features/canvas.js';
+import { renderState } from '../ui/render.js';
+import { stopTypewriter } from '../ui/screens/reveal.js';
 
-/**
- * Generates an uppercase 4-letter alphanumeric room code, excluding ambiguous characters (I, O, 1, 0).
- * @returns {string} 4-letter room code (e.g. "KY7B")
- */
-function generateRoomCode() {
+export const PEER_PREFIX = 'plot-engineering-';
+
+let hooks = {
+  checkAllCharactersReady: () => {},
+  checkAllActionsSubmitted: () => {},
+  updateTimerDisplay: () => {},
+  stopTimer: () => {}
+};
+
+export function setNetworkHooks(customHooks) {
+  hooks = { ...hooks, ...customHooks };
+}
+
+export function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 4; i++) {
@@ -29,13 +38,8 @@ function generateRoomCode() {
   return code;
 }
 
-/**
- * Initializes a new multiplayer room as the Host.
- * Connects to the PeerJS signaling broker using the deterministic ID "plot-engineering-{CODE}".
- * @param {number} [retryCount=0] - Collision retry counter (max 5)
- */
-function hostCreateRoom(retryCount = 0) {
-  const hostNameInput = document.getElementById('host-player-name').value.trim();
+export function hostCreateRoom(retryCount = 0) {
+  const hostNameInput = document.getElementById('host-player-name')?.value.trim();
   const hostName = hostNameInput || 'Host Player';
   const code = generateRoomCode();
 
@@ -46,11 +50,11 @@ function hostCreateRoom(retryCount = 0) {
 
   setLoadingOverlay(true, 'Creating multiplayer room ' + code + '...');
 
-  let opened = false; // B1: Track whether peer signaling has established
+  let opened = false;
 
   try {
     const peerId = PEER_PREFIX + code;
-    const peer = new Peer(peerId);
+    const peer = new window.Peer(peerId);
     app.peer = peer;
 
     peer.on('open', () => {
@@ -65,7 +69,6 @@ function hostCreateRoom(retryCount = 0) {
     });
 
     peer.on('disconnected', () => {
-      // B1: Attempt seamless reconnect when signaling socket drops
       try {
         peer.reconnect();
       } catch (e) {
@@ -78,7 +81,6 @@ function hostCreateRoom(retryCount = 0) {
       setLoadingOverlay(false);
 
       if (opened) {
-        // B1: Never wipe live game state after room has successfully opened
         if (err.type === 'network' || err.type === 'disconnected') {
           showToast('Connection lost, reconnecting...', 'warn');
           try {
@@ -92,33 +94,26 @@ function hostCreateRoom(retryCount = 0) {
         return;
       }
 
-      // Error occurred before open: handle collision with cap or report server failure
       if (err.type === 'unavailable-id') {
         if (retryCount < 5) {
           hostCreateRoom(retryCount + 1);
         } else {
           showToast('Room code collision. Please try again.', 'error');
-          showScreen('HOME');
+          leaveRoomToHome();
         }
       } else {
         showToast('Could not reach the matchmaking server. Check your connection.', 'error');
-        showScreen('HOME');
+        leaveRoomToHome();
       }
     });
   } catch (e) {
     setLoadingOverlay(false);
     showToast('Could not reach the matchmaking server. Check your connection.', 'error');
-    showScreen('HOME');
+    leaveRoomToHome();
   }
 }
 
-/**
- * Seeds the initial authoritative game state on the Host machine.
- * 
- * @param {string} code - Room code
- * @param {string} hostName - Host display name
- */
-function initHostGameState(code, hostName) {
+export function initHostGameState(code, hostName) {
   app.state.phase = 'LOBBY';
   app.lobbyView = 'cast';
   app.state.roomCode = code;
@@ -140,14 +135,11 @@ function initHostGameState(code, hostName) {
   app.state.currentRound = 0;
   app.state.storySoFar = '';
   app.state.isJudging = false;
+  saveSessionToStorage();
   renderState();
 }
 
-/**
- * Sets up incoming DataChannel message handlers for a connected client peer.
- * @param {DataConnection} conn - PeerJS connection object
- */
-function setupHostClientConnection(conn) {
+export function setupHostClientConnection(conn) {
   conn.on('open', () => {
     conn.on('data', (msg) => {
       handleClientMessageOnHost(conn, msg);
@@ -159,36 +151,25 @@ function setupHostClientConnection(conn) {
         delete app.clientConns[conn.playerId];
         broadcastState();
       } else {
-        // B3: Outside LOBBY, mark disconnected so round flow is not stalled
         const p = app.state.players.find(pl => pl.id === conn.playerId);
         if (p) {
           p.disconnected = true;
           broadcastState();
-          if (app.state.phase === 'CHAR_CREATE') checkAllCharactersReady();
-          if (app.state.phase === 'SCENARIO') checkAllActionsSubmitted();
+          if (app.state.phase === 'CHAR_CREATE') hooks.checkAllCharactersReady();
+          if (app.state.phase === 'SCENARIO') hooks.checkAllActionsSubmitted();
         }
       }
     });
   });
 }
 
-/**
- * Authoritative message router running exclusively on the Host.
- * Validates player permissions, enforces lobby-only joining, and updates state.
- * 
- * @param {DataConnection} conn
- * @param {object} msg
- */
-function handleClientMessageOnHost(conn, msg) {
+export function handleClientMessageOnHost(conn, msg) {
   if (!msg || !msg.type) return;
 
-  // New or rejoining player connecting to the room
   if (msg.type === 'JOIN_REQUEST') {
-    // B2: Host assigns IDs: accept client ID only if it matches safe regex, else generate
     const rawId = typeof msg.playerId === 'string' ? msg.playerId.trim() : '';
     const safeProvidedId = /^[a-z0-9-]{3,24}$/i.test(rawId) ? rawId : null;
 
-    // B3: Check if existing player is rejoining (allowed in any phase)
     let existing = safeProvidedId ? app.state.players.find(p => p.id === safeProvidedId) : null;
     if (existing) {
       const playerId = existing.id;
@@ -207,7 +188,6 @@ function handleClientMessageOnHost(conn, msg) {
       return;
     }
 
-    // B20: Cap room at 8 players
     if (app.state.players.length >= 8) {
       try {
         conn.send({
@@ -221,7 +201,6 @@ function handleClientMessageOnHost(conn, msg) {
       return;
     }
 
-    // Reject mid-game joins for brand new players: new joins only allowed in LOBBY
     if (app.state.phase !== 'LOBBY') {
       try {
         conn.send({
@@ -239,7 +218,6 @@ function handleClientMessageOnHost(conn, msg) {
     conn.playerId = playerId;
     app.clientConns[playerId] = conn;
 
-    // B20: Ensure unique player name
     const finalName = disambiguatePlayerName(msg.playerName || 'Player', app.state.players);
 
     const newPlayer = {
@@ -265,15 +243,13 @@ function handleClientMessageOnHost(conn, msg) {
     return;
   }
 
-  // Character submitted during Character Creation stage
   if (msg.type === 'SUBMIT_CHARACTER') {
-    const senderId = conn.playerId; // B2: Use conn.playerId as sender identity
+    const senderId = conn.playerId;
     if (!senderId) return;
     const p = app.state.players.find(pl => pl.id === senderId);
     if (p && msg.character) {
       let safeStartMod = null;
       if (msg.character.startMod && app.state.settings.allowStartingQuirk) {
-        // B2: Sanitize starting trait fields to prevent self-assignment of meta statuses
         safeStartMod = {
           name: String(msg.character.startMod.name || 'Quirk').slice(0, 32),
           description: String(msg.character.startMod.description || '').slice(0, 80),
@@ -289,14 +265,13 @@ function handleClientMessageOnHost(conn, msg) {
       };
       p.modifiers = safeStartMod ? [safeStartMod] : [];
       sfx.lockIn();
-      checkAllCharactersReady();
+      hooks.checkAllCharactersReady();
       broadcastState();
     }
   }
 
-  // Character unlocked to edit
   if (msg.type === 'UNLOCK_CHARACTER') {
-    const senderId = conn.playerId; // B2: Use conn.playerId
+    const senderId = conn.playerId;
     if (!senderId) return;
     const p = app.state.players.find(pl => pl.id === senderId);
     if (p && p.character) {
@@ -305,23 +280,20 @@ function handleClientMessageOnHost(conn, msg) {
     }
   }
 
-  // Round move submitted during Scenario stage
   if (msg.type === 'SUBMIT_ACTION') {
-    const senderId = conn.playerId; // B2: Use conn.playerId
+    const senderId = conn.playerId;
     if (!senderId) return;
     if (app.state.phase === 'SCENARIO') {
-      // B2: Cap action text to 400 characters on host
       app.state.submissions[senderId] = String(msg.action || '').slice(0, 400).trim();
       app.state.hiddenSubmissions[senderId] = true;
       sfx.lockIn();
       broadcastState();
-      checkAllActionsSubmitted();
+      hooks.checkAllActionsSubmitted();
     }
   }
 
-  // Round move unlocked to edit
   if (msg.type === 'UNLOCK_ACTION') {
-    const senderId = conn.playerId; // B2: Use conn.playerId
+    const senderId = conn.playerId;
     if (!senderId) return;
     if (app.state.phase === 'SCENARIO') {
       delete app.state.submissions[senderId];
@@ -331,12 +303,9 @@ function handleClientMessageOnHost(conn, msg) {
   }
 }
 
-/**
- * Connects a client browser to the host's room code via PeerJS.
- */
-function clientJoinRoom() {
-  const code = document.getElementById('join-room-code').value.trim().toUpperCase();
-  const name = document.getElementById('join-player-name').value.trim();
+export function clientJoinRoom() {
+  const code = document.getElementById('join-room-code')?.value.trim().toUpperCase() || '';
+  const name = document.getElementById('join-player-name')?.value.trim() || '';
 
   if (code.length !== 4) {
     showToast('Please enter a valid 4-letter Room Code!', 'error');
@@ -357,7 +326,7 @@ function clientJoinRoom() {
 
   setLoadingOverlay(true, `Connecting to Room ${code}...`);
 
-  const peer = new Peer();
+  const peer = new window.Peer();
   app.peer = peer;
 
   peer.on('open', () => {
@@ -385,11 +354,12 @@ function clientJoinRoom() {
         app.state = msg.state;
         if (msg.state.remainingMs > 0) {
           app.timerDeadline = Date.now() + msg.state.remainingMs;
-          if (!app.timerInterval) app.timerInterval = setInterval(updateTimerDisplay, 250);
+          if (!app.timerInterval) app.timerInterval = setInterval(hooks.updateTimerDisplay, 250);
         } else {
-          stopTimer();
+          hooks.stopTimer();
         }
         sfx.join();
+        saveSessionToStorage();
         renderState();
       } else if (msg.type === 'STATE_UPDATE') {
         const prevPhase = app.state.phase;
@@ -398,9 +368,9 @@ function clientJoinRoom() {
         app.state = msg.state;
         if (msg.state.remainingMs > 0) {
           app.timerDeadline = Date.now() + msg.state.remainingMs;
-          if (!app.timerInterval) app.timerInterval = setInterval(updateTimerDisplay, 250);
+          if (!app.timerInterval) app.timerInterval = setInterval(hooks.updateTimerDisplay, 250);
         } else {
-          stopTimer();
+          hooks.stopTimer();
         }
         if (prevPhase !== 'CHAR_CREATE' && app.state.phase === 'CHAR_CREATE') {
           app.charCreateStep = 1;
@@ -415,6 +385,7 @@ function clientJoinRoom() {
         if (prevPhase !== app.state.phase || prevReveal !== app.state.revealStep) {
           sfx.stepReveal();
         }
+        saveSessionToStorage();
         renderState();
       } else if (msg.type === 'JOIN_REJECTED') {
         setLoadingOverlay(false);
@@ -443,13 +414,7 @@ function clientJoinRoom() {
   });
 }
 
-/**
- * Strips secret judge lore from campaign data so clients cannot read hidden clues in DevTools.
- * 
- * @param {object|null} campaign
- * @returns {object|null}
- */
-function stripCampaignSecrets(campaign) {
+export function stripCampaignSecrets(campaign) {
   if (!campaign) return null;
   return {
     ...campaign,
@@ -462,19 +427,10 @@ function stripCampaignSecrets(campaign) {
   };
 }
 
-/**
- * Returns a sanitized copy of the authoritative game state safe for client broadcast.
- * Masks in-progress action submissions as '__LOCKED_IN__' so teammates cannot peek,
- * and ensures actions remain hidden from other players during reveal.
- * 
- * @param {string|null} [forPlayerId] - ID of the recipient peer
- * @returns {object} Public game state payload
- */
-function getPublicState(forPlayerId = null) {
+export function getPublicState(forPlayerId = null) {
   const maskedSubmissions = {};
   const submissionKinds = {};
 
-  // D1: Reveal other players' moves after judging / story when the House Rule is enabled
   const canRevealMoves = Boolean(
     app.state.settings?.revealMovesAfterStory && (
       (app.state.phase === 'REVEAL' && app.state.revealStep >= 2 && !app.state.isJudging) ||
@@ -482,7 +438,6 @@ function getPublicState(forPlayerId = null) {
     )
   );
 
-  // B11: Compute explicit submissionKinds map so eliminated/locked players render consistently on host and guests
   for (const p of app.state.players) {
     const pid = p.id;
     const deadMod = getPlayerMetaMod(p, 'DEAD');
@@ -531,10 +486,7 @@ function getPublicState(forPlayerId = null) {
   };
 }
 
-/**
- * Broadcasts the current public state to all connected client peers.
- */
-function broadcastState() {
+export function broadcastState() {
   if (!app.isHost) return;
   for (const pid of Object.keys(app.clientConns)) {
     const conn = app.clientConns[pid];
@@ -546,17 +498,11 @@ function broadcastState() {
       }
     }
   }
+  saveSessionToStorage();
   renderState();
 }
 
-/**
- * Sends a message payload to the Host via the active WebRTC DataChannel (B7).
- * Returns true if message was successfully dispatched, or false if disconnected.
- * 
- * @param {object} msg
- * @returns {boolean}
- */
-function sendToHost(msg) {
+export function sendToHost(msg) {
   if (app.isHost) return true;
   if (app.hostConn && app.hostConn.open) {
     try {
@@ -571,10 +517,7 @@ function sendToHost(msg) {
   return false;
 }
 
-/**
- * Reconnects a guest to a previously active room session (B3).
- */
-function rejoinStoredRoom() {
+export function rejoinStoredRoom() {
   const code = sessionStorage.getItem('plot_engineering_room_code');
   const name = sessionStorage.getItem('plot_engineering_player_name') || 'Player';
   if (!code) return;
@@ -585,12 +528,11 @@ function rejoinStoredRoom() {
   clientJoinRoom();
 }
 
-/**
- * Gracefully leaves the active room and returns to the HOME screen.
- * Closes WebRTC connections, notifies peers with ROOM_CLOSED, and destroys Peer instance.
- */
-function leaveRoomToHome() {
-  sessionStorage.removeItem('plot_engineering_room_code');
+export function leaveRoomToHome() {
+  clearSessionStorage();
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem('plot_engineering_room_code');
+  }
   clearInterval(app.timerInterval);
   stopTypewriter();
 
@@ -637,14 +579,15 @@ function leaveRoomToHome() {
   }
 }
 
-// Ensure peers are notified if the tab is closed or navigated away from
-window.addEventListener('beforeunload', () => {
-  if (app.isHost && app.clientConns) {
-    for (const pid of Object.keys(app.clientConns)) {
-      const c = app.clientConns[pid];
-      if (c && c.open) {
-        try { c.send({ type: 'ROOM_CLOSED', reason: 'The Host closed the room.' }); } catch (e) {}
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    if (app.isHost && app.clientConns) {
+      for (const pid of Object.keys(app.clientConns)) {
+        const c = app.clientConns[pid];
+        if (c && c.open) {
+          try { c.send({ type: 'ROOM_CLOSED', reason: 'The Host closed the room.' }); } catch (e) {}
+        }
       }
     }
-  }
-});
+  });
+}

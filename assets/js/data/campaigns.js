@@ -14,7 +14,7 @@
  * - scenario: Player-facing scene setup (obstacles & moving parts WITHOUT spoiling solutions)
  * - secrets: Judge-only comedic lore, NPC quirks, and improv hooks
  */
-const PREMADE_CAMPAIGNS = [
+export const PREMADE_CAMPAIGNS = [
   {
     id: 'casino-heist',
     title: 'The Grail Casino Heist',
@@ -132,7 +132,7 @@ const PREMADE_CAMPAIGNS = [
 /**
  * Palette of vibrant drawing colors for the HTML5 Character Sketchpad canvas.
  */
-const DRAW_COLORS = [
+export const DRAW_COLORS = [
   '#ffca28', // Cartoon Gold
   '#ff5252', // Cherry Red
   '#ff7043', // Neon Orange

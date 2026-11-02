@@ -2,10 +2,11 @@
  * Shared UI, DOM, Formatting & GitHub Pages URL Helper Utilities
  */
 
-// T13: Migrate legacy storage keys from prompt_engineering_* to plot_engineering_*
+// Migrate legacy storage keys & purge any persistent API keys for security
 (function migrateLegacyStorageKeys() {
   try {
-    const keys = ['gemini_key', 'gemini_model', 'muted', 'player_id', 'player_name', 'room_code'];
+    if (typeof localStorage === 'undefined' || typeof sessionStorage === 'undefined') return;
+    const keys = ['muted', 'player_id', 'player_name', 'room_code'];
     keys.forEach(k => {
       const oldKey = `prompt_engineering_${k}`;
       const newKey = `plot_engineering_${k}`;
@@ -24,17 +25,19 @@
         sessionStorage.removeItem(oldKey);
       }
     });
+
+    // Security: Ensure legacy persistent API keys are strictly purged from disk
+    localStorage.removeItem('prompt_engineering_gemini_key');
+    localStorage.removeItem('plot_engineering_gemini_key');
+    localStorage.removeItem('prompt_engineering_gemini_model');
+    localStorage.removeItem('plot_engineering_gemini_model');
   } catch (e) {}
 })();
 
 /** Canonical GitHub Pages hosting URL for multiplayer invites */
-const GITHUB_PAGES_URL = 'https://caelanhehir.github.io/Plot-engineering/';
+export const GITHUB_PAGES_URL = 'https://caelanhehir.github.io/Plot-engineering/';
 
-/**
- * Checks if the game is currently being served from a local development host.
- * @returns {boolean}
- */
-function isLocalhost() {
+export function isLocalhost() {
   try {
     const host = window.location.hostname;
     return host === 'localhost' || host === '127.0.0.1' || host === '';
@@ -43,13 +46,7 @@ function isLocalhost() {
   }
 }
 
-/**
- * Ensures player nicknames are unique by appending " (2)", " (3)", etc. to duplicates (B20).
- * @param {string} baseName - Raw name
- * @param {Array<{name: string}>} existingPlayers - Array of existing player objects
- * @returns {string} Disambiguated unique name
- */
-function disambiguatePlayerName(baseName, existingPlayers = []) {
+export function disambiguatePlayerName(baseName, existingPlayers = []) {
   const clean = (baseName || 'Player').trim().slice(0, 24);
   let name = clean;
   let counter = 2;
@@ -60,14 +57,7 @@ function disambiguatePlayerName(baseName, existingPlayers = []) {
   return name;
 }
 
-/**
- * Resolves the public base URL of the currently running game.
- * Automatically respects custom web hosting and local dev servers,
- * falling back to GitHub Pages only if not running over HTTP/HTTPS.
- * 
- * @returns {string} Fully qualified base URL ending with a slash
- */
-function getPublicGameBaseUrl() {
+export function getPublicGameBaseUrl() {
   try {
     const loc = window.location;
     const isHttp = loc.protocol === 'http:' || loc.protocol === 'https:';
@@ -79,13 +69,7 @@ function getPublicGameBaseUrl() {
   return GITHUB_PAGES_URL;
 }
 
-/**
- * Generates an invite URL with the given 4-letter room code in the query string.
- * 
- * @param {string} roomCode - 4-character room code
- * @returns {string} Complete URL with ?room=CODE
- */
-function getRoomInviteUrl(roomCode) {
+export function getRoomInviteUrl(roomCode) {
   const base = getPublicGameBaseUrl();
   const url = new URL(base);
   if (roomCode) {
@@ -94,24 +78,12 @@ function getRoomInviteUrl(roomCode) {
   return url.toString();
 }
 
-/**
- * Produces a concise, human-friendly URL string for the in-room banner display.
- * Strips http://, https://, and trailing slashes for clean reading.
- * 
- * @returns {string} e.g. "caelanhehir.github.io/Plot-engineering"
- */
-function getShortDisplayJoinUrl() {
+export function getShortDisplayJoinUrl() {
   const base = getPublicGameBaseUrl();
   return base.replace(/^https?:\/\//i, '').replace(/\/$/, '');
 }
 
-/**
- * Escapes unsafe HTML characters to prevent XSS injection from player inputs or AI responses.
- * 
- * @param {string} str - Raw input string
- * @returns {string} HTML-escaped string
- */
-function escapeHtml(str) {
+export function escapeHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -120,30 +92,11 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-/**
- * Inserts soft hyphens (&shy; / \u00AD) into unusually long words that exceed the width
- * of a text box (26+ characters). This allows the browser to hyphenate and break only
- * extreme words onto the next line without splitting normal English words.
- * 
- * @param {string} str - Text to format
- * @returns {string} Text with soft hyphens in 26+ character words
- */
-function hyphenateLongWords(str) {
+export function hyphenateLongWords(str) {
   return String(str ?? '').replace(/\S{26,}/g, (word) => word.split('').join('\u00AD'));
 }
 
-/**
- * Formats seconds into mm:ss or ss string.
- * 
- * @param {number} sec - Duration in seconds
- * @returns {string} e.g. "1:30" or "45s"
- */
-/**
- * Formats a duration in seconds consistently as m:ss (A8).
- * @param {number} sec - Duration in seconds
- * @returns {string} e.g. "0:59", "1:00", "2:30"
- */
-function formatSeconds(sec) {
+export function formatSeconds(sec) {
   const total = Math.max(0, Math.floor(Number(sec) || 0));
   const m = Math.floor(total / 60);
   const s = total % 60;
@@ -152,15 +105,7 @@ function formatSeconds(sec) {
 
 let currentLoadingCancelHandler = null;
 
-/**
- * Displays or hides the full-screen modal loading overlay with custom text.
- * Supports an optional onCancel callback.
- * 
- * @param {boolean} visible - Whether to show the overlay
- * @param {string} text - Message to display under the spinner
- * @param {Function|null} [onCancel] - Optional callback triggered on Cancel or Escape
- */
-function setLoadingOverlay(visible, text = 'Loading...', onCancel = null) {
+export function setLoadingOverlay(visible, text = 'Loading...', onCancel = null) {
   const el = document.getElementById('loading-overlay');
   const txt = document.getElementById('loading-text');
   const cancelBtn = document.getElementById('loading-cancel-btn');
@@ -181,10 +126,9 @@ function setLoadingOverlay(visible, text = 'Loading...', onCancel = null) {
   if (el) el.classList.toggle('hidden', !visible);
 }
 
-// A1: Accessible modal stack, focus return, and Tab trapping
 const activeModalFocusStack = [];
 
-function openAccessibleModal(modalId, initialFocusSelector) {
+export function openAccessibleModal(modalId, initialFocusSelector) {
   const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
   if (!modal) return;
   const previouslyFocused = document.activeElement;
@@ -198,7 +142,7 @@ function openAccessibleModal(modalId, initialFocusSelector) {
   }
 }
 
-function closeAccessibleModal(modalId) {
+export function closeAccessibleModal(modalId) {
   const modal = typeof modalId === 'string' ? document.getElementById(modalId) : modalId;
   if (!modal) return;
   modal.classList.add('hidden');
@@ -211,46 +155,41 @@ function closeAccessibleModal(modalId) {
   }
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Tab' && activeModalFocusStack.length > 0) {
-    const current = activeModalFocusStack[activeModalFocusStack.length - 1];
-    const modal = current.modal;
-    const focusable = modal.querySelectorAll('button:not([disabled]):not(.hidden), input:not([disabled]):not(.hidden), select:not([disabled]):not(.hidden), textarea:not([disabled]):not(.hidden), [tabindex="0"]');
-    if (focusable.length === 0) return;
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
+if (typeof document !== 'undefined') {
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab' && activeModalFocusStack.length > 0) {
+      const current = activeModalFocusStack[activeModalFocusStack.length - 1];
+      const modal = current.modal;
+      const focusable = modal.querySelectorAll('button:not([disabled]):not(.hidden), input:not([disabled]):not(.hidden), select:not([disabled]):not(.hidden), textarea:not([disabled]):not(.hidden), [tabindex="0"]');
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
 
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
-  }
-});
+  });
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    const el = document.getElementById('loading-overlay');
-    if (el && !el.classList.contains('hidden') && currentLoadingCancelHandler) {
-      currentLoadingCancelHandler();
-      setLoadingOverlay(false);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const el = document.getElementById('loading-overlay');
+      if (el && !el.classList.contains('hidden') && currentLoadingCancelHandler) {
+        currentLoadingCancelHandler();
+        setLoadingOverlay(false);
+      }
     }
-  }
-});
+  });
+}
 
-/**
- * Displays a single temporary toast notification at the bottom right.
- * Immediately clears any previous toast so only one notification is active at a time.
- * 
- * @param {string} message - Notification text
- * @param {'info'|'success'|'warn'|'error'} type - Style theme for the toast
- */
-function showToast(message, type = 'info') {
+export function showToast(message, type = 'info') {
+  if (typeof document === 'undefined') return;
   const container = document.getElementById('toast-container');
   if (!container) return;
-  // Capped at one notification at a time: immediately clear previous toast
   container.innerHTML = '';
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
@@ -263,27 +202,37 @@ function showToast(message, type = 'info') {
   }, 4000);
 }
 
-/**
- * Sanitizes base64 avatar data URLs to prevent script injection (B2).
- * Only permits valid webp, png, or jpeg base64 data URIs up to 60,000 characters.
- * 
- * @param {string} url - Raw avatar string
- * @returns {string} Validated data URL or empty string
- */
-function sanitizeAvatar(url) {
+export function fallbackCopyText(text, onSuccess = null, onError = null) {
+  try {
+    const tempInput = document.createElement('textarea');
+    tempInput.value = text;
+    tempInput.setAttribute('readonly', '');
+    tempInput.style.position = 'fixed';
+    tempInput.style.left = '-9999px';
+    tempInput.style.opacity = '0';
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    tempInput.select();
+    const copied = document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    if (copied) {
+      if (onSuccess) onSuccess();
+      return true;
+    }
+  } catch (err) {
+    console.warn('Fallback clipboard copy failed:', err);
+  }
+  if (onError) onError();
+  return false;
+}
+
+export function sanitizeAvatar(url) {
   if (!url || typeof url !== 'string' || url.length > 60000) return '';
   const match = url.match(/^data:image\/(webp|png|jpeg);base64,[A-Za-z0-9+/=]+$/);
   return match ? url : '';
 }
 
-/**
- * Renders an avatar image element from a data URL or falls back to an emoji placeholder.
- * 
- * @param {string} avatarData - Canvas data URL (image/webp or image/png)
- * @param {string} sizeClass - CSS class controlling dimensions (avatar-img, avatar-img-sm, avatar-img-lg)
- * @returns {string} HTML string
- */
-function renderAvatarHtml(avatarData, sizeClass = 'avatar-img') {
+export function renderAvatarHtml(avatarData, sizeClass = 'avatar-img') {
   const safeAvatar = sanitizeAvatar(avatarData);
   if (safeAvatar) {
     return `<img src="${escapeHtml(safeAvatar)}" class="${sizeClass}" alt="Character Portrait" />`;
@@ -291,41 +240,33 @@ function renderAvatarHtml(avatarData, sizeClass = 'avatar-img') {
   return `<div class="${sizeClass}" style="display:inline-flex;align-items:center;justify-content:center;background:var(--bg-card);"><svg width="60%" height="60%" viewBox="0 0 24 24" fill="currentColor" opacity="0.4"><circle cx="12" cy="8" r="4"/><path d="M12 14c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg></div>`;
 }
 
-/**
- * Finds an active meta-modifier of a specific type (DEAD, SKIP_TURN, WORD_LIMIT, BLINDED_SCENARIO) on a player.
- * 
- * @param {object} player - Player object from game state
- * @param {string} metaType - Meta condition key to check for
- * @returns {object|null} Matching modifier object or null
- */
-function getPlayerMetaMod(player, metaType) {
+export function getPlayerMetaMod(player, metaType) {
   if (!player || !Array.isArray(player.modifiers)) return null;
   return player.modifiers.find(m => m.metaEffect === metaType) || null;
 }
 
-/**
- * Returns CSS class and clean prefix label for modifier chips based on their effect type (T10).
- * Drops internal jargon prefixes and uses clear words for Eliminated and Lockout.
- * 
- * @param {object} m - Modifier object
- * @returns {{icon: string, chipClass: string, prefix: string}}
- */
-function getModifierDisplayMeta(m) {
-  if (m.metaEffect === 'DEAD') return { icon: '', chipClass: 'meta', prefix: 'Eliminated:' };
-  if (m.metaEffect === 'SKIP_TURN') return { icon: '', chipClass: 'meta', prefix: 'Locked out for one round:' };
-  if (m.metaEffect && m.metaEffect !== 'NONE') return { icon: '', chipClass: 'meta', prefix: '' };
-  if (m.type === 'buff') return { icon: '', chipClass: 'buff', prefix: '' };
-  if (m.type === 'debuff') return { icon: '', chipClass: 'debuff', prefix: '' };
-  return { icon: '', chipClass: 'neutral', prefix: '' };
+export function getModifierDisplayMeta(m) {
+  const desc = m?.description || '';
+  const name = m?.name || 'Trait';
+  if (m?.metaEffect === 'DEAD') {
+    return { icon: '', chipClass: 'meta', prefix: 'Eliminated:', className: 'badge-warn', label: `Eliminated: ${name}`, title: desc };
+  }
+  if (m?.metaEffect === 'SKIP_TURN') {
+    return { icon: '', chipClass: 'meta', prefix: 'Locked out for one round:', className: 'badge-warn', label: `Locked out: ${name}`, title: desc };
+  }
+  if (m?.metaEffect && m.metaEffect !== 'NONE') {
+    return { icon: '', chipClass: 'meta', prefix: '', className: 'badge-warn', label: name, title: desc };
+  }
+  if (m?.type === 'buff') {
+    return { icon: '', chipClass: 'buff', prefix: '', className: 'badge-success', label: `+ ${name}`, title: desc };
+  }
+  if (m?.type === 'debuff') {
+    return { icon: '', chipClass: 'debuff', prefix: '', className: 'badge-warn', label: `- ${name}`, title: desc };
+  }
+  return { icon: '', chipClass: 'neutral', prefix: '', className: 'badge-genre', label: name, title: desc };
 }
 
-/**
- * Generates HTML chips for a player's active modifiers and perks.
- * 
- * @param {Array<object>} modifiers - List of active modifier objects
- * @returns {string} HTML markup for the modifier chips
- */
-function renderModifierChips(modifiers) {
+export function renderModifierChips(modifiers) {
   if (!modifiers || modifiers.length === 0) {
     return `<span class="mod-chip mod-none">No active traits</span>`;
   }

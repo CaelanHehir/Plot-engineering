@@ -1,18 +1,25 @@
 /**
  * Host Settings & Gemini API Key Modal Controllers
- * 
- * Manages:
- * 1. Single-source settings schema (HOST_SETTINGS_SCHEMA) rendering identical options
- *    in both the in-lobby campaign view and the floating House Rules modal.
- * 2. Real-time bi-directional setting value synchronization across UI elements.
- * 3. Gemini API key verification against Google's Models API and modal controls.
  */
 
-/**
- * Single-source configuration schema for all customizable game rules.
- * Automatically generates HTML inputs for both the lobby and the settings modal.
- */
-const HOST_SETTINGS_SCHEMA = [
+import { app } from '../state/store.js';
+import {
+  escapeHtml,
+  setLoadingOverlay,
+  openAccessibleModal,
+  closeAccessibleModal,
+  showToast
+} from '../ui/utils.js';
+import {
+  getStoredApiKey,
+  setStoredApiKey,
+  isKeyVerified,
+  validateAndDiscoverModels
+} from '../services/gemini/index.js';
+import { broadcastState } from '../services/network.js';
+import { renderState } from '../ui/render.js';
+
+export const HOST_SETTINGS_SCHEMA = [
   {
     key: 'roundTimer',
     idBase: 'setting-round-timer',
@@ -104,13 +111,7 @@ const HOST_SETTINGS_SCHEMA = [
   }
 ];
 
-/**
- * Builds the HTML grid for the settings schema.
- * 
- * @param {string} suffix - ID suffix (e.g., '' for lobby, '-modal' for floating modal)
- * @returns {string} HTML markup string
- */
-function buildSettingsGridHtml(suffix = '') {
+export function buildSettingsGridHtml(suffix = '') {
   return HOST_SETTINGS_SCHEMA.map(item => {
     const id = `${item.idBase}${suffix}`;
     const defaultBadge = item.defaultTag ? `<span class="setting-default-tag">(default: ${escapeHtml(item.defaultTag)})</span>` : '';
@@ -147,10 +148,7 @@ function buildSettingsGridHtml(suffix = '') {
   }).join('');
 }
 
-/**
- * Renders both the in-lobby and in-modal settings grids and synchronizes values.
- */
-function renderSettingsGrids() {
+export function renderSettingsGrids() {
   const lobbyGrid = document.getElementById('lobby-settings-grid');
   const modalGrid = document.getElementById('modal-settings-grid');
   if (lobbyGrid) lobbyGrid.innerHTML = buildSettingsGridHtml('');
@@ -158,10 +156,7 @@ function renderSettingsGrids() {
   syncSettingsUI();
 }
 
-/**
- * Synchronizes the values of all settings form inputs across both the lobby and modal.
- */
-function syncSettingsUI() {
+export function syncSettingsUI() {
   const s = app.state.settings;
   ['', '-modal'].forEach(suffix => {
     HOST_SETTINGS_SCHEMA.forEach(item => {
@@ -176,13 +171,7 @@ function syncSettingsUI() {
   });
 }
 
-/**
- * Updates a host setting in the game state, refreshes the UI, and broadcasts to peers.
- * 
- * @param {string} key - Setting property name
- * @param {string|boolean} value - New value
- */
-function updateHostSetting(key, value) {
+export function updateHostSetting(key, value) {
   if (!app.isHost && app.state.phase !== 'HOME') return;
   if (key === 'roundTimer' || key === 'charCreateTimer' || key === 'maxModifiers') {
     app.state.settings[key] = parseInt(value, 10) || 0;
@@ -199,28 +188,26 @@ function updateHostSetting(key, value) {
   }
 }
 
-/**
- * Switches between the 'campaign' and 'settings' tabs in the host campaign setup section.
- * @param {'campaign'|'settings'} tabName
- */
-function switchLobbyTab(tabName) {
+export function switchLobbyTab(tabName) {
   app.lobbyTab = tabName;
   document.querySelectorAll('.lobby-tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
-  document.getElementById('lobby-tab-campaign').classList.toggle('hidden', tabName !== 'campaign');
-  document.getElementById('lobby-tab-settings').classList.toggle('hidden', tabName !== 'settings');
+  const campaignTab = document.getElementById('lobby-tab-campaign');
+  if (campaignTab) campaignTab.classList.toggle('hidden', tabName !== 'campaign');
+  const settingsTab = document.getElementById('lobby-tab-settings');
+  if (settingsTab) settingsTab.classList.toggle('hidden', tabName !== 'settings');
   syncSettingsUI();
 }
 
-/** Opens the House Rules editor (host only) */
-function openSettingsModal() {
+export function openSettingsModal() {
   if (!app.isHost && app.state.phase !== 'HOME') {
     showToast('Only the Room Host can change game settings.', 'info');
     return;
   }
   if (app.state.phase === 'LOBBY') {
-    openLobbyCampaignSetup();
+    app.lobbyView = 'campaign';
+    renderState();
     const details = document.getElementById('lobby-house-rules-details');
     if (details) {
       details.open = true;
@@ -232,18 +219,11 @@ function openSettingsModal() {
   openAccessibleModal('settings-modal');
 }
 
-/** Closes the floating House Rules modal */
-function closeSettingsModal() {
+export function closeSettingsModal() {
   closeAccessibleModal('settings-modal');
 }
 
-/**
- * Updates the visual button indicating AI key status in the top menu (Part 2, U1).
- * Shows "AI key: Ready" or "AI key: Not set", omitting raw model names outside the modal.
- * 
- * @param {boolean} [verified]
- */
-function updateApiKeyBadge(verified = isApiKeyVerified) {
+export function updateApiKeyBadge(verified = isKeyVerified()) {
   const btn = document.getElementById('menu-ai-key-btn');
   const badge = document.getElementById('api-key-status-badge');
   const homePill = document.getElementById('home-ai-key-btn');
@@ -264,8 +244,7 @@ function updateApiKeyBadge(verified = isApiKeyVerified) {
   }
 }
 
-/** Opens the Gemini API Key configuration modal */
-function openApiKeyModal() {
+export function openApiKeyModal() {
   const input = document.getElementById('api-key-input');
   if (input) {
     input.value = getStoredApiKey();
@@ -276,8 +255,7 @@ function openApiKeyModal() {
   openAccessibleModal('api-key-modal', '#api-key-input');
 }
 
-/** Toggles masked visibility for the Gemini API Key input field */
-function toggleApiKeyVisibility() {
+export function toggleApiKeyVisibility() {
   const input = document.getElementById('api-key-input');
   const btn = document.getElementById('btn-toggle-key-visibility');
   if (!input) return;
@@ -286,16 +264,11 @@ function toggleApiKeyVisibility() {
   if (btn) btn.textContent = isMasked ? 'Hide' : 'Show';
 }
 
-/** Closes the Gemini API Key configuration modal */
-function closeApiKeyModal() {
+export function closeApiKeyModal() {
   closeAccessibleModal('api-key-modal');
 }
 
-/**
- * Validates and saves the entered Gemini API key.
- * Shows feedback or clears the key if left empty.
- */
-async function saveApiKeyFromModal() {
+export function saveApiKeyFromModal() {
   const inputEl = document.getElementById('api-key-input');
   const val = (inputEl ? inputEl.value : '').trim();
   const prevKey = getStoredApiKey();
@@ -310,20 +283,16 @@ async function saveApiKeyFromModal() {
   }
 
   setLoadingOverlay(true, 'Verifying API key...');
-  try {
-    const models = await validateAndDiscoverModels(val);
+  validateAndDiscoverModels(val).then(models => {
     setLoadingOverlay(false);
     setStoredApiKey(val);
-    isApiKeyVerified = true;
     updateApiKeyBadge(true);
     closeApiKeyModal();
     showToast(`API key verified! Active model: ${models[0]}`, 'success');
-  } catch (err) {
+  }).catch(err => {
     setLoadingOverlay(false);
     if (err.code === 'INVALID') {
-      // Key was explicitly rejected by the server
       setStoredApiKey('');
-      isApiKeyVerified = false;
       if (inputEl) {
         inputEl.value = '';
         inputEl.focus();
@@ -331,11 +300,10 @@ async function saveApiKeyFromModal() {
       updateApiKeyBadge(false);
       showToast('Invalid API key: ' + err.message, 'error');
     } else {
-      // B4: Network timeout or rate limit: restore previous key and do not wipe it
       setStoredApiKey(prevKey);
       if (inputEl) inputEl.value = prevKey;
-      showToast(err.code === 'RATE' ? 'Rate limit reached. Stored key kept.' : 'Network error verifying key. Stored key kept.', 'warn');
+      showToast(err.code === 'RATE' ? 'Rate limit reached. Session key kept.' : 'Network error verifying key. Session key kept.', 'warn');
       closeApiKeyModal();
     }
-  }
+  });
 }

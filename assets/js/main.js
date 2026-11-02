@@ -1,150 +1,119 @@
 /**
- * Plot Engineering — Central Application State & Core Gameplay Controllers
- * 
- * Manages:
- * - Authoritative state container (app.state)
- * - Round countdown timers & intervals
- * - Character creation progression
- * - Action submissions & hidden action toggling
- * - AI evaluation triggering & score awards
- * - Room navigation, bot creation, and UI window switcher tabs
+ * Plot Engineering — Main Application Entry Point & Flow Orchestrator
  */
 
-/**
- * Global application singleton
- */
-const app = {
-  /** Whether the local client is the authoritative room Host */
-  isHost: false,
-  /** Local peer's unique identifier */
-  myId: '',
-  /** Local player's chosen display name */
-  myName: '',
-  /** 4-letter room code (uppercase) */
-  roomCode: '',
-  /** PeerJS peer instance */
-  peer: null,
-  /** Host connection for client peers */
-  hostConn: null,
-  /** Client connections dictionary for Host { [playerId]: DataConnection } */
-  clientConns: {},
-  /** Active tab in Host campaign setup: 'campaign' | 'settings' */
-  lobbyTab: 'campaign',
-  /** Active mobile sub-window on HOME screen: 'host' | 'join' */
-  homeWindow: 'host',
-  /** Active sub-view in LOBBY: 'cast' | 'campaign' */
-  lobbyView: 'cast',
-  /** Character creation stage: 1 (Name & Bio) | 2 (Portrait Sketchpad) */
-  charCreateStep: 1,
-  /** Whether the opening scenario popup modal is currently visible */
-  scenarioPopupOpen: false,
-  /** Deduplication key tracking which scenario popup has already opened */
-  scenarioPopupKey: '',
-  /** Active sub-window on REVEAL screen: 'story' | 'rankings' */
-  revealWindow: 'story',
-  /** Active sub-window on GAME_OVER screen: 'results' | 'recap' (U10) */
-  gameOverWindow: 'results',
+import { PREMADE_CAMPAIGNS } from './data/campaigns.js';
+import { app } from './state/store.js';
+import { loadSessionFromStorage, clearSessionStorage } from './state/session.js';
+import {
+  escapeHtml,
+  setLoadingOverlay,
+  showToast
+} from './ui/utils.js';
+import { sfx, updateMuteButton, toggleSound } from './services/audio.js';
+import {
+  getStoredApiKey,
+  isKeyVerified,
+  friendlyAiError,
+  generateCampaignWithAI
+} from './services/gemini/index.js';
+import {
+  drawState,
+  initDrawingCanvas,
+  selectDrawColor,
+  setEraserMode,
+  selectBrushSize,
+  undoCanvasStroke,
+  clearCharacterCanvas
+} from './features/canvas.js';
+import {
+  renderSettingsGrids,
+  updateHostSetting,
+  openSettingsModal,
+  closeSettingsModal,
+  updateApiKeyBadge,
+  openApiKeyModal,
+  toggleApiKeyVisibility,
+  closeApiKeyModal,
+  saveApiKeyFromModal
+} from './features/settings.js';
+import {
+  PEER_PREFIX,
+  setNetworkHooks,
+  hostCreateRoom,
+  setupHostClientConnection,
+  clientJoinRoom,
+  broadcastState,
+  rejoinStoredRoom,
+  leaveRoomToHome
+} from './services/network.js';
+import {
+  renderHomeWindow,
+  setHomeWindow,
+  toggleTopMenu,
+  closeTopMenu,
+  renderState
+} from './ui/render.js';
+import {
+  renderCampaignSelector,
+  copyInviteLink,
+  toggleLobbyQrCode,
+  closeQrPopup,
+  openLobbyCampaignSetup,
+  closeLobbyCampaignSetup,
+  addBotPlayer,
+  removePlayer,
+  setCampaignMode,
+  selectPremadeCampaign,
+  addCustomRound,
+  removeCustomRound
+} from './ui/screens/lobby.js';
+import {
+  updateCharCreateStepProgress,
+  setCharCreateStep,
+  goToCharPortraitStage,
+  submitMyCharacter,
+  unlockMyCharacterToEdit,
+  checkAllCharactersReady,
+  generateBotCharactersForGame
+} from './ui/screens/charCreate.js';
+import {
+  updateScenarioWordCount,
+  startTimer,
+  stopTimer,
+  updateTimerDisplay,
+  hostAddExtraTime,
+  openScenarioPopup,
+  closeScenarioPopup,
+  hostForceStartFirstRound,
+  hostStartFirstRound,
+  submitMyAction,
+  unlockMyActionToEdit,
+  checkAllActionsSubmitted,
+  hostForceEvaluateRound
+} from './ui/screens/scenario.js';
+import {
+  stopTypewriter,
+  skipStoryTypewriter,
+  setRevealWindow,
+  hostRetryAiJudge,
+  hostNextRevealStep
+} from './ui/screens/reveal.js';
+import {
+  setGameOverWindow,
+  copyStoryRecap
+} from './ui/screens/gameOver.js';
 
-  // Authoritative State (managed by Host, synchronized to Clients)
-  state: {
-    /** Current game phase: HOME | LOBBY | CHAR_CREATE | SCENARIO | REVEAL | GAME_OVER */
-    phase: 'HOME',
-    roomCode: '',
-    /** Tracks whether the host has clicked 'Set up campaign' in the lobby */
-    campaignSetupStarted: false,
-    /** Active campaign source: 'premade' | 'ai' | 'custom' */
-    campaignMode: 'premade',
-    selectedPremadeId: PREMADE_CAMPAIGNS[0].id,
-    aiPrompt: '',
-    aiRoundCount: 4,
-    customCampaign: {
-      id: 'custom-1',
-      title: 'Custom campaign',
-      genre: 'Custom Story',
-      description: 'A custom multi-round campaign created by the Host.',
-      rounds: [
-        {
-          title: 'The Setup',
-          scenario: 'A troll in a clip-on tie blocks the stone bridge. He crosses his arms and refuses to let anyone pass.',
-          secrets: 'The troll is secretly insecure about his fashion sense and loves dramatic flattery, absurd bribes, or coordinated slapstick distractions!'
-        },
-        {
-          title: 'The Escalation',
-          scenario: '',
-          secrets: ''
-        },
-        {
-          title: 'The Climax',
-          scenario: '',
-          secrets: ''
-        }
-      ]
-    },
-    /** Active campaign payload for the current playthrough */
-    activeCampaign: null,
+// Wire up network callbacks
+setNetworkHooks({
+  checkAllCharactersReady,
+  checkAllActionsSubmitted,
+  updateTimerDisplay,
+  stopTimer
+});
 
-    // Configurable Host Settings (Default 120s / 2 minutes)
-    settings: {
-      roundTimer: 120,
-      charCreateTimer: 0,
-      strictness: 'balanced',
-      allowStartingQuirk: false,
-      maxModifiers: 4,
-      pointsMultiplier: 1,
-      revealMovesAfterStory: true
-    },
-
-    timeLeft: 0,
-    remainingMs: 0,
-    currentRound: 0,
-    storySoFar: '',
-    roundHistory: [],
-    isJudging: false,
-    revealStep: 1,
-    players: [],
-    submissions: {},
-    hiddenSubmissions: {},
-    submissionKinds: {},
-    currentJudgment: null
-  },
-
-  /** Active setInterval reference for timers */
-  timerInterval: null,
-  timerDeadline: 0,
-
-  /** Typewriter narration playback tracker */
-  typewriter: {
-    activeKey: '',
-    timer: null,
-    finished: false
-  }
-};
-
-// --- Initialization ---
-window.addEventListener('DOMContentLoaded', () => {
-  initUI();
-  initDrawingCanvas();
-  setupDelegatedEventListeners();
-
-  // Close top menu drawer on outside click
-  document.addEventListener('click', (e) => {
-    const drawer = document.getElementById('top-menu-drawer');
-    const toggleBtn = document.getElementById('btn-top-menu');
-    if (drawer && !drawer.classList.contains('hidden')) {
-      if (!drawer.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
-        closeTopMenu();
-      }
-    }
-    // Dismiss sketchpad tool popups on outside click
-    if (!e.target.closest('.sketch-tool-group')) {
-      const colorMenu = document.getElementById('sketch-color-menu');
-      const thickMenu = document.getElementById('sketch-thickness-menu');
-      if (colorMenu) colorMenu.classList.add('hidden');
-      if (thickMenu) thickMenu.classList.add('hidden');
-    }
-  });
-
-  // Global Escape key listener to dismiss popovers and modals
+// Global escape key listener to dismiss modals
+if (typeof document !== 'undefined') {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeTopMenu();
@@ -158,15 +127,13 @@ window.addEventListener('DOMContentLoaded', () => {
       if (thickMenu) thickMenu.classList.add('hidden');
     }
   });
-});
+}
 
 /**
  * Sets up centralized delegated event listeners for data-action, data-bind, and data-on-enter.
  */
 function setupDelegatedEventListeners() {
-  // Delegated Click Dispatcher
   document.addEventListener('click', (e) => {
-    // Backdrop click dismissals
     if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
       const modalId = e.target.id;
       if (modalId === 'qr-popup-modal') closeQrPopup();
@@ -351,17 +318,12 @@ function setupDelegatedEventListeners() {
     }
   });
 
-  // Delegated Input Dispatcher
   document.addEventListener('input', (e) => {
     if (e.target && e.target.id === 'scenario-action-input') {
-      if (typeof updateScenarioWordCount === 'function') {
-        updateScenarioWordCount();
-      }
+      updateScenarioWordCount();
     }
     if (e.target && (e.target.id === 'char-name-input' || e.target.id === 'char-role-input')) {
-      if (typeof updateCharCreateStepProgress === 'function') {
-        updateCharCreateStepProgress();
-      }
+      updateCharCreateStepProgress();
     }
     const bindEl = e.target.closest('[data-bind]');
     if (!bindEl) return;
@@ -396,7 +358,6 @@ function setupDelegatedEventListeners() {
     }
   });
 
-  // Delegated Change Dispatcher
   document.addEventListener('change', (e) => {
     if (e.target && e.target.id === 'chk-disable-scenario-popup') {
       localStorage.setItem('plot_engineering_disable_scenario_popup', String(e.target.checked));
@@ -418,7 +379,6 @@ function setupDelegatedEventListeners() {
     }
   });
 
-  // Delegated Enter Key Dispatcher
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     const enterEl = e.target.closest('[data-on-enter]');
@@ -433,97 +393,6 @@ function setupDelegatedEventListeners() {
   });
 }
 
-/** Toggles the top menu drawer popover */
-function toggleTopMenu(e) {
-  if (e) e.stopPropagation();
-  const drawer = document.getElementById('top-menu-drawer');
-  const btn = document.getElementById('btn-top-menu');
-  if (!drawer) return;
-  const willOpen = drawer.classList.contains('hidden');
-  drawer.classList.toggle('hidden', !willOpen);
-  if (btn) {
-    btn.setAttribute('aria-expanded', String(willOpen));
-    btn.textContent = willOpen ? '✕ Close' : '☰ Menu';
-  }
-}
-
-/** Closes the top menu drawer popover */
-function closeTopMenu() {
-  const drawer = document.getElementById('top-menu-drawer');
-  const btn = document.getElementById('btn-top-menu');
-  if (drawer) drawer.classList.add('hidden');
-  if (btn) {
-    btn.setAttribute('aria-expanded', 'false');
-    btn.textContent = '☰ Menu';
-  }
-}
-
-/**
- * Bootstraps the UI on page load:
- * - Checks URL for invite parameters (?room=CODE)
- * - Restores sound settings
- * - Restores and verifies saved Gemini API key
- * - Initializes settings grids and screen window tabs
- */
-async function initUI() {
-  updateMuteButton();
-
-  const params = new URLSearchParams(window.location.search);
-  const roomParam = (params.get('room') || '').trim().toUpperCase();
-  if (roomParam) {
-    const cleanCode = roomParam.slice(0, 4);
-    const joinInput = document.getElementById('join-room-code');
-    if (joinInput) joinInput.value = cleanCode;
-    const inviteBanner = document.getElementById('invite-room-banner');
-    if (inviteBanner) {
-      inviteBanner.classList.remove('hidden');
-      inviteBanner.innerHTML = `Joining room <strong>${escapeHtml(cleanCode)}</strong>. Enter your nickname below.`;
-    }
-    const joinCard = document.getElementById('home-join-card');
-    if (joinCard) joinCard.classList.add('card-highlight');
-    app.homeWindow = 'join';
-    const nameInput = document.getElementById('join-player-name');
-    if (nameInput) setTimeout(() => nameInput.focus(), 80);
-  }
-
-  renderHomeWindow();
-  renderCampaignSelector();
-  renderSettingsGrids();
-
-  // B3: Display prompt to rejoin previously active room session if stored
-  const storedRoom = sessionStorage.getItem('plot_engineering_room_code');
-  const storedId = sessionStorage.getItem('plot_engineering_player_id');
-  if (storedRoom && storedId) {
-    const rejoinBanner = document.getElementById('rejoin-room-banner');
-    const rejoinCodeEl = document.getElementById('rejoin-room-code');
-    if (rejoinBanner && rejoinCodeEl) {
-      rejoinCodeEl.textContent = storedRoom;
-      rejoinBanner.classList.remove('hidden');
-    }
-  }
-
-  // B4: Do not validate over network on page load (flaky offline connections must not wipe keys)
-  const savedKey = getStoredApiKey();
-  const keyInput = document.getElementById('api-key-input');
-  if (savedKey) {
-    if (keyInput) keyInput.value = savedKey;
-    isApiKeyVerified = true;
-    updateApiKeyBadge(true);
-  } else {
-    if (keyInput) keyInput.value = '';
-    isApiKeyVerified = false;
-    updateApiKeyBadge(false);
-  }
-
-  renderState();
-}
-
-// --- Navigation & Timer Helpers ---
-
-/**
- * Handles the top-left contextual back button.
- * Prompts confirmation and leaves the room or returns the host to the lobby.
- */
 function handleGlobalBack() {
   const phase = app.state.phase;
   if (phase === 'HOME') return;
@@ -548,12 +417,9 @@ function handleGlobalBack() {
   }
 }
 
-/**
- * Returns all connected players back to the Room Lobby.
- */
 function hostBackToLobby() {
   if (!app.isHost) return;
-  clearInterval(app.timerInterval);
+  stopTimer();
   stopTypewriter();
   app.state.isJudging = false;
   app.state.phase = 'LOBBY';
@@ -561,314 +427,6 @@ function hostBackToLobby() {
   broadcastState();
 }
 
-/**
- * Starts or synchronizes a timestamp-based countdown timer (B8).
- * Avoids per-second full state broadcasts and background tab drift.
- * @param {number} seconds
- */
-function startTimer(seconds) {
-  stopTimer();
-  app.charTimerWarned10s = false;
-  if (seconds <= 0) {
-    app.state.remainingMs = 0;
-    app.state.timeLeft = 0;
-    app.timerDeadline = 0;
-    return;
-  }
-  app.state.remainingMs = seconds * 1000;
-  app.state.timeLeft = seconds;
-  app.timerDeadline = Date.now() + app.state.remainingMs;
-  app.timerInterval = setInterval(updateTimerDisplay, 250);
-}
-
-function stopTimer() {
-  if (app.timerInterval) {
-    clearInterval(app.timerInterval);
-    app.timerInterval = null;
-  }
-  app.timerDeadline = 0;
-}
-
-function updateTimerDisplay() {
-  if (!app.timerDeadline) return;
-  const msLeft = Math.max(0, app.timerDeadline - Date.now());
-  const secondsLeft = Math.ceil(msLeft / 1000);
-  app.state.timeLeft = secondsLeft;
-
-  // B8: Update only timer elements directly rather than re-rendering whole screen
-  const charTimerEl = document.getElementById('char-create-timer');
-  if (charTimerEl && app.state.phase === 'CHAR_CREATE') {
-    charTimerEl.textContent = formatSeconds(secondsLeft);
-    // B21: Warning toast at 10 seconds for character creation timer
-    if (secondsLeft <= 10 && secondsLeft > 0 && !app.charTimerWarned10s) {
-      app.charTimerWarned10s = true;
-      showToast('10 seconds left! Unfinished characters will be auto-filled.', 'warn');
-    }
-  }
-  const scenTimerEl = document.getElementById('scenario-timer');
-  if (scenTimerEl && app.state.phase === 'SCENARIO') {
-    scenTimerEl.textContent = formatSeconds(secondsLeft);
-    scenTimerEl.classList.toggle('timer-urgent', secondsLeft <= 20);
-  }
-
-  // Host checks deadline
-  if (app.isHost && msLeft <= 0) {
-    stopTimer();
-    if (app.state.phase === 'CHAR_CREATE') {
-      hostForceStartFirstRound();
-    } else if (app.state.phase === 'SCENARIO') {
-      hostForceEvaluateRound();
-    }
-  }
-}
-
-/**
- * Host utility to add overtime (default +30 seconds) to the active round countdown.
- * @param {number} seconds
- */
-function hostAddExtraTime(seconds = 30) {
-  if (!app.isHost || app.state.phase !== 'SCENARIO') return;
-  const currentRemaining = Math.max(0, (app.timerDeadline || Date.now()) - Date.now());
-  const newRemaining = currentRemaining + (seconds * 1000);
-  app.state.remainingMs = newRemaining;
-  app.state.timeLeft = Math.ceil(newRemaining / 1000);
-  app.timerDeadline = Date.now() + newRemaining;
-  showToast(`Added +${seconds} seconds to the round timer!`, 'info');
-  broadcastState();
-}
-
-/**
- * Copies the full room invite link to the clipboard.
- * B17: Guards against missing navigator.clipboard on insecure HTTP origins.
- */
-function copyInviteLink() {
-  const inviteUrl = getRoomInviteUrl(app.state.roomCode);
-
-  const onCopySuccess = () => {
-    if (isLocalhost()) {
-      showToast('Invite link copied. Note: Friends cannot reach localhost; share your deployed URL or your LAN address.', 'info');
-    } else {
-      showToast('Invite link copied', 'success');
-    }
-  };
-
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-    navigator.clipboard.writeText(inviteUrl)
-      .then(onCopySuccess)
-      .catch(() => fallbackCopyText(inviteUrl, onCopySuccess));
-  } else {
-    fallbackCopyText(inviteUrl, onCopySuccess);
-  }
-}
-
-/**
- * Fallback copy using a temporary input element for non-secure HTTP / LAN origins (B17).
- * @param {string} text
- * @param {Function} [onSuccess]
- */
-function fallbackCopyText(text, onSuccess) {
-  try {
-    const tempInput = document.createElement('textarea');
-    tempInput.value = text;
-    tempInput.setAttribute('readonly', '');
-    tempInput.style.position = 'fixed';
-    tempInput.style.left = '-9999px';
-    tempInput.style.opacity = '0';
-    document.body.appendChild(tempInput);
-    tempInput.focus();
-    tempInput.select();
-    const copied = document.execCommand('copy');
-    document.body.removeChild(tempInput);
-    if (copied) {
-      if (onSuccess) onSuccess();
-      return;
-    }
-  } catch (err) {
-    console.warn('Fallback clipboard copy failed:', err);
-  }
-  showToast(`Invite Link: ${text}`, 'info');
-}
-
-/** Toggles the in-lobby QR code modal for mobile joining */
-function toggleLobbyQrCode() {
-  const modal = document.getElementById('qr-popup-modal');
-  if (!modal) return;
-  if (modal.classList.contains('hidden')) {
-    openAccessibleModal('qr-popup-modal');
-  } else {
-    closeAccessibleModal('qr-popup-modal');
-  }
-}
-
-/** Closes the QR code modal */
-function closeQrPopup() {
-  closeAccessibleModal('qr-popup-modal');
-}
-
-// --- Multi-Window Switcher Controllers ---
-
-/**
- * Switches the active sub-window on the HOME screen on mobile.
- * @param {'host'|'join'} win
- */
-function setHomeWindow(win) {
-  app.homeWindow = win === 'join' ? 'join' : 'host';
-  renderHomeWindow();
-}
-
-/** Renders the HOME screen cards based on active mobile tab */
-function renderHomeWindow() {
-  const win = app.homeWindow === 'join' ? 'join' : 'host';
-  const hostCard = document.getElementById('home-host-card');
-  const joinCard = document.getElementById('home-join-card');
-  const btnHost = document.getElementById('home-win-btn-host');
-  const btnJoin = document.getElementById('home-win-btn-join');
-  if (hostCard) hostCard.classList.toggle('mobile-window-hidden', win !== 'host');
-  if (joinCard) joinCard.classList.toggle('mobile-window-hidden', win !== 'join');
-  if (btnHost) btnHost.classList.toggle('active', win === 'host');
-  if (btnJoin) btnJoin.classList.toggle('active', win === 'join');
-}
-
-/** Host opens the Campaign Setup sub-view in the lobby */
-function openLobbyCampaignSetup() {
-  if (!app.isHost) return;
-  app.lobbyView = 'campaign';
-  app.state.campaignSetupStarted = true;
-  broadcastState();
-  renderLobbyScreen();
-}
-
-/** Host returns to the Cast Roster sub-view in the lobby */
-function closeLobbyCampaignSetup() {
-  app.lobbyView = 'cast';
-  renderLobbyScreen();
-}
-
-/**
- * Switches the active sub-window on the REVEAL screen on mobile.
- * @param {'story'|'rankings'} win
- */
-function setRevealWindow(win) {
-  app.revealWindow = win === 'rankings' ? 'rankings' : 'story';
-  if (app.state.currentJudgment && app.typewriter.finished) {
-    showPostStoryVerdictAndLeaderboard(app.state.currentJudgment);
-  }
-}
-
-/**
- * Switches the active sub-window on the GAME_OVER screen on mobile.
- * @param {'results'|'players'|'recap'} win
- */
-function setGameOverWindow(win) {
-  if (win === 'players') {
-    app.gameOverWindow = 'players';
-  } else if (win === 'recap') {
-    app.gameOverWindow = 'recap';
-  } else {
-    app.gameOverWindow = 'results';
-  }
-  renderGameOverScreen();
-}
-
-// --- Lobby Roster & Campaign Configuration ---
-
-/**
- * Spawns an AI bot player with an auto-generated procedural cartoon portrait.
- */
-function addBotPlayer() {
-  if (!app.isHost) return;
-  // B20: Cap room at 8 players
-  if (app.state.players.length >= 8) {
-    showToast('The room is full (maximum 8 players).', 'warn');
-    return;
-  }
-  const botCount = app.state.players.filter(p => p.isBot).length;
-  const botId = 'bot-' + Math.random().toString(36).slice(2, 7);
-  const botPortrait = generateProceduralPortraitDataUrl();
-  const botName = disambiguatePlayerName(`Bot ${botCount + 1}`, app.state.players);
-
-  app.state.players.push({
-    id: botId,
-    name: botName,
-    isHost: false,
-    isBot: true,
-    score: 0,
-    character: null,
-    modifiers: []
-  });
-  sfx.join();
-  broadcastState();
-}
-
-/**
- * Host kicks/removes a player or bot from the lobby.
- * @param {string} playerId
- */
-function removePlayer(playerId) {
-  if (!app.isHost) return;
-  app.state.players = app.state.players.filter(p => p.id !== playerId);
-  if (app.clientConns[playerId]) {
-    const conn = app.clientConns[playerId];
-    delete app.clientConns[playerId];
-    try {
-      if (conn.open) {
-        conn.send({ type: 'ROOM_CLOSED', reason: 'You were removed from the room by the Host.' });
-      }
-    } catch (e) {}
-    setTimeout(() => {
-      try { conn.close(); } catch (e) {}
-    }, 80);
-  }
-  broadcastState();
-}
-
-/**
- * Selects campaign origin mode ('premade' | 'ai' | 'custom').
- * @param {'premade'|'ai'|'custom'} mode
- */
-function setCampaignMode(mode) {
-  if (!app.isHost) return;
-  app.state.campaignMode = mode;
-  renderCampaignSelector();
-  broadcastState();
-}
-
-/**
- * Selects a premade campaign ID.
- * @param {string} id
- */
-function selectPremadeCampaign(id) {
-  if (!app.isHost) return;
-  app.state.selectedPremadeId = id;
-  renderCampaignSelector();
-  broadcastState();
-}
-
-/** Adds an empty round block to the custom campaign editor */
-function addCustomRound() {
-  app.state.customCampaign.rounds.push({
-    title: `Round ${app.state.customCampaign.rounds.length + 1}: New Challenge`,
-    scenario: '',
-    secrets: ''
-  });
-  renderCampaignSelector();
-  broadcastState();
-}
-
-/**
- * Removes a round from the custom campaign editor.
- * @param {number} idx
- */
-function removeCustomRound(idx) {
-  if (app.state.customCampaign.rounds.length <= 1) return;
-  app.state.customCampaign.rounds.splice(idx, 1);
-  renderCampaignSelector();
-  broadcastState();
-}
-
-/**
- * Launches the selected campaign and transitions all players to CHAR_CREATE phase.
- */
 async function hostStartCampaign() {
   if (!app.isHost) return;
 
@@ -883,7 +441,6 @@ async function hostStartCampaign() {
     app.state.customCampaign.title = (customTitleInput ? customTitleInput.value.trim() : '') || 'Custom campaign';
     app.state.customCampaign.description = (customDescInput ? customDescInput.value.trim() : '') || 'Survive each round together!';
 
-    // B6: Validate that every custom round has at least 15 characters of scene text
     for (let i = 0; i < app.state.customCampaign.rounds.length; i++) {
       const r = app.state.customCampaign.rounds[i];
       const scenarioText = (r.scenario || '').trim();
@@ -906,7 +463,7 @@ async function hostStartCampaign() {
       showToast('Please enter a theme or idea for the AI Campaign!', 'error');
       return;
     }
-    if (!getStoredApiKey() || !isApiKeyVerified) {
+    if (!getStoredApiKey() || !isKeyVerified()) {
       showToast('Add an AI key to generate a campaign (Menu > AI key).', 'error');
       openApiKeyModal();
       return;
@@ -947,13 +504,11 @@ async function hostStartCampaign() {
   const actionInput = document.getElementById('scenario-action-input');
   if (actionInput) actionInput.value = '';
 
-  // B8: Use timestamp deadline timer rather than broadcasting every second
   startTimer(Number(app.state.settings.charCreateTimer) || 0);
 
   sfx.stepReveal();
   broadcastState();
 
-  // Asynchronously generate campaign-themed AI characters for bot players
   const bots = app.state.players.filter(p => p.isBot);
   if (bots.length > 0) {
     generateBotCharactersForGame(bots);
@@ -961,727 +516,88 @@ async function hostStartCampaign() {
 }
 
 /**
- * Asynchronously generates campaign-themed character profiles for AI bot players via Gemini.
- * @param {Array<object>} bots
+ * Initializes UI and recovers stored session if present.
  */
-async function generateBotCharactersForGame(bots) {
-  if (!app.isHost || !bots || bots.length === 0) return;
-  const campaign = app.state.activeCampaign;
-  const apiKey = getStoredApiKey();
+async function initUI() {
+  setupDelegatedEventListeners();
+  initDrawingCanvas();
+  updateMuteButton();
 
-  let botCharacters = [];
-  try {
-    botCharacters = await generateBotCharactersWithAI({
-      campaignTitle: campaign?.title || 'Unknown Campaign',
-      campaignDescription: campaign?.description || '',
-      genre: campaign?.genre || 'Comedy',
-      count: bots.length,
-      settings: app.state.settings,
-      apiKey
-    });
-  } catch (err) {
-    console.warn('AI bot character generation error:', err);
-  }
-
-  // Guard: Ensure we are still in CHAR_CREATE phase
-  if (app.state.phase !== 'CHAR_CREATE') return;
-
-  bots.forEach((bot, idx) => {
-    const profile = (botCharacters && botCharacters[idx]) || {
-      name: `Agent ${String.fromCharCode(65 + idx)}`,
-      role: `Unsuspecting bystander caught in ${campaign?.title || 'the chaos'}`,
-      startingTrait: {
-        name: 'Unlucky Hunch',
-        type: 'neutral',
-        description: 'Has a persistent bad feeling about whatever happens next'
-      }
-    };
-
-    bot.character = {
-      name: profile.name,
-      role: profile.role,
-      avatar: generateProceduralPortraitDataUrl(),
-      ready: true
-    };
-    bot.name = disambiguatePlayerName(`${profile.name.split(' ')[0]} (Bot)`, app.state.players.filter(p => p.id !== bot.id));
-
-    if (app.state.settings.allowStartingQuirk && profile.startingTrait) {
-      bot.modifiers = [{ ...profile.startingTrait, metaEffect: 'NONE' }];
-    } else {
-      bot.modifiers = [];
+  const params = new URLSearchParams(window.location.search);
+  const roomParam = (params.get('room') || '').trim().toUpperCase();
+  if (roomParam) {
+    const cleanCode = roomParam.slice(0, 4);
+    const joinInput = document.getElementById('join-room-code');
+    if (joinInput) joinInput.value = cleanCode;
+    const inviteBanner = document.getElementById('invite-room-banner');
+    if (inviteBanner) {
+      inviteBanner.classList.remove('hidden');
+      inviteBanner.innerHTML = `Joining room <strong>${escapeHtml(cleanCode)}</strong>. Enter your nickname below.`;
     }
-  });
-
-  checkAllCharactersReady();
-  broadcastState();
-}
-
-/**
- * Host force-starts Round 1 immediately, auto-filling any incomplete player characters.
- */
-function hostForceStartFirstRound() {
-  if (!app.isHost) return;
-  clearInterval(app.timerInterval);
-  app.state.players.forEach(p => {
-    if (!p.character || !p.character.ready) {
-      p.character = {
-        name: p.character?.name || p.name,
-        role: p.character?.role || 'Bystander thrown into the chaos',
-        avatar: p.character?.avatar || generateProceduralPortraitDataUrl(),
-        ready: true
-      };
-    }
-  });
-  startScenarioRound(0);
-}
-
-// --- Character Creation Controllers ---
-
-/**
- * Toggles between Stage 1 (Bio) and Stage 2 (Sketchpad) during character creation.
- * @param {1|2} step
- */
-function setCharCreateStep(step) {
-  app.charCreateStep = step === 2 ? 2 : 1;
-  sfx.stepReveal();
-  renderCharCreateScreen();
-  // B8: Sync canvas container on step transition, not on every render
-  if (app.charCreateStep === 2 && typeof syncCanvasToContainer === 'function') {
-    requestAnimationFrame(() => syncCanvasToContainer(true));
-  }
-}
-
-/**
- * Advances to Stage 2 (Portrait sketchpad canvas).
- * Allows transitioning before bio is completed so players can draw first.
- */
-function goToCharPortraitStage() {
-  app.charCreateStep = 2;
-  sfx.stepReveal();
-  renderCharCreateScreen();
-  if (typeof syncCanvasToContainer === 'function') {
-    requestAnimationFrame(() => syncCanvasToContainer(true));
-  }
-}
-
-/**
- * Submits the local player's character profile and portrait artwork.
- * Broadcasts or transmits SUBMIT_CHARACTER to host.
- */
-function submitMyCharacter() {
-  const name = document.getElementById('char-name-input').value.trim();
-  const role = document.getElementById('char-role-input').value.trim();
-  const quirkRaw = (document.getElementById('char-quirk-input')?.value || '').trim();
-
-  if (!name) {
-    showToast('Give your character a name!', 'error');
-    setCharCreateStep(1);
-    document.getElementById('char-name-input')?.focus();
-    return;
-  }
-  if (!role) {
-    showToast("Describe your character's role, class, or vibe!", 'error');
-    setCharCreateStep(1);
-    document.getElementById('char-role-input')?.focus();
-    return;
+    const joinCard = document.getElementById('home-join-card');
+    if (joinCard) joinCard.classList.add('card-highlight');
+    app.homeWindow = 'join';
+    const nameInput = document.getElementById('join-player-name');
+    if (nameInput) setTimeout(() => nameInput.focus(), 80);
   }
 
-  let avatarDataUrl = '';
-  if (drawState.canvas && drawState.hasDrawn) {
-    avatarDataUrl = exportCompactAvatar(drawState.canvas);
-  } else {
-    // B19: Blank portrait auto-generates procedural cartoon portrait
-    avatarDataUrl = generateProceduralPortraitDataUrl();
-    showToast('No drawing, so we picked a portrait for you', 'info');
-  }
+  renderHomeWindow();
+  renderCampaignSelector();
+  renderSettingsGrids();
 
-  let startMod = null;
-  if (quirkRaw && app.state.settings.allowStartingQuirk) {
-    const parts = quirkRaw.split(':');
-    startMod = {
-      name: parts[0].trim().slice(0, 32),
-      type: 'neutral',
-      metaEffect: 'NONE',
-      description: (parts[1] ? parts.slice(1).join(':').trim() : 'Starting character trait/item').slice(0, 80)
-    };
-  }
+  // Check for session recovery via sessionStorage
+  const activeSession = loadSessionFromStorage();
+  if (activeSession && activeSession.isHost && activeSession.roomCode) {
+    // Attempt host room restoration
+    try {
+      app.isHost = true;
+      app.roomCode = activeSession.roomCode;
+      app.myName = activeSession.myName || 'Host Player';
+      app.myId = activeSession.myId;
+      app.state = activeSession.state;
+      app.lobbyView = activeSession.lobbyView || 'cast';
+      app.charCreateStep = activeSession.charCreateStep || 1;
 
-  const charData = {
-    name,
-    role,
-    avatar: avatarDataUrl,
-    startMod
-  };
+      const peer = new window.Peer(PEER_PREFIX + activeSession.roomCode);
+      app.peer = peer;
 
-  if (app.isHost) {
-    const me = app.state.players.find(p => p.id === app.myId);
-    if (me) {
-      me.character = { name, role, avatar: avatarDataUrl, ready: true };
-      me.modifiers = startMod ? [startMod] : [];
-    }
-    sfx.lockIn();
-    checkAllCharactersReady();
-    broadcastState();
-  } else {
-    // B7: Disallow optimistic local state update unless sendToHost succeeds
-    const sent = sendToHost({
-      type: 'SUBMIT_CHARACTER',
-      playerId: app.myId,
-      character: charData
-    });
-    if (sent) {
-      const me = app.state.players.find(p => p.id === app.myId);
-      if (me) {
-        me.character = { name, role, avatar: avatarDataUrl, ready: true };
-      }
-      sfx.lockIn();
-      renderState();
-    }
-  }
-}
-
-/**
- * Unlocks the local player's character so they can edit bio or redraw portrait.
- */
-function unlockMyCharacterToEdit() {
-  if (app.isHost) {
-    const me = app.state.players.find(p => p.id === app.myId);
-    if (me && me.character) {
-      me.character.ready = false;
-    }
-    broadcastState();
-  } else {
-    // B7: Guard action unlock with sendToHost
-    const sent = sendToHost({
-      type: 'UNLOCK_CHARACTER',
-      playerId: app.myId
-    });
-    if (sent) {
-      const me = app.state.players.find(p => p.id === app.myId);
-      if (me && me.character) {
-        me.character.ready = false;
-      }
-      renderState();
-    }
-  }
-}
-
-/**
- * Checks if all connected players have submitted ready characters.
- * Stops the character creation timer and notifies connected players so the host can start the campaign.
- */
-function checkAllCharactersReady() {
-  if (!app.isHost) return;
-  // B3: Ignore disconnected players so offline guests do not stall character creation
-  const activePlayers = app.state.players.filter(p => !p.disconnected);
-  const allReady = activePlayers.length > 0 && activePlayers.every(p => p.character && p.character.ready);
-  if (allReady) {
-    clearInterval(app.timerInterval);
-  }
-  broadcastState();
-}
-
-/**
- * Host manually launches the campaign round 1 once all characters are locked in.
- */
-function hostStartFirstRound() {
-  if (!app.isHost) return;
-  clearInterval(app.timerInterval);
-  startScenarioRound(0);
-}
-
-// --- Scenario Round & Action Submission Controllers ---
-
-/** Opens the full scenario description popup modal */
-function openScenarioPopup() {
-  app.scenarioPopupOpen = true;
-  const chk = document.getElementById('chk-disable-scenario-popup');
-  if (chk) {
-    chk.checked = localStorage.getItem('plot_engineering_disable_scenario_popup') === 'true';
-  }
-  openAccessibleModal('scenario-popup-modal');
-}
-
-/** Closes the full scenario description popup modal */
-function closeScenarioPopup() {
-  const chk = document.getElementById('chk-disable-scenario-popup');
-  if (chk) {
-    localStorage.setItem('plot_engineering_disable_scenario_popup', String(chk.checked));
-  }
-  app.scenarioPopupOpen = false;
-  closeAccessibleModal('scenario-popup-modal');
-}
-
-/**
- * Initiates a new scenario round:
- * - Resets submissions and triggers opening scenario popup
- * - Auto-populates submissions for eliminated or locked-out players
- * - Simulates AI bot actions
- * - Starts the round action countdown timer
- * 
- * @param {number} roundIndex - 0-based act index
- */
-function startScenarioRound(roundIndex) {
-  if (!app.isHost) return;
-  stopTypewriter();
-  app.revealWindow = 'story';
-  app.state.currentRound = roundIndex;
-  app.state.submissions = {};
-  app.state.hiddenSubmissions = {};
-  app.state.currentJudgment = null;
-  app.state.isJudging = false;
-  app.state.phase = 'SCENARIO';
-  app.scenarioPopupKey = '';
-  app.scenarioPopupOpen = true;
-
-  const actionInput = document.getElementById('scenario-action-input');
-  if (actionInput) actionInput.value = '';
-
-  const activeBots = [];
-
-  app.state.players.forEach(p => {
-    const deadMod = getPlayerMetaMod(p, 'DEAD');
-    const skipMod = getPlayerMetaMod(p, 'SKIP_TURN');
-    const charName = p.character?.name || p.name;
-    if (deadMod) {
-      app.state.submissions[p.id] = `${charName} did nothing, they are dead`;
-    } else if (skipMod) {
-      app.state.submissions[p.id] = `${charName} did nothing, they are locked out`;
-    } else if (p.disconnected) {
-      // B3: Auto-fill move for disconnected players so the round can proceed
-      app.state.submissions[p.id] = '(Was away)';
-    } else if (p.isBot) {
-      activeBots.push(p);
-    }
-  });
-
-  // B8: Use timestamp deadline timer rather than broadcasting every second
-  startTimer(Number(app.state.settings.roundTimer) || 0);
-
-  sfx.stepReveal();
-  broadcastState();
-  checkAllActionsSubmitted();
-
-  if (activeBots.length > 0) {
-    triggerBotActionsForRound(activeBots, roundIndex);
-  }
-}
-
-/**
- * Asynchronously generates and submits in-character moves for AI bots in the active round.
- * Bots lock in instantly as soon as Gemini outputs their response.
- * 
- * @param {Array<object>} activeBots
- * @param {number} roundIndex
- */
-async function triggerBotActionsForRound(activeBots, roundIndex) {
-  if (!app.isHost || !activeBots || activeBots.length === 0) return;
-
-  const campaign = app.state.activeCampaign;
-  const roundObj = campaign?.rounds?.[roundIndex];
-  if (!roundObj) return;
-
-  const apiKey = getStoredApiKey();
-  const botProfiles = activeBots.map(b => ({
-    id: b.id,
-    name: b.character?.name || b.name,
-    role: b.character?.role || 'Adventurer',
-    modifiers: b.modifiers || []
-  }));
-
-  const detailedRecap = (app.state.roundHistory || []).map((h, i) => {
-    const paras = (h.judgment?.storyParagraphs || []).join(' ');
-    return `Round ${i + 1} (${h.roundTitle || 'Act'}): ${paras}`;
-  }).join('\n\n');
-
-  let actions = {};
-  try {
-    actions = await generateBotActionsWithAI({
-      scenario: roundObj.scenario,
-      roundTitle: roundObj.title,
-      campaignTitle: campaign.title,
-      campaignDescription: campaign.description,
-      storySoFar: detailedRecap || app.state.storySoFar,
-      botProfiles,
-      apiKey
-    });
-  } catch (err) {
-    console.warn('Bot action generation error:', err);
-  }
-
-  // Guard: Ensure we are still in SCENARIO phase and on the exact same round
-  if (app.state.phase !== 'SCENARIO' || app.state.currentRound !== roundIndex) {
-    return;
-  }
-
-  // Bots lock in instantly as soon as Gemini outputs their response
-  activeBots.forEach(bot => {
-    const botAction = actions[bot.id] || `${bot.character?.name || bot.name} panicked and did nothing!`;
-    app.state.submissions[bot.id] = botAction;
-    app.state.hiddenSubmissions[bot.id] = true;
-  });
-
-  broadcastState();
-  checkAllActionsSubmitted();
-}
-
-/**
- * Submits the local player's move for the current scenario.
- * Validates word count if WORD_LIMIT restriction is active.
- */
-function submitMyAction() {
-  const me = app.state.players.find(p => p.id === app.myId);
-  if (getPlayerMetaMod(me, 'DEAD') || getPlayerMetaMod(me, 'SKIP_TURN')) {
-    return;
-  }
-
-  const input = document.getElementById('scenario-action-input');
-  const action = (input ? input.value : '').trim();
-
-  if (!action) {
-    showToast('Write what your character does first!', 'error');
-    return;
-  }
-
-  const wordLimitMod = getPlayerMetaMod(me, 'WORD_LIMIT');
-  if (wordLimitMod) {
-    const wordCount = action.split(/\s+/).filter(Boolean).length;
-    if (wordCount > 5) {
-      showToast(`"${wordLimitMod.name}" active: you can only use up to 5 words (you wrote ${wordCount}).`, 'error');
-      return;
-    }
-  }
-
-  if (app.isHost) {
-    app.state.submissions[app.myId] = action;
-    app.state.hiddenSubmissions[app.myId] = true;
-    sfx.lockIn();
-    broadcastState();
-    checkAllActionsSubmitted();
-  } else {
-    // B7: Guard action submission with sendToHost
-    const sent = sendToHost({
-      type: 'SUBMIT_ACTION',
-      playerId: app.myId,
-      action
-    });
-    if (sent) {
-      app.state.submissions[app.myId] = '__LOCKED_IN__';
-      app.state.hiddenSubmissions[app.myId] = true;
-      sfx.lockIn();
-      renderState();
-    }
-  }
-}
-
-/**
- * Unlocks the player's locked-in move to allow editing before the round ends.
- */
-function unlockMyActionToEdit() {
-  const me = app.state.players.find(p => p.id === app.myId);
-  if (getPlayerMetaMod(me, 'DEAD') || getPlayerMetaMod(me, 'SKIP_TURN')) {
-    showToast('You cannot act this turn due to your active status effect!', 'warn');
-    return;
-  }
-  if (app.isHost) {
-    delete app.state.submissions[app.myId];
-    delete app.state.hiddenSubmissions[app.myId];
-    broadcastState();
-  } else {
-    // B7: Guard action unlock with sendToHost
-    const sent = sendToHost({
-      type: 'UNLOCK_ACTION',
-      playerId: app.myId
-    });
-    if (sent) {
-      delete app.state.submissions[app.myId];
-      delete app.state.hiddenSubmissions[app.myId];
-      renderState();
-    }
-  }
-}
-
-/**
- * Checks whether all connected players have submitted an action.
- * Automatically initiates evaluation if everyone is locked in.
- */
-function checkAllActionsSubmitted() {
-  if (!app.isHost) return;
-  // B3: Ignore disconnected players so offline guests do not stall round evaluation
-  const activePlayers = app.state.players.filter(p => !p.disconnected);
-  const allSubmitted = activePlayers.length > 0 && activePlayers.every(p => Boolean(app.state.submissions[p.id]));
-  if (allSubmitted) {
-    clearInterval(app.timerInterval);
-    evaluateCurrentRound();
-  }
-}
-
-/**
- * Host force-evaluates the round immediately when timer expires or button is clicked.
- */
-function hostForceEvaluateRound() {
-  if (!app.isHost) return;
-  clearInterval(app.timerInterval);
-  evaluateCurrentRound();
-}
-
-// --- Round Judging & Reveal Flow ---
-
-/**
- * Executes round evaluation via Gemini (or fallback demo judge):
- * 1. Switches phase to REVEAL Step 1 (speech bubbles visible).
- * 2. Sends prompt with player profiles, active injuries/perks, and actions.
- * 3. Normalizes outcome, updates player scores, applies/cures modifiers.
- * 4. Appends to story continuity log and broadcasts to clients.
- */
-async function evaluateCurrentRound() {
-  if (!app.isHost || app.state.isJudging) return;
-
-  // Snapshot pre-round state so host can cleanly retry if fallback judge runs
-  app.state._preRoundSnapshot = {
-    players: app.state.players.map(p => ({
-      id: p.id,
-      score: p.score || 0,
-      modifiers: (p.modifiers || []).map(m => ({ ...m }))
-    })),
-    storySoFar: app.state.storySoFar || ''
-  };
-
-  stopTypewriter();
-  app.state.phase = 'REVEAL';
-  app.state.revealStep = 1;
-  app.state.isJudging = true;
-  app.state.currentJudgment = null;
-  sfx.stepReveal();
-  broadcastState();
-
-  const roundIndex = app.state.currentRound;
-  const campaign = app.state.activeCampaign;
-  const roundObj = campaign.rounds[roundIndex];
-  const apiKey = getStoredApiKey();
-
-  let judgment = null;
-  if (apiKey && isApiKeyVerified) {
-    const maxAttempts = 3;
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        judgment = await judgeRoundWithAI({
-          campaign,
-          roundIndex,
-          totalRounds: campaign.rounds.length,
-          scenarioText: roundObj.scenario,
-          scenarioSecrets: roundObj.secrets || '',
-          storySoFar: app.state.storySoFar,
-          players: app.state.players,
-          submissions: app.state.submissions,
-          settings: app.state.settings,
-          apiKey
-        });
-        if (judgment) {
-          updateApiKeyBadge(true);
-          break;
-        }
-      } catch (err) {
-        console.warn(`AI judging attempt ${attempt}/${maxAttempts} failed:`, err);
-        if (err?.code === 'INVALID') {
-          // Unrecoverable invalid API key
-          break;
-        }
-        if (attempt < maxAttempts) {
-          const backoffMs = attempt === 1 ? 1500 : 3000;
-          await new Promise(r => setTimeout(r, backoffMs));
-        }
-      }
-    }
-
-    if (!judgment) {
-      judgment = mockJudgeRound({
-        players: app.state.players,
-        submissions: app.state.submissions,
-        settings: app.state.settings,
-        isLastRound: (roundIndex + 1) >= campaign.rounds.length
+      peer.on('open', () => {
+        showToast(`Resumed room ${activeSession.roomCode}!`, 'success');
+        renderState();
       });
-      judgment.judgeNotice = 'The AI judge was unavailable after multiple attempts, so a fallback judge decided this round.';
+      peer.on('connection', (conn) => {
+        setupHostClientConnection(conn);
+      });
+      peer.on('error', (err) => {
+        console.warn('Session restoration PeerJS warning:', err);
+      });
+    } catch (e) {
+      console.warn('Could not restore host session:', e);
+      clearSessionStorage();
     }
   } else {
-    await new Promise(r => setTimeout(r, 1500));
-    judgment = mockJudgeRound({
-      players: app.state.players,
-      submissions: app.state.submissions,
-      settings: app.state.settings,
-      isLastRound: (roundIndex + 1) >= campaign.rounds.length
-    });
-  }
-
-  if (app.state.phase !== 'REVEAL') return;
-
-  const maxMods = Number(app.state.settings.maxModifiers) || 99;
-  const roundFailed = judgment.outcome === 'FAILED';
-  const isFinalRound = (roundIndex + 1) >= campaign.rounds.length;
-
-  for (const rankItem of judgment.rankings) {
-    const player = app.state.players.find(p => p.id === rankItem.playerId);
-    if (!player) continue;
-
-    if (roundFailed) {
-      rankItem.teamBonus = 0;
-      rankItem.rankBonus = 0;
-      rankItem.pointsAwarded = 0;
-      rankItem.modifiersAdded = [];
-      rankItem.modifiersRemoved = [];
-      continue;
-    }
-
-    if (isFinalRound) {
-      rankItem.modifiersAdded = [];
-    }
-
-    player.score = (player.score || 0) + (rankItem.pointsAwarded || 0);
-
-    // Expire 1-turn meta restrictions that were served this round
-    player.modifiers = (player.modifiers || []).filter(m => {
-      if (['SKIP_TURN', 'WORD_LIMIT', 'BLINDED_SCENARIO'].includes(m.metaEffect)) {
-        return false;
-      }
-      return true;
-    });
-
-    if (Array.isArray(rankItem.modifiersRemoved) && rankItem.modifiersRemoved.length > 0) {
-      const removeSet = new Set(rankItem.modifiersRemoved.map(n => n.toLowerCase()));
-      player.modifiers = (player.modifiers || []).filter(m => !removeSet.has(m.name.toLowerCase()));
-    }
-
-    if (!isFinalRound && Array.isArray(rankItem.modifiersAdded)) {
-      for (const mod of rankItem.modifiersAdded) {
-        if (mod && mod.name) {
-          const exists = (player.modifiers || []).some(m => m.name.toLowerCase() === mod.name.toLowerCase());
-          if (!exists) {
-            player.modifiers.push({
-              name: mod.name,
-              type: mod.type || 'debuff',
-              metaEffect: mod.metaEffect || 'NONE',
-              description: mod.description || ''
-            });
-            if (player.modifiers.length > maxMods) {
-              const nonDeadIdx = player.modifiers.findIndex(m => m.metaEffect !== 'DEAD');
-              if (nonDeadIdx !== -1) player.modifiers.splice(nonDeadIdx, 1);
-            }
-          }
-        }
+    // Guest rejoin prompt
+    const storedRoom = sessionStorage.getItem('plot_engineering_room_code');
+    const storedId = sessionStorage.getItem('plot_engineering_player_id');
+    if (storedRoom && storedId) {
+      const rejoinBanner = document.getElementById('rejoin-room-banner');
+      const rejoinCodeEl = document.getElementById('rejoin-room-code');
+      if (rejoinBanner && rejoinCodeEl) {
+        rejoinCodeEl.textContent = storedRoom;
+        rejoinBanner.classList.remove('hidden');
       }
     }
   }
 
-  const outcomeLabel = judgment.outcome === 'FLYING_COLORS'
-    ? 'PASSED WITH FLYING COLORS'
-    : ((judgment.outcome === 'PASSED' || judgment.outcome === 'BARELY_PASSED') ? 'PASSED' : 'FAILED');
-  const summaryLine = `Round ${roundIndex + 1} (${outcomeLabel}): ${judgment.headline} ${judgment.continuityBridge || ''}`;
-  app.state.storySoFar = app.state.storySoFar
-    ? `${app.state.storySoFar}\n${summaryLine}`
-    : summaryLine;
-
-  app.state.currentJudgment = judgment;
-  app.state.isJudging = false;
-  app.state.roundHistory.push({
-    roundIndex,
-    roundTitle: roundObj.title,
-    judgment,
-    submissions: { ...app.state.submissions }
-  });
-
-  broadcastState();
+  updateApiKeyBadge(false);
+  renderState();
 }
 
-/**
- * Allows the host to re-evaluate the current round using the AI judge
- * if it previously fell back to the local demo judge.
- */
-async function hostRetryAiJudge() {
-  if (!app.isHost || app.state.isJudging || app.state.phase !== 'REVEAL') return;
-  const j = app.state.currentJudgment;
-  if (!j || j.judgedBy !== 'demo') {
-    showToast('AI judgment already active.', 'info');
-    return;
-  }
-
-  const apiKey = getStoredApiKey();
-  if (!apiKey) {
-    showToast('Please enter an AI key in settings first.', 'warn');
-    openApiKeyModal();
-    return;
-  }
-
-  isApiKeyVerified = true;
-  updateApiKeyBadge(true);
-
-  // Roll back scores and modifiers from the fallback round
-  if (app.state._preRoundSnapshot) {
-    const snap = app.state._preRoundSnapshot;
-    for (const p of app.state.players) {
-      const snapP = snap.players.find(sp => sp.id === p.id);
-      if (snapP) {
-        p.score = snapP.score;
-        p.modifiers = (snapP.modifiers || []).map(m => ({ ...m }));
-      }
-    }
-    app.state.storySoFar = snap.storySoFar || '';
-  }
-
-  // Remove the last roundHistory entry if it matches this round
-  if (app.state.roundHistory.length > 0 &&
-      app.state.roundHistory[app.state.roundHistory.length - 1].roundIndex === app.state.currentRound) {
-    app.state.roundHistory.pop();
-  }
-
-  stopTypewriter();
-  app.typewriter.activeKey = '';
-  app.typewriter.finished = false;
-  app.state.currentJudgment = null;
-  app.state.revealStep = 1;
-  app.state.isJudging = true;
-  broadcastState();
-
-  showToast('Retrying AI Judge with Gemini...', 'info');
-  await evaluateCurrentRound();
-}
-
-/**
- * Advances the reveal flow on Host command:
- * - Step 1 -> Step 2: Transitions from speech bubbles to story typewriter playback.
- * - Step 2 -> Next Act: Advances to next round or terminates in GAME_OVER if failed/climax.
- */
-function hostNextRevealStep() {
-  if (!app.isHost) return;
-
-  if (app.state.revealStep === 1) {
-    if (app.state.isJudging || !app.state.currentJudgment) return;
-    app.state.revealStep = 2;
-    sfx.stepReveal();
-    broadcastState();
-    return;
-  }
-
-  if (!app.typewriter.finished) {
-    return;
-  }
-
-  stopTypewriter();
-  const j = app.state.currentJudgment;
-  const nextRound = app.state.currentRound + 1;
-  const allDead = app.state.players.length > 0 && app.state.players.every(p => Boolean(getPlayerMetaMod(p, 'DEAD')));
-
-  if ((j && j.outcome === 'FAILED') || allDead) {
-    app.state.phase = 'GAME_OVER';
-    sfx.verdictFail();
-    broadcastState();
-    return;
-  }
-
-  if (nextRound < app.state.activeCampaign.rounds.length) {
-    startScenarioRound(nextRound);
+// Bootstrap on DOM ready
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUI);
   } else {
-    app.state.phase = 'GAME_OVER';
-    sfx.verdictFlyingColors();
-    broadcastState();
+    initUI();
   }
 }
