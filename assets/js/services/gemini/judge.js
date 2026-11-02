@@ -203,6 +203,10 @@ export async function judgeRoundWithAI({
   const livingPlayers = players.filter(p => !getPlayerMetaMod(p, 'DEAD'));
   const deadPlayers = players.filter(p => Boolean(getPlayerMetaMod(p, 'DEAD')));
 
+  const nPlayers = livingPlayers.length || 1;
+  const wordBudgetMin = Math.max(50, 30 + 15 * nPlayers);
+  const wordBudgetMax = Math.min(220, 60 + 20 * nPlayers);
+
   const playerProfiles = livingPlayers.map(p => {
     const isLockedOut = Boolean(getPlayerMetaMod(p, 'SKIP_TURN'));
     const charName = sanitizePlayerInput(p.character?.name || p.name, 30) || 'Adventurer';
@@ -284,7 +288,7 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
    - If "outcome" is "FAILED", set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player.
 
 8. STORY LENGTH (STRICT 2 PARAGRAPHS):
-   - EXACTLY 2 short, punchy paragraphs in "storyParagraphs" (60 to 100 words total). NEVER generate 3 paragraphs.
+   - EXACTLY 2 short, punchy paragraphs in "storyParagraphs" (${wordBudgetMin} to ${wordBudgetMax} words total). NEVER generate 3 paragraphs.
    - Paragraph 1: How the players' actions collide, interact, and unfold in the scene.
    - Paragraph 2: The comedic outcome and consequence for the crew.
    - "evaluation": 1 punchy sentence per player.
