@@ -98,7 +98,8 @@ import {
   skipStoryTypewriter,
   setRevealWindow,
   hostRetryAiJudge,
-  hostNextRevealStep
+  hostNextRevealStep,
+  evaluateCurrentRound
 } from './ui/screens/reveal.js';
 import {
   setGameOverWindow,
@@ -575,19 +576,49 @@ async function initUI() {
       app.charCreateStep = activeSession.charCreateStep || 1;
       app.playerTokens = activeSession.playerTokens || {};
 
-      const peer = new window.Peer(PEER_PREFIX + activeSession.roomCode, PEER_OPTIONS);
-      app.peer = peer;
+      let restoreAttempts = 0;
+      const maxRestoreAttempts = 5;
 
-      peer.on('open', () => {
-        showToast(`Resumed room ${activeSession.roomCode}!`, 'success');
-        renderState();
-      });
-      peer.on('connection', (conn) => {
-        setupHostClientConnection(conn);
-      });
-      peer.on('error', (err) => {
-        console.warn('Session restoration PeerJS warning:', err);
-      });
+      const attemptHostPeerRestore = () => {
+        const peer = new window.Peer(PEER_PREFIX + activeSession.roomCode, PEER_OPTIONS);
+        app.peer = peer;
+
+        peer.on('open', () => {
+          showToast(`Resumed room ${activeSession.roomCode}!`, 'success');
+          const key = getStoredApiKey();
+          if (!key) {
+            showToast('Re-enter your AI key in Settings to enable AI judging.', 'warn');
+          }
+          if (app.state.phase === 'REVEAL' && app.state.isJudging) {
+            app.state.isJudging = false;
+            evaluateCurrentRound();
+          }
+          renderState();
+        });
+
+        peer.on('connection', (conn) => {
+          setupHostClientConnection(conn);
+        });
+
+        peer.on('error', (err) => {
+          console.warn('Session restoration PeerJS warning:', err);
+          if (err.type === 'unavailable-id') {
+            try {
+              peer.destroy();
+            } catch (e) {}
+            app.peer = null;
+            restoreAttempts++;
+            if (restoreAttempts <= maxRestoreAttempts) {
+              setTimeout(attemptHostPeerRestore, 3000);
+            } else {
+              showToast('Could not resume room ID. The previous session expired.', 'error');
+              leaveRoomToHome();
+            }
+          }
+        });
+      };
+
+      attemptHostPeerRestore();
     } catch (e) {
       console.warn('Could not restore host session:', e);
       clearSessionStorage();
