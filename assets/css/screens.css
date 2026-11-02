@@ -671,47 +671,57 @@
 
 .char-creator-card {
   transform: none !important; /* No rotation so pointer coordinate tracking is 1:1 */
+  overflow: hidden;
 }
 
 .char-sketchpad-stage {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: flex-start;
+  justify-content: space-between;
   flex: 1;
   min-height: 0;
-  gap: 0;
+  gap: 0.5rem;
   width: 100%;
+  overflow: hidden;
 }
 
 .sketchpad-stage-layout {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 0.65rem;
   width: 100%;
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .full-sketchpad-canvas-area {
   position: relative;
   /* Fills available square bounded by card width and height */
-  width: 100%;
-  max-width: min(calc(100% - 3.75rem), calc(100vh - 21rem), calc(100dvh - 21rem));
+  height: 100%;
+  max-height: 100%;
   aspect-ratio: 1 / 1;
-  height: auto;
+  max-width: calc(100% - 3.75rem);
+  width: auto;
   border-radius: var(--wobbly-box);
   overflow: hidden;
   border: 3px solid var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
   background: #ffffff;
   touch-action: none;
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+#char-lock-in-btn {
+  flex-shrink: 0;
 }
 
 #char-canvas {
