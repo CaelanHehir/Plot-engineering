@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=21" />
-  <link rel="stylesheet" href="assets/css/components.css?v=21" />
-  <link rel="stylesheet" href="assets/css/screens.css?v=21" />
+  <link rel="stylesheet" href="assets/css/base.css?v=22" />
+  <link rel="stylesheet" href="assets/css/components.css?v=22" />
+  <link rel="stylesheet" href="assets/css/screens.css?v=22" />
   <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC (A9) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 </head>
@@ -328,9 +328,14 @@
                 </div>
               </div>
 
-              <button type="button" class="btn btn-primary btn-block mt-2" data-action="go-to-char-portrait">
-                Next: Draw portrait
-              </button>
+              <div class="row-gap mt-2" style="gap: 0.5rem;">
+                <button type="button" class="btn btn-primary flex-1" data-action="go-to-char-portrait">
+                  Next: Draw portrait
+                </button>
+                <button type="button" class="btn btn-gold flex-1" data-action="submit-character">
+                  Lock in character
+                </button>
+              </div>
             </div>
 
             <!-- STAGE 2: Full-Section Sketchpad with Compact Side Toolbar -->
@@ -689,7 +694,7 @@
         <button type="button" class="btn-small" data-action="close-api-key-modal">✕ Close</button>
       </div>
       <p class="text-muted small mb-2">
-        Paste your Google Gemini API key below. Invalid keys are automatically refused and cleared.
+        Paste your Google Gemini API key below. For your security, keys are held in-memory for the active session only and never saved to disk or localStorage.
       </p>
       <div class="form-group">
         <label for="api-key-input">Gemini API Key</label>
@@ -717,15 +722,34 @@
   <!-- Toast Notifications (A6) -->
   <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Modular Application Scripts (Ordered for file:// compatibility without bundler) -->
-  <script src="assets/js/data/campaigns.js?v=21"></script>
-  <script src="assets/js/ui/utils.js?v=21"></script>
-  <script src="assets/js/services/audio.js?v=21"></script>
-  <script src="assets/js/services/gemini.js?v=21"></script>
-  <script src="assets/js/features/canvas.js?v=21"></script>
-  <script src="assets/js/features/settings.js?v=21"></script>
-  <script src="assets/js/services/network.js?v=21"></script>
-  <script src="assets/js/ui/render.js?v=21"></script>
-  <script src="assets/js/main.js?v=21"></script>
+  <!-- Native ES Module Entrypoint (with importmap cache-busting for returning browsers) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "./assets/js/main.js": "./assets/js/main.js?v=22",
+      "./assets/js/data/campaigns.js": "./assets/js/data/campaigns.js?v=22",
+      "./assets/js/state/store.js": "./assets/js/state/store.js?v=22",
+      "./assets/js/state/session.js": "./assets/js/state/session.js?v=22",
+      "./assets/js/ui/utils.js": "./assets/js/ui/utils.js?v=22",
+      "./assets/js/ui/render.js": "./assets/js/ui/render.js?v=22",
+      "./assets/js/ui/screens/lobby.js": "./assets/js/ui/screens/lobby.js?v=22",
+      "./assets/js/ui/screens/charCreate.js": "./assets/js/ui/screens/charCreate.js?v=22",
+      "./assets/js/ui/screens/scenario.js": "./assets/js/ui/screens/scenario.js?v=22",
+      "./assets/js/ui/screens/reveal.js": "./assets/js/ui/screens/reveal.js?v=22",
+      "./assets/js/ui/screens/gameOver.js": "./assets/js/ui/screens/gameOver.js?v=22",
+      "./assets/js/features/canvas.js": "./assets/js/features/canvas.js?v=22",
+      "./assets/js/features/settings.js": "./assets/js/features/settings.js?v=22",
+      "./assets/js/services/audio.js": "./assets/js/services/audio.js?v=22",
+      "./assets/js/services/network.js": "./assets/js/services/network.js?v=22",
+      "./assets/js/services/gemini/index.js": "./assets/js/services/gemini/index.js?v=22",
+      "./assets/js/services/gemini/client.js": "./assets/js/services/gemini/client.js?v=22",
+      "./assets/js/services/gemini/campaign.js": "./assets/js/services/gemini/campaign.js?v=22",
+      "./assets/js/services/gemini/judge.js": "./assets/js/services/gemini/judge.js?v=22",
+      "./assets/js/services/gemini/fallbackJudge.js": "./assets/js/services/gemini/fallbackJudge.js?v=22",
+      "./assets/js/services/gemini/bots.js": "./assets/js/services/gemini/bots.js?v=22"
+    }
+  }
+  </script>
+  <script type="module" src="assets/js/main.js?v=22"></script>
 </body>
 </html>
