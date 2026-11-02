@@ -87,7 +87,6 @@ import {
   hostAddExtraTime,
   openScenarioPopup,
   closeScenarioPopup,
-  startTimer,
   triggerBotActionsForRound,
   hostForceStartFirstRound,
   hostStartFirstRound,
