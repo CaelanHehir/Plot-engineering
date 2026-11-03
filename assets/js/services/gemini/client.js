@@ -12,6 +12,12 @@ let inMemoryApiKey = '';
 /** Cached name of the active, verified Gemini text model (in-memory) */
 let cachedModelName = '';
 
+/** Verified models discovered live from the user's API key */
+let verifiedModelsList = [];
+
+/** Set of model names that returned 404 for this session */
+const deadModelNames = new Set();
+
 /** Flag tracking whether the in-memory API key has been verified against Google's endpoint */
 let isApiKeyVerified = false;
 
@@ -40,6 +46,7 @@ export const BANNED_MODEL_SUBSTRINGS = ['2.5', '2-5'];
 export function isAllowedModel(name) {
   if (!name || typeof name !== 'string') return false;
   const lower = name.toLowerCase();
+  if (deadModelNames.has(name) || deadModelNames.has(lower)) return false;
   return !BANNED_MODEL_SUBSTRINGS.some(banned => lower.includes(banned));
 }
 
@@ -63,6 +70,8 @@ export function setStoredApiKey(key) {
     isApiKeyVerified = true;
   } else {
     cachedModelName = '';
+    verifiedModelsList = [];
+    deadModelNames.clear();
     isApiKeyVerified = false;
   }
 }
@@ -202,7 +211,8 @@ export async function validateAndDiscoverModels(apiKey) {
     'gemini-2.0-flash-exp',
     'gemini-1.5-flash',
     'gemini-1.5-flash-latest',
-    'gemini-1.5-flash-8b'
+    'gemini-1.5-flash-8b',
+    'gemini-flash-latest'
   ];
 
   const sorted = [];
@@ -232,7 +242,8 @@ export async function validateAndDiscoverModels(apiKey) {
     }
   }
 
-  cachedModelName = sorted[0];
+  verifiedModelsList = [...sorted];
+  cachedModelName = sorted[0] || '';
   isApiKeyVerified = true;
   return sorted;
 }
@@ -291,160 +302,167 @@ export async function callGeminiJSON(systemInstruction, userPrompt, apiKey, opti
   const timeoutMs = options.timeoutMs || 45000;
   const deadline = Date.now() + (options.totalTimeoutMs || 90000);
 
-  // Multi-model cascade: start with verified models if available, then valid standard flash fallbacks
-  const standardFallbacks = [
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-001',
-    'gemini-1.5-flash',
-    'gemini-1.5-flash-latest'
-  ].filter(isAllowedModel);
-
-  let modelsToTry = [];
-  if (cachedModelName && isAllowedModel(cachedModelName)) {
-    modelsToTry.push(cachedModelName);
-  }
-  for (const fb of standardFallbacks) {
-    if (!modelsToTry.includes(fb)) {
-      modelsToTry.push(fb);
+  // If we haven't discovered models for this key yet, run discovery so we only use real endpoints
+  if (verifiedModelsList.length === 0) {
+    try {
+      await validateAndDiscoverModels(cleanKey);
+    } catch (discErr) {
+      console.warn('Initial model discovery failed, using fallback list:', discErr);
     }
   }
 
+  let modelsToTry = verifiedModelsList.filter(isAllowedModel);
+  if (modelsToTry.length === 0) {
+    modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-flash-latest'].filter(isAllowedModel);
+  }
+
   const errors = [];
-  let rediscovered = false;
 
   for (let i = 0; i < modelsToTry.length; i++) {
     if (i > 0 && Date.now() > deadline) break;
     const model = modelsToTry[i];
     if (!isAllowedModel(model)) continue;
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    // Try each model with one retry on 429
+    for (let modelAttempt = 1; modelAttempt <= 2; modelAttempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
 
-    const onExternalAbort = () => controller.abort();
-    if (options.signal) {
-      if (options.signal.aborted) {
-        clearTimeout(timer);
-        const cancelErr = new Error('Operation cancelled.');
-        cancelErr.name = 'AbortError';
-        throw cancelErr;
-      }
-      options.signal.addEventListener('abort', onExternalAbort, { once: true });
-    }
-
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': cleanKey
-        },
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [
-              {
-                text: `${systemInstruction}\n\nIMPORTANT: Return ONLY valid JSON with no extra commentary.`
-              }
-            ]
-          },
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: String(userPrompt ?? '') }]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.75,
-            responseMimeType: 'application/json'
-          },
-          safetySettings: [
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
-          ]
-        }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timer);
-      if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        const msg = errData?.error?.message || `HTTP ${response.status}`;
-        errors.push(`${model}: ${msg}`);
-
-        if (response.status === 404 && !rediscovered) {
-          rediscovered = true;
-          try {
-            const fresh = await validateAndDiscoverModels(cleanKey);
-            const remaining = fresh.filter(m => isAllowedModel(m) && !modelsToTry.includes(m));
-            modelsToTry = modelsToTry.concat(remaining);
-            continue;
-          } catch (rediscErr) {
-            console.warn('Model re-discovery after 404 failed:', rediscErr);
-          }
-        }
-
-        if (response.status === 400 && msg.toLowerCase().includes('api key')) {
-          isApiKeyVerified = false;
-          const err = new Error(`Invalid Gemini API Key: ${msg}`);
-          err.code = 'INVALID';
-          throw err;
-        }
-        if (response.status === 429) {
-          console.warn(`Model ${model} hit rate limit (429), waiting 1.5s before cascading...`);
-          // Brief backoff so token buckets have a moment to refill before trying next model
-          await new Promise(r => setTimeout(r, 1500));
-          continue;
-        }
-        continue;
-      }
-
-      const data = await response.json();
-      const candidate = data?.candidates?.[0];
-      if (candidate?.finishReason === 'SAFETY') {
-        console.warn(`Model ${model} response blocked by safety filter, cascading...`);
-        errors.push(`${model}: Blocked by safety filter`);
-        continue;
-      }
-      const parts = candidate?.content?.parts || [];
-      const textPart = parts.find(p => typeof p.text === 'string' && !p.thought) || parts[0];
-      const rawText = textPart?.text;
-      if (!rawText) {
-        errors.push(`${model}: Empty response (${candidate?.finishReason || 'no candidates'})`);
-        continue;
-      }
-
-      cachedModelName = model;
-      isApiKeyVerified = true;
-      return parseCleanJSON(rawText);
-    } catch (err) {
-      clearTimeout(timer);
-      if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
-
-      if (err.name === 'AbortError') {
-        if (options.signal?.aborted) {
+      const onExternalAbort = () => controller.abort();
+      if (options.signal) {
+        if (options.signal.aborted) {
+          clearTimeout(timer);
           const cancelErr = new Error('Operation cancelled.');
           cancelErr.name = 'AbortError';
           throw cancelErr;
         }
-        console.warn(`Model ${model} timed out after ${Math.round(timeoutMs / 1000)}s, cascading to next model...`);
-        errors.push(`${model}: Timeout`);
-        continue;
+        options.signal.addEventListener('abort', onExternalAbort, { once: true });
       }
-      if (err.code === 'INVALID') {
-        throw err;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': cleanKey
+          },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [
+                {
+                  text: `${systemInstruction}\n\nIMPORTANT: Return ONLY valid JSON with no extra commentary.`
+                }
+              ]
+            },
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: String(userPrompt ?? '') }]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.75,
+              responseMimeType: 'application/json'
+            },
+            safetySettings: [
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' }
+            ]
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timer);
+        if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          const msg = errData?.error?.message || `HTTP ${response.status}`;
+          errors.push(`${model}: ${msg}`);
+
+          if (response.status === 404) {
+            // Mark dead so it is never queried again
+            deadModelNames.add(model);
+            console.warn(`Model ${model} returned 404, blacklisted for session.`);
+            break; // Don't retry, move to next model
+          }
+
+          if (response.status === 400 && msg.toLowerCase().includes('api key')) {
+            isApiKeyVerified = false;
+            const err = new Error(`Invalid Gemini API Key: ${msg}`);
+            err.code = 'INVALID';
+            throw err;
+          }
+
+          if (response.status === 429) {
+            if (modelAttempt === 1) {
+              console.warn(`Model ${model} hit rate limit (429), waiting 2s for token bucket before retry...`);
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            } else {
+              console.warn(`Model ${model} rate limited twice, cascading to next model...`);
+              await new Promise(r => setTimeout(r, 1000));
+              break;
+            }
+          }
+
+          // 503 or other server error: brief pause before trying next
+          if (response.status === 503) {
+            await new Promise(r => setTimeout(r, 1500));
+          }
+          break;
+        }
+
+        const data = await response.json();
+        const candidate = data?.candidates?.[0];
+        if (candidate?.finishReason === 'SAFETY') {
+          console.warn(`Model ${model} response blocked by safety filter, cascading...`);
+          errors.push(`${model}: Blocked by safety filter`);
+          break;
+        }
+        const parts = candidate?.content?.parts || [];
+        const textPart = parts.find(p => typeof p.text === 'string' && !p.thought) || parts[0];
+        const rawText = textPart?.text;
+        if (!rawText) {
+          errors.push(`${model}: Empty response (${candidate?.finishReason || 'no candidates'})`);
+          break;
+        }
+
+        cachedModelName = model;
+        isApiKeyVerified = true;
+        return parseCleanJSON(rawText);
+      } catch (err) {
+        clearTimeout(timer);
+        if (options.signal) options.signal.removeEventListener('abort', onExternalAbort);
+
+        if (err.name === 'AbortError') {
+          if (options.signal?.aborted) {
+            const cancelErr = new Error('Operation cancelled.');
+            cancelErr.name = 'AbortError';
+            throw cancelErr;
+          }
+          console.warn(`Model ${model} timed out after ${Math.round(timeoutMs / 1000)}s, cascading to next model...`);
+          errors.push(`${model}: Timeout`);
+          break;
+        }
+        if (err.code === 'INVALID') {
+          throw err;
+        }
+        if (err.code === 'RATE') {
+          if (modelAttempt === 1) {
+            await new Promise(r => setTimeout(r, 2000));
+            continue;
+          }
+          errors.push(`${model}: Rate limit`);
+          break;
+        }
+        errors.push(`${model}: ${err.message}`);
+        break;
       }
-      if (err.code === 'RATE') {
-        console.warn(`Model ${model} rate limited, waiting 1.5s before cascading...`);
-        await new Promise(r => setTimeout(r, 1500));
-        errors.push(`${model}: Rate limit`);
-        continue;
-      }
-      errors.push(`${model}: ${err.message}`);
     }
   }
 

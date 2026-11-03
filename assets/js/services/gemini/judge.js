@@ -342,8 +342,14 @@ CRITICAL JUDGING, CONTINUITY & SCORING RULES (NEVER VIOLATE)
      * The low-effort player must be ranked last and roasted in their "evaluation".
      * If the only active or surviving players submit low-effort throwaway moves, set "effortSufficient": false and THE ROUND MUST FAIL ("outcome": "FAILED")!
 
-7. TRAITS & MODIFIERS:
-   - Only award traits to reflect genuinely noteworthy physical occurrences.
+7. TRAITS & MODIFIERS (CONCRETE & RELEVANT ONLY):
+   - ONLY award traits that are DIRECTLY CONCRETE, PHYSICAL, AND RELEVANT to what actually happened in this specific round's story!
+   - NEVER award generic, abstract, or irrelevant traits (e.g. do NOT give "Good Mood" or "Thinking Hard").
+   - BALANCE BUFFS AND DEBUFFS:
+     * REWARD STANDOUT CONTRIBUTORS & AGILE DEFENDERS WITH POSITIVE BUFFS ("type": "buff"):
+       When a player pulls off a brilliant play, successfully clears the obstacle, or nimbly evades an incoming attack, award them a concrete, relevant positive buff reflecting that physical accomplishment (e.g. "Adrenaline Surge: +reflexes from a clean dodge", "Grease-Proof: immune to slipping", "Keycard Master: quick access to doors", "High Ground: great vantage point").
+     * PENALIZE FUMBLES, WHIFFS & SABOTAGE VICTIMS WITH DEBUFFS ("type": "debuff"):
+       When a player gets tackled, crashes, whiffs a lunge, or gets covered in hazards, give them a concrete, relevant physical debuff (e.g. "Sprained Ankle: limping", "Grease-Soaked: slippery grip", "Ringing Ears: loud tinnitus from explosion").
    - If this is the final round (roundNumber === totalRounds), set "modifiersAdded": [] for all players.
    - If "outcome" is "FAILED", set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player.
 
