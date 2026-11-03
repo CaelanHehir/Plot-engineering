@@ -39,24 +39,28 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
   const safeRaw = raw && typeof raw === 'object' ? raw : {};
   const safePlayers = Array.isArray(players) ? players : [];
   const isLastRound = Boolean(options?.isLastRound);
-  let outcome = String(safeRaw.outcome || '').toUpperCase().trim();
+  const multiplier = Number(settings?.pointsMultiplier) || 1;
 
-  if (safeRaw.storyCoherentAndFunny === false || safeRaw.effortSufficient === false) {
+  // 1. Centralize pass/fail determination
+  let outcome = String(safeRaw.outcome || '').toUpperCase().trim();
+  let passed = true;
+
+  if (
+    safeRaw.storyCoherentAndFunny === false ||
+    safeRaw.effortSufficient === false ||
+    safeRaw.objectiveAchieved === false ||
+    safeRaw.passed === false ||
+    outcome.includes('FAIL')
+  ) {
+    passed = false;
     outcome = 'FAILED';
-  } else if (!['FLYING_COLORS', 'PASSED', 'BARELY_PASSED', 'FAILED'].includes(outcome)) {
-    if (safeRaw.passed === false || outcome.includes('FAIL')) {
-      outcome = 'FAILED';
-    } else if (outcome.includes('BARE') || outcome.includes('CLOSE') || outcome.includes('PASS')) {
-      outcome = 'PASSED';
-    } else {
-      outcome = 'FLYING_COLORS';
-    }
-  } else if (outcome === 'BARELY_PASSED') {
+  } else if (outcome.includes('BARE') || outcome.includes('CLOSE') || outcome.includes('PASS')) {
+    outcome = 'PASSED';
+  } else if (outcome === 'FLYING_COLORS') {
+    outcome = 'FLYING_COLORS';
+  } else {
     outcome = 'PASSED';
   }
-
-  const passed = outcome !== 'FAILED';
-  const multiplier = Number(settings?.pointsMultiplier) || 1;
 
   const rawRankings = Array.isArray(safeRaw.rankings) ? [...safeRaw.rankings] : [];
   const seenIds = new Set();
@@ -64,40 +68,49 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
 
   rawRankings.sort((a, b) => (a?.rank || 99) - (b?.rank || 99));
 
+  // 2. Normalize player rankings, ensuring semantic accuracy for sabotaged and contributed
   for (const r of rawRankings) {
     if (!r || typeof r !== 'object') continue;
     const p = safePlayers.find(pl => pl.id === r.playerId || pl.name === r.playerId || pl.character?.name === r.playerId);
     if (p && !seenIds.has(p.id)) {
       if (getPlayerMetaMod(p, 'DEAD')) continue;
       seenIds.add(p.id);
+
       const isSabotaged = Boolean(r.sabotaged);
+      // If `contributed` is provided by Judge, respect it (requiring !isSabotaged).
+      // If omitted (legacy unit tests), default to !isSabotaged.
+      const didContribute = r.contributed !== undefined
+        ? (Boolean(r.contributed) && !isSabotaged)
+        : !isSabotaged;
+
       const cleanModsAdded = (!passed || isLastRound)
         ? []
         : (Array.isArray(r.modifiersAdded) ? r.modifiersAdded.slice(0, 2) : []).map(m => ({
             name: m?.name || 'Condition',
-            type: isSabotaged ? 'debuff' : (['buff', 'debuff', 'meta'].includes(m?.type) ? m.type : 'debuff'),
+            // Non-contributors and sabotaged players cannot receive positive buffs
+            type: (isSabotaged || !didContribute)
+              ? (m?.type === 'meta' ? 'meta' : 'debuff')
+              : (['buff', 'debuff', 'meta'].includes(m?.type) ? m.type : 'debuff'),
             metaEffect: ['NONE', 'SKIP_TURN', 'DEAD', 'WORD_LIMIT', 'BLINDED_SCENARIO'].includes(m?.metaEffect)
               ? m.metaEffect
               : 'NONE',
             description: m?.description || ''
           }));
 
-      const cleanModsRemoved = !passed
-        ? []
-        : (Array.isArray(r.modifiersRemoved) ? [...r.modifiersRemoved] : []);
-
       normalizedRankings.push({
         playerId: p.id,
         rank: normalizedRankings.length + 1,
         title: r.title || 'Scene Stealer',
         evaluation: r.evaluation || 'Committed to the bit!',
+        contributed: didContribute,
         sabotaged: isSabotaged,
         modifiersAdded: cleanModsAdded,
-        modifiersRemoved: cleanModsRemoved
+        modifiersRemoved: (!passed ? [] : (Array.isArray(r.modifiersRemoved) ? [...r.modifiersRemoved] : []))
       });
     }
   }
 
+  // 3. Fallback for unlisted players
   for (const p of safePlayers) {
     if (!seenIds.has(p.id)) {
       seenIds.add(p.id);
@@ -108,6 +121,7 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
         rank: normalizedRankings.length + 1,
         title: isDead ? 'Deceased' : 'Background Extra',
         evaluation: isDead ? `${charName} did nothing, they are dead.` : 'Watched the chaos unfold.',
+        contributed: rawRankings.length === 0 ? !isDead : false,
         sabotaged: false,
         modifiersAdded: [],
         modifiersRemoved: []
@@ -115,6 +129,19 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
     }
   }
 
+  // 4. If explicit contribution flags exist and nobody contributed, force FAILED
+  const hasExplicitContributed = rawRankings.some(r => r && typeof r.contributed === 'boolean');
+  if (
+    passed &&
+    hasExplicitContributed &&
+    normalizedRankings.length > 0 &&
+    normalizedRankings.every(r => !r.contributed || r.sabotaged || getPlayerMetaMod(safePlayers.find(p => p.id === r.playerId), 'DEAD'))
+  ) {
+    passed = false;
+    outcome = 'FAILED';
+  }
+
+  // 5. Casualties or sabotage downgrade FLYING_COLORS to PASSED
   const hadCasualtiesOrSabotage = normalizedRankings.some(r =>
     r.sabotaged || (r.modifiersAdded || []).some(m => m.metaEffect === 'DEAD' || m.metaEffect === 'SKIP_TURN')
   );
@@ -122,12 +149,16 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
     outcome = 'PASSED';
   }
 
+  // 6. Award points strictly to contributors (and fix the SKIP_TURN bug)
   const baseTeamBonus = outcome === 'FLYING_COLORS' ? 600 : (outcome === 'PASSED' ? 300 : 0);
   const rankBonusTable = [500, 350, 250, 175, 125, 100, 75, 50];
+  let contributorRankIdx = 0;
 
-  normalizedRankings.forEach((item, idx) => {
+  normalizedRankings.forEach((item) => {
     const pl = safePlayers.find(p => p.id === item.playerId);
     const wasAlreadyDead = Boolean(getPlayerMetaMod(pl, 'DEAD'));
+    // CRITICAL BUG FIX: check existing SKIP_TURN status
+    const wasAlreadyLockedOut = Boolean(getPlayerMetaMod(pl, 'SKIP_TURN'));
     const gotDeadOrLockedOut = (item.modifiersAdded || []).some(m => m.metaEffect === 'DEAD' || m.metaEffect === 'SKIP_TURN');
 
     if (!passed || wasAlreadyDead) {
@@ -140,19 +171,21 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
         item.title = 'Deceased';
         item.evaluation = `${pl ? (pl.character?.name || pl.name) : 'Player'} did nothing, they are dead.`;
       }
-    } else if (gotDeadOrLockedOut || item.sabotaged) {
+    } else if (wasAlreadyLockedOut || gotDeadOrLockedOut || item.sabotaged || !item.contributed) {
       item.teamBonus = 0;
       item.rankBonus = 0;
       item.pointsAwarded = 0;
     } else {
       const teamBonus = Math.round(baseTeamBonus * multiplier);
-      const rankBonus = Math.round((rankBonusTable[idx] ?? 50) * multiplier);
+      const rankBonus = Math.round((rankBonusTable[contributorRankIdx] ?? 50) * multiplier);
+      contributorRankIdx++;
       item.teamBonus = teamBonus;
       item.rankBonus = rankBonus;
       item.pointsAwarded = teamBonus + rankBonus;
     }
   });
 
+  // Re-sort by points awarded so contributors top the leaderboard
   normalizedRankings.sort((a, b) => (b.pointsAwarded || 0) - (a.pointsAwarded || 0));
   normalizedRankings.forEach((item, idx) => {
     item.rank = idx + 1;
@@ -252,42 +285,48 @@ CORE PHILOSOPHY: FUNNY STORIES OVER REALISTIC SOLUTIONS!
   4. EFFORT & SCENE ENGAGEMENT: How genuinely the player attempts an in-universe action that engages with the scene, its obstacles, or fellow crew members.
 
 ================================================================================
-CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
+CRITICAL JUDGING, CONTINUITY & SCORING RULES (NEVER VIOLATE)
 ================================================================================
-0. SIMULTANEOUS SECRET ACTIONS (NOT SEQUENTIAL TURNS):
-   - All player actions are chosen blindly in secret during a silent round and occur simultaneously in real-time at the exact same moment.
-   - The order of players in "playersAndActions" is purely arbitrary and DOES NOT represent a chronological sequence of events or turns.
+1. PRESERVE PLAYER INTENT — SUBMISSIONS ARE ATTEMPTS, NOT GUARANTEED FACTS:
+   - All players submit their intended moves blindly in secret at the same time. The order of players in "playersAndActions" is randomized and is NOT a turn sequence.
+   - Treat every "submittedAction" as what that character INTENDS and ATTEMPTS to do.
+   - Respect defensive intent: if a player writes that they keep their distance, watch a rival, or dodge incoming attacks, factor that into whether an attack can physically land. Evasions are strong tactical advantages evaluated in physical context, though not absolute invincibility if an attack is cleverly unavoidable.
+   - NEVER invent unsubmitted actions: do NOT have a character pull a lever, unlock a door, or solve an obstacle if they did not write anything toward doing so.
+   - NEVER swap attributes between players: if Player A wrote that they watched out for an attack, do NOT write that Player B anticipated Player A.
 
-1. FUNNY & UNREALISTIC ANSWERS MUST BE ALLOWED TO WORK IF THEY COORDINATE/COHERE (EXCEPT IN SABOTAGE):
-   - Do NOT penalize players for cartoon physics, absurd comedy, or unrealistic ideas!
-   - A funny answer—even if wildly unrealistic, over-the-top, or cartoon logic—MUST BE ALLOWED TO WORK if it works with the other players' answers or fits coherently into the comedic scene!
-   - Use "scenarioSecrets" as comedic flavor, personality hooks, and improv fuel—NOT as rigid realism rules to shut down funny coordinated plans.
-   - EXCEPTION: If a player is targeted by a coherent sabotage or attempts an incoherent sabotage, Rule 4 takes absolute priority!
-
-2. THE STORY MUST EXPLICITLY CONTAIN WHAT EACH CHARACTER DID (NO VAGUE REFERENCES!):
-   - In "storyParagraphs", you MUST explicitly name EVERY SINGLE character and directly narrate what happened with their submitted action!
-   - NEVER vaguely reference, summarize, or skip a player's action.
-   - IF A PLAYER WAS SABOTAGED OR THWARTED: Narrate how their attempt was interrupted, tackled, blocked, or ruined by the saboteur or backfire! Do NOT have their submitted move succeed in parallel (Rule 4 supersedes Rule 2).
+2. STORY COHERENCY & SINGLE PHYSICAL TIMELINE (NO QUANTUM DUPLICATION):
+   - Every character must exist in ONE consistent physical location and timeline!
+   - NEVER write one sentence where Character A throws Character B into a hazard and another sentence where Character B is simultaneously across the room doing their own task.
+   - Before writing "storyParagraphs", use "timelineResolution" to resolve how all attempts physically collide in the same space:
+     * UNCONTESTED SABOTAGE: Player A attempts a coherent sabotage against Player B, and Player B did not take defensive precautions or move out of reach -> Player A intercepts Player B, interrupting and stopping Player B's intended move!
+     * EVADED / COUNTERED SABOTAGE: Player A tries to grab/shove/hit Player B, but Player B is moving fast, keeping distance, or watching out for attacks -> Player A's attack MISSES/WHIFFS (or stumbles into a hazard), while Player B evades and carries out their move!
+     * MUTUAL SABOTAGE (CLASH): Player A attacks Player B AND Player B attacks Player A without defense -> Both collide in a chaotic mutual clash or slapstick tangle that disrupts both of their moves!
+     * INCOHERENT / IMPOSSIBLE SABOTAGE: Player A attempts an impossible attack (e.g. using superpowers they don't have) -> It immediately backfires on Player A without stopping Player B.
+   - In "storyParagraphs", explicitly name every character and narrate how their attempt actually unfolded in this single shared timeline.
 
 3. DO NOT PUT QUOTES AROUND CHARACTER NAMES, ROLES, ITEMS, OR QUIRKS:
    - NEVER put quotation marks around player characters' names, roles, items, perks, or quirks in "storyParagraphs" or "evaluation".
    - Only use quotation marks when a character is speaking actual dialogue out loud.
 
-4. SABOTAGE, BETRAYAL & MUTUAL CLASHES (EVALUATE LOGICALLY):
-   - EVALUATE THE SITUATION LOGICALLY BASED ON WHAT WAS SUBMITTED:
-     * When one player targets, hinders, or backstabs another, evaluate what actually makes logical sense based on both submitted actions, the scene hazards, and physical positioning.
-     * NO INVENTED PLOT ARMOR OR UNREALISTIC DODGES: Only treat a character as anticipating, dodging, or countering an attack if their submitted action actually accounted for it, set up a defense, or makes clear tactical sense. Never invent unearned plot armor or instant reflexes for an unsuspecting character.
-   - MUTUAL SABOTAGE (SIMULTANEOUS CLASHES):
-     * If two players target or attack each other in the same round without defensive measures, evaluate it logically as a chaotic mutual clash, collision, or double-fumble where both players are affected and penalized. Do not arbitrarily declare one player the flawless winner.
-   - COHERENCE REQUIREMENT:
-     * Sabotage only works if the plan is coherent and plausible in the scene.
-     * Incoherent or impossible attacks (e.g. attempting superpowers without having them, or vague nonsense) fail and backfire on the attacker (they trip, fumble, or get caught in hazards).
-   - OUTCOMES & SCORING:
-     * When a player is successfully sabotaged, or when an attacker attempts an incoherent sabotage that backfires, or during mutual clashes: mark affected players with "sabotaged": true (awarding 0 points for the round and possible negative traits/debuffs).
-     * Ranking should reflect overall comedic contribution and who actually handled the situation or escaped; a saboteur does not automatically get first place.
-   - CATASTROPHIC INFIGHTING: If players spend their moves fighting each other instead of resolving the scene's crisis or escape objective, set "outcome": "FAILED".
+4. ROUND OBJECTIVE & TEAM PASS/FAIL RULE (STRICT):
+   - For the team to pass the round ("FLYING_COLORS" or "PASSED"), AT LEAST ONE player's successful action must actually resolve, bypass, or overcome the scene's core obstacle or crisis!
+   - Funny or cartoon-logic solutions are completely allowed to work if they coherently address the scene's obstacle.
+   - However, if NO player achieves the round objective (for example, everyone spends their turn fighting each other, missing attacks, waiting passively, or failing their moves), you MUST set "objectiveAchieved": false and "outcome": "FAILED"! Never invent a free team escape if nobody earned it.
 
-5. EFFORT & SCENE ENGAGEMENT (ANTI-PHONING-IT-IN RULE):
+5. SABOTAGE, CONTRIBUTION & POINT SCORING ("contributed" & "sabotaged"):
+   - Decide for each player:
+     a) Did they contribute to clearing the round or pull off a successful sabotage? ("contributed": true | false)
+     b) Were they the victim of a successful sabotage? ("sabotaged": true | false)
+   - WHO EARNS POINTS ("contributed": true, "sabotaged": false):
+     * OBJECTIVE CONTRIBUTORS: Players whose actions genuinely helped resolve the scene crisis or escape. Rank contributors by how crucial and entertaining their contribution was.
+     * SUCCESSFUL SABOTEURS: A player who executes a coherent sabotage that genuinely lands and thwarts a rival ALSO earns points ("contributed": true, "sabotaged": false), provided at least one player still cleared the round objective so the round passed. (A successful saboteur is ranked alongside contributors by overall impact—they do not automatically get 1st place unless their move was also the best play of the round.)
+   - WHO EARNS ZERO POINTS ("contributed": false):
+     * SABOTAGED VICTIMS ("sabotaged": true, "contributed": false): Their action was interrupted/ruined by another player's successful sabotage. They earn 0 points and can receive a negative trait/debuff.
+     * FAILED / WHIFFED SABOTEURS ("sabotaged": false, "contributed": false): They attempted to sabotage someone else, and it missed (target dodged/evaded), clashed in mutual sabotage, or backfired. They earn 0 points and can receive a negative trait/debuff, but they are NOT labeled "sabotaged".
+     * PASSIVE / NON-CONTRIBUTING PLAYERS ("sabotaged": false, "contributed": false): Players who were not sabotaged, but whose own actions did nothing to help clear the round objective (e.g. "I wait and only dodge if attacked", "AAAAH", or an irrelevant move). They earn 0 points!
+   - CRITICAL DODGE RULE: If Player B successfully dodges or evades Player A's attack, Player B was NOT sabotaged ("sabotaged": false, and "contributed": true if Player B also helped clear the scene), whereas Player A's attack failed ("sabotaged": false, "contributed": false)!
+
+6. EFFORT & SCENE ENGAGEMENT (ANTI-PHONING-IT-IN RULE):
    - A move must be an actual, in-universe character action attempt that engages with the scene or other players.
    - WHAT CONSTITUTES LOW EFFORT / LAZINESS:
      * Single-word or throwaway non-actions (e.g., "Test", "idk", "I walk", "run", "nothing", "skip").
@@ -298,9 +337,6 @@ CRITICAL JUDGING & STORYTELLING RULES (NEVER VIOLATE)
      * In the story, the character mumbles awkwardly, freezes in place, gets ignored, or is instantly thwarted by the hazard.
      * The low-effort player must be ranked last and roasted in their "evaluation".
      * If the only active or surviving players submit low-effort throwaway moves, set "effortSufficient": false and THE ROUND MUST FAIL ("outcome": "FAILED")!
-
-6. WHAT ACTUALLY CAUSES A ROUND TO FAIL:
-   - TOTAL INCOHERENCE, LAZY NON-ANSWERS & CATASTROPHIC WIPEOUT: Catastrophic infighting, suicidal sabotage, or low-effort throwaway answers leave the crew obliterated by the scene's hazards without any genuine attempt to navigate the situation.
 
 7. TRAITS & MODIFIERS:
    - Only award traits to reflect genuinely noteworthy physical occurrences.
@@ -330,12 +366,11 @@ ${strictnessGuide}
 
 Return ONLY valid JSON matching this exact schema:
 {
-  "characterActionChecklist": [
-    "Character Name: Exact detail of what they did and how it is explicitly shown in storyParagraphs"
-  ],
-  "coordinationAndCoherenceAnalysis": "1-2 sentences evaluating how the players' actions interacted.",
+  "timelineResolution": "1-3 sentences resolving how all players' intended moves physically interact in ONE shared space and timeline (who targeted whom, whether any attack landed or was evaded/missed, and whose action succeeded vs was interrupted—ensuring no character is in two places at once and no unsubmitted actions are invented).",
+  "objectiveAnalysis": "1-2 sentences identifying the scene's survival/escape objective and stating which specific player(s), if any, actually achieved it through their submitted move.",
   "effortAndEngagementAnalysis": "1 sentence evaluating whether players genuinely attempted in-universe actions rather than low-effort throwaway words.",
   "humorEvaluation": "1 sentence highlighting the funniest actions or combinations.",
+  "objectiveAchieved": true,
   "storyCoherentAndFunny": true,
   "effortSufficient": true,
   "outcome": "FLYING_COLORS | PASSED | FAILED",
@@ -350,7 +385,8 @@ Return ONLY valid JSON matching this exact schema:
       "playerId": "exact playerId from input",
       "rank": 1,
       "title": "Award Title",
-      "evaluation": "Praise or roast sentence.",
+      "evaluation": "Praise or roast sentence explaining how their move played out and why they earned or lost points.",
+      "contributed": true,
       "sabotaged": false,
       "modifiersAdded": [
         {
