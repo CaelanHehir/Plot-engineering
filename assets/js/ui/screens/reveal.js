@@ -558,8 +558,12 @@ export async function evaluateCurrentRound() {
     });
 
     if (Array.isArray(rankItem.modifiersRemoved) && rankItem.modifiersRemoved.length > 0) {
-      const removeSet = new Set(rankItem.modifiersRemoved.map(n => n.toLowerCase()));
-      player.modifiers = (player.modifiers || []).filter(m => !removeSet.has(m.name.toLowerCase()));
+      const removeSet = new Set(
+        rankItem.modifiersRemoved
+          .map(n => (typeof n === 'string' ? n : (n?.name ? String(n.name) : '')).trim().toLowerCase())
+          .filter(Boolean)
+      );
+      player.modifiers = (player.modifiers || []).filter(m => m?.name && !removeSet.has(m.name.toLowerCase()));
     }
 
     if (!isFinalRound && Array.isArray(rankItem.modifiersAdded)) {

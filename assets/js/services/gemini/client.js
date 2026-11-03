@@ -195,15 +195,14 @@ export async function validateAndDiscoverModels(apiKey) {
   }
 
   const preferredOrder = [
-    'gemini-3-flash',
     'gemini-3-flash-preview',
-    'gemini-3.0-flash',
     'gemini-3.0-flash-preview',
     'gemini-2.0-flash',
     'gemini-2.0-flash-001',
     'gemini-2.0-flash-exp',
     'gemini-1.5-flash',
-    'gemini-1.5-flash-latest'
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash-8b'
   ];
 
   const sorted = [];
@@ -226,10 +225,10 @@ export async function validateAndDiscoverModels(apiKey) {
     }
   }
 
-  // Always ensure standard fallbacks are in sorted list
-  for (const fallback of ['gemini-3-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']) {
-    if (isAllowedModel(fallback) && !sorted.includes(fallback)) {
-      sorted.push(fallback);
+  // Fallback to any remaining allowed models if none matched preferred
+  for (const s of supported) {
+    if (isAllowedModel(s) && !sorted.includes(s)) {
+      sorted.push(s);
     }
   }
 
@@ -292,8 +291,14 @@ export async function callGeminiJSON(systemInstruction, userPrompt, apiKey, opti
   const timeoutMs = options.timeoutMs || 45000;
   const deadline = Date.now() + (options.totalTimeoutMs || 90000);
 
-  // Multi-model cascade: start with cached model if valid, then cascade through standard flash fallbacks
-  const standardFallbacks = ['gemini-3-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'].filter(isAllowedModel);
+  // Multi-model cascade: start with verified models if available, then valid standard flash fallbacks
+  const standardFallbacks = [
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-001',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-latest'
+  ].filter(isAllowedModel);
+
   let modelsToTry = [];
   if (cachedModelName && isAllowedModel(cachedModelName)) {
     modelsToTry.push(cachedModelName);
@@ -390,7 +395,9 @@ export async function callGeminiJSON(systemInstruction, userPrompt, apiKey, opti
           throw err;
         }
         if (response.status === 429) {
-          console.warn(`Model ${model} hit rate limit (429), cascading to next available model...`);
+          console.warn(`Model ${model} hit rate limit (429), waiting 1.5s before cascading...`);
+          // Brief backoff so token buckets have a moment to refill before trying next model
+          await new Promise(r => setTimeout(r, 1500));
           continue;
         }
         continue;
@@ -432,7 +439,8 @@ export async function callGeminiJSON(systemInstruction, userPrompt, apiKey, opti
         throw err;
       }
       if (err.code === 'RATE') {
-        console.warn(`Model ${model} rate limited, cascading...`);
+        console.warn(`Model ${model} rate limited, waiting 1.5s before cascading...`);
+        await new Promise(r => setTimeout(r, 1500));
         errors.push(`${model}: Rate limit`);
         continue;
       }

@@ -97,6 +97,10 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
             description: m?.description || ''
           }));
 
+      const cleanModsRemoved = (!passed ? [] : (Array.isArray(r.modifiersRemoved) ? r.modifiersRemoved : []))
+        .map(m => (typeof m === 'string' ? m : (m?.name ? String(m.name) : '')).trim())
+        .filter(Boolean);
+
       normalizedRankings.push({
         playerId: p.id,
         rank: normalizedRankings.length + 1,
@@ -105,7 +109,7 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
         contributed: didContribute,
         sabotaged: isSabotaged,
         modifiersAdded: cleanModsAdded,
-        modifiersRemoved: (!passed ? [] : (Array.isArray(r.modifiersRemoved) ? [...r.modifiersRemoved] : []))
+        modifiersRemoved: cleanModsRemoved
       });
     }
   }
