@@ -75,7 +75,7 @@ describe('Live Gemini Judge Evals (Skipped unless GEMINI_API_KEY is in env)', { 
       storySoFar: '',
       players,
       submissions: {
-        p1: 'I throw a banana peel directly under Bob as he charges the laser grid.',
+        p1: 'I throw a banana peel directly under Bob as he charges the laser grid, then angle a compact mirror to reflect the laser beam and unlock the hallway door.',
         p2: 'I sprint forward at top speed through the hallway.'
       },
       settings: { strictness: 'balanced', pointsMultiplier: 1 },
@@ -112,8 +112,50 @@ describe('Live Gemini Judge Evals (Skipped unless GEMINI_API_KEY is in env)', { 
     });
 
     const bobbyRanking = res.rankings.find(r => r.playerId === 'p1');
-    assert.equal(bobbyRanking.sabotaged, true);
+    assert.equal(bobbyRanking.contributed, false);
+    assert.equal(bobbyRanking.sabotaged, false);
     assert.equal(bobbyRanking.pointsAwarded, 0);
+  });
+
+  it('eval: evaded attack rewards the defensive objective solver with 1st place and gives whiffed attacker 0 points', async () => {
+    const zombieCampaign = {
+      title: 'Mall of the Dead',
+      rounds: [
+        {
+          scenario: 'A pack of hungry zombies is blocking the escalator exit in the food court.',
+          secrets: 'Slippery floor grease or trapping the zombies clears the exit.'
+        }
+      ]
+    };
+    const players = [
+      { id: 'p1', name: 'Alice', character: { name: 'Gretchen', role: 'Backstabber' }, modifiers: [] },
+      { id: 'p2', name: 'Bob', character: { name: 'Marcus', role: 'Fry Cook' }, modifiers: [] }
+    ];
+    const res = await judgeRoundWithAI({
+      campaign: zombieCampaign,
+      roundIndex: 0,
+      totalRounds: 1,
+      scenarioText: zombieCampaign.rounds[0].scenario,
+      scenarioSecrets: zombieCampaign.rounds[0].secrets,
+      storySoFar: '',
+      players,
+      submissions: {
+        p1: 'I try to shove Marcus into the zombie horde!',
+        p2: 'Keeping my distance and watching out for Gretchen trying to push me, I sidestep her lunge and dump a vat of fryer grease to immobilize the zombies and clear the escalator exit!'
+      },
+      settings: { strictness: 'balanced', pointsMultiplier: 1 },
+      apiKey
+    });
+
+    const attackerRanking = res.rankings.find(r => r.playerId === 'p1');
+    const solverRanking = res.rankings.find(r => r.playerId === 'p2');
+
+    assert.equal(solverRanking.rank, 1, 'Player B (solver who dodged) should get 1st place');
+    assert.ok(solverRanking.pointsAwarded > 0, 'Player B should earn points');
+    assert.equal(solverRanking.sabotaged, false);
+
+    assert.equal(attackerRanking.pointsAwarded, 0, 'Player A (whiffed attacker) should get 0 points');
+    assert.equal(attackerRanking.sabotaged, false, 'Whiffed attacker should not be marked sabotaged');
   });
 
   it('eval: 8-player round explicitly mentions every character', async () => {
@@ -125,7 +167,7 @@ describe('Live Gemini Judge Evals (Skipped unless GEMINI_API_KEY is in env)', { 
     }));
     const submissions = {};
     players.forEach((p, i) => {
-      submissions[p.id] = `Char ${i + 1} does action step ${i + 1} with enthusiasm.`;
+      submissions[p.id] = `Char ${i + 1} angles mirror panel ${i + 1} to bounce the security laser beam away from the vault door so the team escapes.`;
     });
 
     const res = await judgeRoundWithAI({

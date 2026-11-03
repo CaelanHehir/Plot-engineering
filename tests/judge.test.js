@@ -114,6 +114,154 @@ describe('normalizeJudgeResult', () => {
     assert.equal(res2.passed, false);
   });
 
+  it('forces FAILED and zeroes points when objectiveAchieved is false or no player contributed', () => {
+    const players = makePlayers();
+    const res1 = normalizeJudgeResult(
+      {
+        outcome: 'PASSED',
+        objectiveAchieved: false,
+        rankings: [
+          { playerId: 'p1', rank: 1, contributed: true, sabotaged: false },
+          { playerId: 'p2', rank: 2, contributed: false, sabotaged: true }
+        ]
+      },
+      players
+    );
+    assert.equal(res1.outcome, 'FAILED');
+    assert.equal(res1.passed, false);
+    assert.ok(res1.rankings.every(r => r.pointsAwarded === 0));
+
+    // Also forces FAILED when explicit contributed flags are all false
+    const res2 = normalizeJudgeResult(
+      {
+        outcome: 'PASSED',
+        rankings: [
+          { playerId: 'p1', rank: 1, contributed: false, sabotaged: false },
+          { playerId: 'p2', rank: 2, contributed: false, sabotaged: false },
+          { playerId: 'p3', rank: 3, contributed: false, sabotaged: false }
+        ]
+      },
+      players
+    );
+    assert.equal(res2.outcome, 'FAILED');
+    assert.equal(res2.passed, false);
+    assert.ok(res2.rankings.every(r => r.pointsAwarded === 0));
+  });
+
+  it('awards zero points to non-contributors (contributed: false, sabotaged: false) without marking them sabotaged', () => {
+    const players = makePlayers();
+    const raw = {
+      outcome: 'FLYING_COLORS',
+      objectiveAchieved: true,
+      rankings: [
+        { playerId: 'p1', rank: 1, title: 'Heroic Carry', contributed: true, sabotaged: false },
+        {
+          playerId: 'p2',
+          rank: 2,
+          title: 'Screaming Bystander',
+          contributed: false,
+          sabotaged: false,
+          modifiersAdded: [{ name: 'Hoarse Voice', type: 'buff', metaEffect: 'NONE', description: 'Should downgrade to debuff' }]
+        },
+        { playerId: 'p3', rank: 3, title: 'Second Contributor', contributed: true, sabotaged: false }
+      ]
+    };
+
+    const res = normalizeJudgeResult(raw, players);
+    assert.equal(res.outcome, 'FLYING_COLORS');
+
+    const p1Rank = res.rankings.find(r => r.playerId === 'p1');
+    const p2Rank = res.rankings.find(r => r.playerId === 'p2');
+    const p3Rank = res.rankings.find(r => r.playerId === 'p3');
+
+    assert.equal(p2Rank.contributed, false);
+    assert.equal(p2Rank.sabotaged, false);
+    assert.equal(p2Rank.teamBonus, 0);
+    assert.equal(p2Rank.rankBonus, 0);
+    assert.equal(p2Rank.pointsAwarded, 0);
+    assert.equal(p2Rank.rank, 3);
+    // Non-contributors cannot receive positive buffs
+    assert.equal(p2Rank.modifiersAdded[0].type, 'debuff');
+
+    // Contributors receive 1st and 2nd contributor rank bonuses (500 and 350)
+    assert.equal(p1Rank.pointsAwarded, 600 + 500);
+    assert.equal(p1Rank.rank, 1);
+    assert.equal(p3Rank.pointsAwarded, 600 + 350);
+    assert.equal(p3Rank.rank, 2);
+  });
+
+  it('awards zero points to players entering the round already carrying SKIP_TURN', () => {
+    const players = makePlayers();
+    players[1].modifiers = [
+      { name: 'Tied to Chair', type: 'meta', metaEffect: 'SKIP_TURN', description: 'Locked out for this round' }
+    ];
+
+    const raw = {
+      outcome: 'PASSED',
+      rankings: [
+        { playerId: 'p1', rank: 1, title: 'Solver', contributed: true, sabotaged: false },
+        { playerId: 'p2', rank: 2, title: 'Still Tied Up', contributed: true, sabotaged: false },
+        { playerId: 'p3', rank: 3, title: 'Helper', contributed: true, sabotaged: false }
+      ]
+    };
+
+    const res = normalizeJudgeResult(raw, players);
+    const p2Rank = res.rankings.find(r => r.playerId === 'p2');
+    assert.equal(p2Rank.teamBonus, 0);
+    assert.equal(p2Rank.rankBonus, 0);
+    assert.equal(p2Rank.pointsAwarded, 0);
+    assert.equal(p2Rank.rank, 3);
+
+    const p1Rank = res.rankings.find(r => r.playerId === 'p1');
+    const p3Rank = res.rankings.find(r => r.playerId === 'p3');
+    assert.equal(p1Rank.pointsAwarded, 300 + 500);
+    assert.equal(p3Rank.pointsAwarded, 300 + 350);
+  });
+
+  it('awards full 1st-place contributor points to a player who dodges an attack while the whiffed attacker gets 0 points and sabotaged: false', () => {
+    const players = makePlayers().slice(0, 2);
+    const raw = {
+      outcome: 'FLYING_COLORS',
+      objectiveAchieved: true,
+      rankings: [
+        // Even if LLM listed attacker first, contributor sorting puts dodger in 1st
+        {
+          playerId: 'p1',
+          rank: 1,
+          title: 'Whiffed Attacker',
+          contributed: false,
+          sabotaged: false,
+          modifiersAdded: [{ name: 'Faceplanted', type: 'debuff', metaEffect: 'NONE', description: 'Missed lunge' }]
+        },
+        {
+          playerId: 'p2',
+          rank: 2,
+          title: 'Nimble Dodger & Solver',
+          contributed: true,
+          sabotaged: false
+        }
+      ]
+    };
+
+    const res = normalizeJudgeResult(raw, players);
+    assert.equal(res.outcome, 'FLYING_COLORS');
+
+    const dodger = res.rankings.find(r => r.playerId === 'p2');
+    const attacker = res.rankings.find(r => r.playerId === 'p1');
+
+    assert.equal(dodger.rank, 1);
+    assert.equal(dodger.contributed, true);
+    assert.equal(dodger.sabotaged, false);
+    assert.equal(dodger.teamBonus, 600);
+    assert.equal(dodger.rankBonus, 500);
+    assert.equal(dodger.pointsAwarded, 1100);
+
+    assert.equal(attacker.rank, 2);
+    assert.equal(attacker.contributed, false);
+    assert.equal(attacker.sabotaged, false);
+    assert.equal(attacker.pointsAwarded, 0);
+  });
+
   it('awards zero points and strips modifiers on FAILED outcome', () => {
     const players = makePlayers();
     const raw = {
@@ -169,16 +317,17 @@ describe('normalizeJudgeResult', () => {
     assert.ok(p3Rank.pointsAwarded > 0);
   });
 
-  it('downgrades FLYING_COLORS to PASSED, marks sabotaged: true, zeroes points, and preserves debuffs for sabotaged players and failed saboteurs', () => {
+  it('downgrades FLYING_COLORS to PASSED, marks sabotaged: true for victims, zeroes points, and preserves debuffs for sabotaged players and failed saboteurs', () => {
     const players = makePlayers();
     const raw = {
       outcome: 'FLYING_COLORS',
       rankings: [
-        { playerId: 'p1', rank: 1, title: 'Sneaky Saboteur' },
+        { playerId: 'p1', rank: 1, title: 'Sneaky Saboteur', contributed: true, sabotaged: false },
         {
           playerId: 'p2',
           rank: 2,
           title: 'Tripped Victim',
+          contributed: false,
           sabotaged: true,
           modifiersAdded: [{ name: 'Grease-Stained', type: 'debuff', metaEffect: 'NONE', description: 'Covered in slime' }]
         },
@@ -186,7 +335,8 @@ describe('normalizeJudgeResult', () => {
           playerId: 'p3',
           rank: 3,
           title: 'Clumsy Attacker',
-          sabotaged: true,
+          contributed: false,
+          sabotaged: false,
           modifiersAdded: [{ name: 'Sprained Ankle', type: 'debuff', metaEffect: 'NONE', description: 'Tripped during failed lunge' }]
         }
       ]
@@ -197,6 +347,7 @@ describe('normalizeJudgeResult', () => {
 
     const p2Rank = res.rankings.find(r => r.playerId === 'p2');
     assert.equal(p2Rank.sabotaged, true);
+    assert.equal(p2Rank.contributed, false);
     assert.equal(p2Rank.teamBonus, 0);
     assert.equal(p2Rank.rankBonus, 0);
     assert.equal(p2Rank.pointsAwarded, 0);
@@ -205,13 +356,15 @@ describe('normalizeJudgeResult', () => {
     assert.equal(p2Rank.modifiersAdded[0].type, 'debuff');
 
     const p3Rank = res.rankings.find(r => r.playerId === 'p3');
-    assert.equal(p3Rank.sabotaged, true);
+    assert.equal(p3Rank.sabotaged, false);
+    assert.equal(p3Rank.contributed, false);
     assert.equal(p3Rank.pointsAwarded, 0);
     assert.equal(p3Rank.modifiersAdded.length, 1);
     assert.equal(p3Rank.modifiersAdded[0].name, 'Sprained Ankle');
 
     const p1Rank = res.rankings.find(r => r.playerId === 'p1');
     assert.equal(p1Rank.sabotaged, false);
+    assert.equal(p1Rank.contributed, true);
     assert.ok(p1Rank.pointsAwarded > 0);
     assert.equal(p1Rank.rank, 1);
   });
