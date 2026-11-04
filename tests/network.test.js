@@ -1,12 +1,33 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
+const createDummyElement = () => ({
+  textContent: '',
+  innerHTML: '',
+  className: '',
+  value: '',
+  classList: {
+    add: () => {},
+    remove: () => {},
+    toggle: () => {},
+    contains: () => false
+  },
+  setAttribute: () => {},
+  getAttribute: () => null,
+  addEventListener: () => {},
+  appendChild: () => {},
+  remove: () => {},
+  style: {}
+});
+
 // Ensure browser globals needed by modules do not throw
 if (typeof globalThis.document === 'undefined') {
   globalThis.document = {
-    getElementById: () => null,
-    querySelector: () => null,
-    querySelectorAll: () => []
+    getElementById: () => createDummyElement(),
+    querySelector: () => createDummyElement(),
+    querySelectorAll: () => [],
+    createElement: () => createDummyElement(),
+    body: createDummyElement()
   };
 }
 if (typeof globalThis.sessionStorage === 'undefined') {
@@ -130,6 +151,19 @@ describe('getPublicState security and data masking', () => {
     app.playerTokens = { 'p-1': 'secret-token-alice', 'p-2': 'secret-token-bob' };
     const publicState = getPublicState('p-1');
     assert.equal(publicState.playerTokens, undefined);
+  });
+
+  it('does not drop past completed round history when judging or before round is pushed', () => {
+    app.state.currentRound = 1; // Round 2 (0-indexed)
+    app.state.roundHistory = [
+      { roundIndex: 0, headline: 'Round 1 Victory', storyParagraphs: ['Survived'] }
+    ];
+    app.state.phase = 'REVEAL';
+    app.state.revealStep = 1;
+
+    const publicState = getPublicState('p-1');
+    assert.equal(publicState.roundHistory.length, 1);
+    assert.equal(publicState.roundHistory[0].roundIndex, 0);
   });
 });
 

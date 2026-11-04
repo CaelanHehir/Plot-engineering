@@ -9,7 +9,7 @@
 
 Plot Engineering is a co-op storytelling game where players work together to get through different scenes, creating a funny story along the way.
 
-To play the game, one player must host a room. As the host, they get to choose the theme of the multi-round campaign they and their friends will embark on! Each round will present the group with an obstacle, and everyone will write out their plans **without communicating with the others**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
+To **[play the game](https://caelanhehir.github.io/Plot-engineering/)**, one player must host a room. As the host, they get to choose the theme of the multi-round campaign they and their friends will embark on. Each round will present the group with an obstacle, and everyone will write out their plans **without communicating with the others**! The **Judge** will then paint a picture of what happened using each player's input, and if everyone's actions work together to convincingly solve the problem, they pass the round! Otherwise, they fail, and the game ends.
 
 The twist is that players also earn points based on how important their actions were each round, and if the team gets to the end, the player with the most points wins. This means that in order to be at the top, you may have to sabotage your teammates, but be careful not to go too far, or you might accidentally sabotage the entire round too!
 
@@ -27,36 +27,30 @@ The twist is that players also earn points based on how important their actions 
 ## Technical Features
 - **AI Storytelling & Dynamic Model Discovery**:
   - The storytelling engine uses the Google Gemini API to analyze player inputs, compose the multi-act narrative, determine round success, and award individual contribution scores.
-  - **Live Model Discovery**: Upon entering an API key, the client queries Gemini's models endpoint to discover all active models available for that key (supporting newer variants like `gemini-2.5-flash`, `gemini-2.0-flash`, etc.).
-  - **Graceful Cascade & Exponential Backoff**: If rate limits (HTTP 429) or service errors occur, the client backs off with jitter and cascades automatically to alternative models.
-  - **Offline Heuristic Fallback Judge**: If API quota is exhausted or network access is disrupted, an offline deterministic judge seamlessly evaluates the round, keeping the party moving without game-breaking errors.
+  - **Live Model Discovery**: Upon entering an API key, the client queries Gemini's models endpoint to discover all active models available for that key. This allows for fluid rotation between models, when the currently selected one can't be used.
 - **Peer-to-Peer Multiplayer & Room Hosting**:
-  - Creating and joining rooms runs entirely over **PeerJS WebRTC DataChannels**, letting the Host's browser operate as an authoritative game server with zero backend hosting costs:
+  - Creating and joining rooms runs entirely over **PeerJS WebRTC DataChannels**, letting the Host's browser operate as the game server with zero backend hosting costs:
     - When the Host creates a 4-letter room code (e.g., `ABCD`), their browser registers a deterministic Peer ID (`plot-eng-room-ABCD`) with the signaling broker.
-    - Joining devices resolve the Peer ID and establish a direct WebRTC DataChannel via configured Google, Cloudflare, and Twilio STUN servers for direct P2P NAT traversal across Wi-Fi and mobile networks.
-    - During the silent planning phase, player moves are masked (`__LOCKED_IN__`) over the wire to prevent network inspection peeking until the round reveal.
+    - Joining devices resolve the Peer ID and establish a direct WebRTC DataChannel via configured STUN servers for direct P2P NAT traversal.
+    - During the silent planning phase, player moves are masked over the wire to prevent network inspection peeking until the round reveal.
     - Active room codes, player identities, and room snapshots are synchronized with `sessionStorage` for seamless recovery on accidental tab refresh.
 - **AI Teammates & Strategic Bot Simulation**:
-  - Hosts can populate lobbies with AI bots (`+ Add bot`). Bots generate coherent names, archetypes, and procedural portraits, and produce in-character plans during scenario rounds.
+  - Hosts can populate lobbies with AI bots, which are powered by the same LLM as the storytelling system. Bots generate coherent names, archetypes, and procedural portraits, and produce in-character plans during scenario rounds.
   - Bots feature meta-aware strategic logic: depending on leaderboard standings and individual traits, bots can either cooperatively assist the team or orchestrate subtle, self-serving sabotage against rival players.
 - **HTML5 Portrait Studio & Lightweight Avatar Protocol**:
   - In-browser drawing canvas with pointer/touch normalization, customizable brush widths, color palettes, and full undo history stacks.
   - Sizing is managed via a `ResizeObserver` and dynamic layout scaling, maximizing drawing area across desktop monitors and mobile touchscreens without aspect distortion.
-  - Drawings are automatically downsampled and compressed to lightweight JPEG payloads (< 20 KB), allowing instantaneous peer broadcasting across WebRTC DataChannels without image servers or cloud storage buckets.
-  - Players who skip drawing receive unique, procedurally generated geometric silhouette avatars.
+  - Drawings are automatically downsampled and compressed to lightweight JPEG payloads, allowing instantaneous peer broadcasting across WebRTC DataChannels without image servers or cloud storage buckets.
 - **Procedural Web Audio Synthesizer**:
   - Game sounds (buzzers, round passes, lock-in chimes, countdown ticks, and victory stings) are synthesized entirely in real time using the native **Web Audio API** (oscillators and gain nodes), requiring zero external audio assets or downloads.
 - **Zero-Build Native Web Architecture**:
-  - Built with 100% vanilla JavaScript using modern ES modules (`type="module"`) and native W3C Import Maps—no bundler, compiler, or npm dependencies needed.
-  - Fully responsive, mobile-first design using fluid typography (`clamp()`), dynamic viewport units (`dvh`), and tactile neomorphic-cartoon CSS design tokens.
+  - Built with 100% vanilla JavaScript using ES modules and native W3C Import Maps—no bundler, compiler, or npm dependencies needed.
+  - Features a fully responsive, mobile-first design.
 
 ---
 
 ## Playing the game
 The game is hosted for free on GitHub Pages. You can play it in your web browser **[here](https://caelanhehir.github.io/Plot-engineering/)**!
-
-> **Joining from Another Device (Phones / Tablets / Laptops):**
-> To connect multiple devices together, open the **[GitHub Pages link](https://caelanhehir.github.io/Plot-engineering/)** on each device (or scan the Host's in-game QR code). If you are testing locally across multiple devices on the same Wi-Fi, bind your local server to `0.0.0.0` and visit your machine's LAN IP (`http://192.168.x.x:8000`) rather than `localhost`.
 
 ### Requirements
 - A [Google Gemini API Key](https://aistudio.google.com/app/apikey) (only the Host needs one).
@@ -113,7 +107,7 @@ Plot-engineering/
 ---
 
 ## Local Development
-Plot Engineering uses zero build steps and native ES modules (`type="module"`). You can run and modify it immediately using any local static file server.
+Plot Engineering uses zero build steps and native ES modules. This means you can run and modify it immediately using any local static file server.
 
 ### Example 1: Python
 ```bash
@@ -134,7 +128,7 @@ Right-click `index.html` and click **"Open with Live Server"**.
 ### Running Tests
 Unit tests use the built-in Node.js test runner (`node:test`) with zero external dependencies:
 ```bash
-node --test tests/judge.test.js
+node --test tests/judge.test.js tests/network.test.js
 ```
 
 ---
@@ -143,9 +137,9 @@ node --test tests/judge.test.js
 - **API Key Security:** The Gemini API key is stored exclusively in-memory for the duration of the active browser session. It is never saved to `localStorage` or disk, and closing or reloading the tab immediately purges the key.
 - **Session Persistence:** Active room codes, player identities, and room snapshots are stored in `sessionStorage` (scoped to the active tab) so accidental reloads do not terminate games.
 - **P2P Multiplayer:** Game data is synchronized directly between player browsers using end-to-end WebRTC peer connections.
-- **Authoritative Host & Move Visibility:** Because the Host browser is authoritative and assembles the round prompt for the Judge, every player's submitted move is sent in plain text to the Host (`getPublicState` masks moves for client peers until reveal, but returns plain text when `app.isHost` is true). Even though the game is "silent co-op," the Host can technically read everyone's moves.
 - **Prompt Injection Defense:** System rules are passed via Gemini's dedicated systemInstruction field, and player-submitted fields (submittedAction, names, roles, and traits) are sanitized and marked as untrusted data so attempts to instruct the Judge ("rank me first") are penalized in-story rather than obeyed.
-- **Privacy & External API Transmission:** When using an AI Judge, round scenarios and submitted player actions are sent to Google via the Gemini API under the Host's in-memory API key. Do not submit sensitive or private personal information.
+- **Privacy & External API Transmission:** When using an AI Judge, round scenarios and submitted player actions are sent to Google via the Gemini API under the Host's in-memory API key.
+
 ---
 
 ## License

@@ -4,10 +4,11 @@ import assert from 'node:assert/strict';
 import {
   sanitizePlayerInput,
   normalizeJudgeResult,
-  judgeRoundWithAI
+  judgeRoundWithAI,
+  parseStrictBool
 } from '../assets/js/services/gemini/judge.js';
 import { mockJudgeRound } from '../assets/js/services/gemini/fallbackJudge.js';
-import { parseCleanJSON, callGeminiJSON } from '../assets/js/services/gemini/client.js';
+import { parseCleanJSON, callGeminiJSON, setStoredApiKey, getStoredApiKey } from '../assets/js/services/gemini/client.js';
 
 function makePlayers() {
   return [
@@ -146,6 +147,66 @@ describe('normalizeJudgeResult', () => {
     assert.equal(res2.outcome, 'FAILED');
     assert.equal(res2.passed, false);
     assert.ok(res2.rankings.every(r => r.pointsAwarded === 0));
+  });
+
+  it('parses strict booleans correctly even when model outputs string booleans or numbers', () => {
+    assert.equal(parseStrictBool(true), true);
+    assert.equal(parseStrictBool(false), false);
+    assert.equal(parseStrictBool('true'), true);
+    assert.equal(parseStrictBool('false'), false);
+    assert.equal(parseStrictBool('TRUE'), true);
+    assert.equal(parseStrictBool('FALSE'), false);
+    assert.equal(parseStrictBool(1), true);
+    assert.equal(parseStrictBool(0), false);
+    assert.equal(parseStrictBool('1'), true);
+    assert.equal(parseStrictBool('0'), false);
+    assert.equal(parseStrictBool(undefined, true), true);
+    assert.equal(parseStrictBool(null, false), false);
+    assert.equal(parseStrictBool('garbage', false), false);
+  });
+
+  it('strictly parses string booleans for objectiveAchieved and contributed', () => {
+    const players = makePlayers();
+    const res1 = normalizeJudgeResult({
+      outcome: 'FLYING_COLORS',
+      objectiveAchieved: 'false',
+      rankings: [
+        { playerId: 'p1', rank: 1, contributed: 'true' }
+      ]
+    }, players);
+    assert.equal(res1.outcome, 'FAILED');
+    assert.equal(res1.passed, false);
+
+    const res2 = normalizeJudgeResult({
+      outcome: 'PASSED',
+      objectiveAchieved: true,
+      rankings: [
+        { playerId: 'p1', rank: 1, contributed: true },
+        { playerId: 'p2', rank: 2, contributed: 'false' },
+        { playerId: 'p3', rank: 3, contributed: 'false' }
+      ]
+    }, players);
+    assert.equal(res2.passed, true);
+    assert.ok(res2.rankings.find(r => r.playerId === 'p1').pointsAwarded > 0);
+    assert.equal(res2.rankings.find(r => r.playerId === 'p2').pointsAwarded, 0);
+    assert.equal(res2.rankings.find(r => r.playerId === 'p3').pointsAwarded, 0);
+  });
+
+  it('fails the round if only a locked-out player was marked contributed', () => {
+    const players = makePlayers();
+    players[0].modifiers = [{ name: 'Stunned', type: 'meta', metaEffect: 'SKIP_TURN', description: 'Locked out' }];
+    const res = normalizeJudgeResult({
+      outcome: 'PASSED',
+      objectiveAchieved: true,
+      rankings: [
+        { playerId: 'p1', rank: 1, contributed: true },
+        { playerId: 'p2', rank: 2, contributed: false },
+        { playerId: 'p3', rank: 3, contributed: false }
+      ]
+    }, players);
+    assert.equal(res.outcome, 'FAILED');
+    assert.equal(res.passed, false);
+    assert.ok(res.rankings.every(r => r.pointsAwarded === 0));
   });
 
   it('awards zero points to non-contributors (contributed: false, sabotaged: false) without marking them sabotaged', () => {
@@ -591,5 +652,16 @@ describe('ES Module Graph Integrity', () => {
   it('loads the full application entrypoint module graph with all named exports linked', async () => {
     const mainModule = await import('../assets/js/main.js');
     assert.ok(mainModule);
+  });
+});
+
+describe('Gemini client key swap and model discovery', () => {
+  it('clears model cache and deadModelNames when swapping API key', () => {
+    setStoredApiKey('key-one');
+    assert.equal(getStoredApiKey(), 'key-one');
+    setStoredApiKey('key-two');
+    assert.equal(getStoredApiKey(), 'key-two');
+    setStoredApiKey('');
+    assert.equal(getStoredApiKey(), '');
   });
 });

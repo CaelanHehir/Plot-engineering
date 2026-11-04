@@ -65,13 +65,15 @@ export function getStoredApiKey() {
  */
 export function setStoredApiKey(key) {
   const clean = (key || '').trim();
+  if (clean !== inMemoryApiKey) {
+    cachedModelName = '';
+    verifiedModelsList = [];
+    deadModelNames.clear();
+  }
   inMemoryApiKey = clean;
   if (clean) {
     isApiKeyVerified = true;
   } else {
-    cachedModelName = '';
-    verifiedModelsList = [];
-    deadModelNames.clear();
     isApiKeyVerified = false;
   }
 }
@@ -235,9 +237,10 @@ export async function validateAndDiscoverModels(apiKey) {
     }
   }
 
-  // Fallback to any remaining allowed models if none matched preferred
+  // Fallback to any remaining allowed Flash models if none matched preferred
   for (const s of supported) {
-    if (isAllowedModel(s) && !sorted.includes(s)) {
+    const lower = s.toLowerCase();
+    if (isAllowedModel(s) && lower.includes('flash') && !sorted.includes(s)) {
       sorted.push(s);
     }
   }

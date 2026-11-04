@@ -20,7 +20,8 @@ import { sfx } from '../../services/audio.js';
 import { broadcastState } from '../../services/network.js';
 
 export function renderLobbyScreen() {
-  document.getElementById('lobby-room-code-display').textContent = app.state.roomCode;
+  const roomCodeDisplay = document.getElementById('lobby-room-code-display');
+  if (roomCodeDisplay) roomCodeDisplay.textContent = app.state.roomCode;
 
   const isCampaignSetup = Boolean(app.isHost && app.lobbyView === 'campaign');
   const castView = document.getElementById('lobby-view-cast');

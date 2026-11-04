@@ -25,6 +25,23 @@ export function sanitizePlayerInput(value, maxLength = 400) {
 }
 
 /**
+ * Coerces truthy/falsy values strictly, preventing string `"false"` from becoming boolean `true`.
+ * @param {any} val
+ * @param {boolean} defaultVal
+ * @returns {boolean}
+ */
+export function parseStrictBool(val, defaultVal = false) {
+  if (val === true || val === 1 || val === '1') return true;
+  if (val === false || val === 0 || val === '0') return false;
+  if (typeof val === 'string') {
+    const s = val.trim().toLowerCase();
+    if (s === 'true') return true;
+    if (s === 'false') return false;
+  }
+  return defaultVal;
+}
+
+/**
  * Normalizes raw judgment data from Gemini, enforcing safe fallbacks,
  * formatting player rankings, calculating points with host multipliers,
  * and ensuring zero points/modifiers are given to anyone on round failure.
@@ -45,11 +62,16 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
   let outcome = String(safeRaw.outcome || '').toUpperCase().trim();
   let passed = true;
 
+  const isCoherent = parseStrictBool(safeRaw.storyCoherentAndFunny, true);
+  const hasEffort = parseStrictBool(safeRaw.effortSufficient, true);
+  const isObjectiveAchieved = parseStrictBool(safeRaw.objectiveAchieved, true);
+  const rawPassed = parseStrictBool(safeRaw.passed, true);
+
   if (
-    safeRaw.storyCoherentAndFunny === false ||
-    safeRaw.effortSufficient === false ||
-    safeRaw.objectiveAchieved === false ||
-    safeRaw.passed === false ||
+    !isCoherent ||
+    !hasEffort ||
+    !isObjectiveAchieved ||
+    !rawPassed ||
     outcome.includes('FAIL')
   ) {
     passed = false;
@@ -76,11 +98,12 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
       if (getPlayerMetaMod(p, 'DEAD')) continue;
       seenIds.add(p.id);
 
-      const isSabotaged = Boolean(r.sabotaged);
+      const isSabotaged = parseStrictBool(r.sabotaged, false);
       // If `contributed` is provided by Judge, respect it (requiring !isSabotaged).
       // If omitted (legacy unit tests), default to !isSabotaged.
-      const didContribute = r.contributed !== undefined
-        ? (Boolean(r.contributed) && !isSabotaged)
+      const hasContributedFlag = r.contributed !== undefined && r.contributed !== null;
+      const didContribute = hasContributedFlag
+        ? (parseStrictBool(r.contributed, false) && !isSabotaged)
         : !isSabotaged;
 
       const cleanModsAdded = (!passed || isLastRound)
@@ -134,12 +157,19 @@ export function normalizeJudgeResult(raw, players, settings = {}, options = {}) 
   }
 
   // 4. If explicit contribution flags exist and nobody contributed, force FAILED
-  const hasExplicitContributed = rawRankings.some(r => r && typeof r.contributed === 'boolean');
+  const hasExplicitContributed = rawRankings.some(r => r && (
+    typeof r.contributed === 'boolean' || r.contributed === 'true' || r.contributed === 'false'
+  ));
   if (
     passed &&
     hasExplicitContributed &&
     normalizedRankings.length > 0 &&
-    normalizedRankings.every(r => !r.contributed || r.sabotaged || getPlayerMetaMod(safePlayers.find(p => p.id === r.playerId), 'DEAD'))
+    normalizedRankings.every(r => {
+      const p = safePlayers.find(pl => pl.id === r.playerId);
+      const isDead = Boolean(getPlayerMetaMod(p, 'DEAD'));
+      const isLockedOut = Boolean(getPlayerMetaMod(p, 'SKIP_TURN'));
+      return !r.contributed || r.sabotaged || isDead || isLockedOut;
+    })
   ) {
     passed = false;
     outcome = 'FAILED';
@@ -235,7 +265,7 @@ export async function judgeRoundWithAI({
 }, options = {}) {
   const strictness = settings?.strictness || 'balanced';
   const strictnessGuide = {
-    forgiving: 'FORGIVING (PURE "YES, AND!" IMPROV): Be wildly generous! Weave even absurd cartoon stunts into a triumphant comedic success (clever sabotage interrupts rivals and gets rewarded, but the surviving crew still passes).',
+    forgiving: 'FORGIVING (GENEROUS CARTOON IMPROV): Be generous! Treat creative or ridiculous cartoon attempts as viable solutions that clear the objective. Clever sabotage can still thwart rivals, but as long as at least one surviving player makes a viable comedic attempt toward the crisis, let the crew pass.',
     balanced: 'BALANCED (COMEDY, SYNERGY & RIVALRY): Reward funny, coordinated team actions OR clever, audacious player sabotage with high scores! Interrupt sabotaged players\' actions in the story and punish victims with failed actions, lockouts, or debuffs. If mutual sabotage or dogpiling occurs, let it erupt into a hilarious chain reaction. Give PASSED when sabotage, casualties, or fumbles complicate the mission; give FAILED only when infighting or lazy answers completely destroy the crew without any comedic recovery.',
     brutal: 'TOUGH CRITIC: High-stakes comedic drama! Clever sabotage pays off big for the saboteur, but messy sabotage will violently backfire, interrupt critical moves, or drag the entire team into catastrophic failure and death.'
   }[strictness] || '';
@@ -318,6 +348,8 @@ CRITICAL JUDGING, CONTINUITY & SCORING RULES (NEVER VIOLATE)
    - However, if NO player achieves the round objective (for example, everyone spends their turn fighting each other, missing attacks, waiting passively, or failing their moves), you MUST set "objectiveAchieved": false and "outcome": "FAILED"! Never invent a free team escape if nobody earned it.
 
 5. SABOTAGE, CONTRIBUTION & POINT SCORING ("contributed" & "sabotaged"):
+   - SABOTAGE IS FULLY VIABLE AND REWARDED: Sabotaging teammates is a core mechanic of the game! Players are secretly competing for the highest score while needing the team to pass. A clever, well-timed backstab or shove that sidelines a rival and lets you steal the glory is celebrated and rewarded with points.
+   - NO MIRACLE RESCUES FOR VICTIMS: If Player A executes a clean, plausible sabotage against an unsuspecting Player B, do NOT invent sudden magical coincidences or miraculous reflexes to save Player B. Let the sabotage hit!
    - Decide for each player:
      a) Did they contribute to clearing the round or pull off a successful sabotage? ("contributed": true | false)
      b) Were they the victim of a successful sabotage? ("sabotaged": true | false)
@@ -348,8 +380,10 @@ CRITICAL JUDGING, CONTINUITY & SCORING RULES (NEVER VIOLATE)
    - BALANCE BUFFS AND DEBUFFS:
      * REWARD STANDOUT CONTRIBUTORS & AGILE DEFENDERS WITH POSITIVE BUFFS ("type": "buff"):
        When a player pulls off a brilliant play, successfully clears the obstacle, or nimbly evades an incoming attack, award them a concrete, relevant positive buff reflecting that physical accomplishment (e.g. "Adrenaline Surge: +reflexes from a clean dodge", "Grease-Proof: immune to slipping", "Keycard Master: quick access to doors", "High Ground: great vantage point").
-     * PENALIZE FUMBLES, WHIFFS & SABOTAGE VICTIMS WITH DEBUFFS ("type": "debuff"):
-       When a player gets tackled, crashes, whiffs a lunge, or gets covered in hazards, give them a concrete, relevant physical debuff (e.g. "Sprained Ankle: limping", "Grease-Soaked: slippery grip", "Ringing Ears: loud tinnitus from explosion").
+     * PENALIZE FUMBLES, WHIFFS & SABOTAGE VICTIMS WITH 3 PUNISHMENT TIERS:
+       - TIER 1: MILD DEBUFF ("type": "debuff", "metaEffect": "NONE"): For routine fumbles, slips, minor sabotage, or missed lunges (e.g., "Sprained Ankle: limping", "Grease-Soaked: slippery grip", "Bruised Ego: rattled confidence", "Ringing Ears: loud tinnitus from explosion"). The player continues playing normally next round.
+       - TIER 2: KNOCKOUT / LOCKOUT ("type": "meta", "metaEffect": "SKIP_TURN"): For major physical trauma, getting stunned, trapped, tied up, locked inside a room, knocked unconscious, or paralyzed by gas/electricity. In the next round, the player is locked out and cannot submit an action while they recover.
+       - TIER 3: PERMANENT CASUALTY ("type": "meta", "metaEffect": "DEAD"): Reserved ONLY for explicitly lethal catastrophes (thrown into a blast furnace, sucked into vacuum, disintegrated, crushed by a hydraulic press) OR under Brutal difficulty when a player takes a catastrophic, fatal hit. A dead player is permanently eliminated from the campaign. Do not use lightly unless the hazard or attack is unmistakably lethal!
    - If this is the final round (roundNumber === totalRounds), set "modifiersAdded": [] for all players.
    - If "outcome" is "FAILED", set "modifiersAdded": [] and "modifiersRemoved": [] for EVERY player.
 

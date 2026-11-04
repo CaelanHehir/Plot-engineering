@@ -608,9 +608,7 @@ export function getPublicState(forPlayerId = null) {
           return snapP ? { ...p, score: snapP.score, modifiers: snapP.modifiers } : p;
         });
       }
-      if (publicRoundHistory.length > 0) {
-        publicRoundHistory = publicRoundHistory.slice(0, -1);
-      }
+      publicRoundHistory = publicRoundHistory.filter(h => h.roundIndex !== app.state.currentRound);
     }
   }
 
