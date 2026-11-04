@@ -18,9 +18,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Luckiest+Guy&family=Nunito:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/base.css?v=206" />
-  <link rel="stylesheet" href="assets/css/components.css?v=206" />
-  <link rel="stylesheet" href="assets/css/screens.css?v=206" />
+  <link rel="stylesheet" href="assets/css/base.css?v=207" />
+  <link rel="stylesheet" href="assets/css/components.css?v=207" />
+  <link rel="stylesheet" href="assets/css/screens.css?v=207" />
   <!-- PeerJS for Free Internet Room-Code Multiplayer via WebRTC (A9) -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" integrity="sha384-nlUQ8ZqCbvStErob+biJNzSgltf6urV3VGqhfIfzhmg9RXmpeRm76ELw0pYnKlTR" crossorigin="anonymous"></script>
 </head>
@@ -329,10 +329,10 @@
               </div>
 
               <div class="row-gap mt-2" style="gap: 0.5rem;">
-                <button type="button" class="btn btn-primary flex-1" data-action="go-to-char-portrait">
+                <button id="char-next-portrait-btn" type="button" class="btn btn-primary flex-1" data-action="go-to-char-portrait">
                   Next: Draw portrait
                 </button>
-                <button type="button" class="btn btn-gold flex-1" data-action="submit-character">
+                <button id="char-lock-in-stage1-btn" type="button" class="btn btn-gold flex-1" data-action="submit-character">
                   Lock in character
                 </button>
               </div>

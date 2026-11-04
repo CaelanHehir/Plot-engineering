@@ -762,6 +762,19 @@
   justify-content: center;
 }
 
+/* Character creation action buttons & lock in character button scaling */
+#char-stage-1 .row-gap .btn,
+#char-lock-in-stage1-btn,
+#char-next-portrait-btn,
+#char-lock-in-btn,
+[data-action="submit-character"] {
+  white-space: nowrap;
+  font-size: clamp(0.65rem, 2.7vw, 1.05rem);
+  padding: 0.55rem clamp(0.3rem, 1.5vw, 1.25rem);
+  letter-spacing: clamp(0px, 0.25vw, 0.5px);
+  min-width: 0;
+}
+
 #char-lock-in-btn {
   flex-shrink: 0;
 }
