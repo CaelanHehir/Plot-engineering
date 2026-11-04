@@ -165,11 +165,26 @@ export function syncCanvasToContainer(forceRepaint = false) {
 
   let side = 0;
   if (layoutEl && areaEl) {
-    const layoutRect = layoutEl.getBoundingClientRect();
-    const toolbarW = toolbarEl ? toolbarEl.getBoundingClientRect().width : 44;
-    const availW = Math.max(0, layoutRect.width - toolbarW - 14);
-    const availH = Math.max(0, layoutRect.height - 4);
+    areaEl.style.width = '';
+    areaEl.style.height = '';
+    const layoutW = layoutEl.clientWidth || Math.round(layoutEl.getBoundingClientRect().width);
+    const layoutH = layoutEl.clientHeight || Math.round(layoutEl.getBoundingClientRect().height);
+    const toolbarW = toolbarEl ? (toolbarEl.offsetWidth || Math.round(toolbarEl.getBoundingClientRect().width)) : 44;
+    const availW = Math.max(0, layoutW - toolbarW - 10);
+    const availH = Math.max(0, layoutH - 6);
     side = Math.floor(Math.min(availW, availH));
+    const cardEl = canvas.closest('.char-creator-card');
+    if (cardEl && availW > 0) {
+      const maxPossible = Math.min(availW, 440);
+      if (maxPossible > side && side < 270) {
+        side = Math.floor(Math.min(maxPossible, Math.max(side, 300)));
+      }
+    }
+    if (!layoutEl._hasResizeObserver && typeof ResizeObserver !== 'undefined') {
+      layoutEl._hasResizeObserver = true;
+      const ro = new ResizeObserver(() => syncCanvasToContainer());
+      ro.observe(layoutEl);
+    }
     if (side >= 40) {
       areaEl.style.width = `${side}px`;
       areaEl.style.height = `${side}px`;

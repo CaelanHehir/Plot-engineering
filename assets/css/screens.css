@@ -692,14 +692,15 @@
   gap: 0.25rem;
   overflow-y: auto;
   padding-right: 0.2rem;
+  padding-top: 0.25rem;
 }
 
 .char-inputs-col > .form-group:first-child {
-  margin-top: auto;
+  margin-top: 0;
 }
 
 .char-inputs-col > .form-group:last-child {
-  margin-bottom: auto;
+  margin-bottom: 0;
 }
 
 .btn-gold-pill {
@@ -716,7 +717,22 @@
   overflow: hidden;
 }
 
+.char-creator-card.is-portrait-sketchpad {
+  padding: 0.5rem 0.65rem;
+}
+
+.char-creator-card.is-portrait-sketchpad .char-stage-header {
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.char-creator-card.is-portrait-sketchpad #char-lock-in-btn {
+  margin-top: 0.35rem;
+}
+
 .char-sketchpad-stage {
+  animation: none !important;
+  transform: none !important;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -747,7 +763,7 @@
   width: auto;
   height: auto;
   max-height: 100%;
-  max-width: calc(100% - 3.75rem);
+  max-width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: var(--wobbly-box);
   overflow: hidden;
