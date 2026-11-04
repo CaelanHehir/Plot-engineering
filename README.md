@@ -25,12 +25,30 @@ The twist is that players also earn points based on how important their actions 
 
 
 ## Technical Features
-- **AI Storytelling**: The game uses an LLM to analyze player input, generate the story, decide who contributed the most, whether the team succeeded or not, etc... It requires the player hosting the room to input a Gemini API key in order to work (check out the [Security](#security) section for privacy concerns).
-- **Peer-to-Peer Multiplayer & Room Hosting**: Creating a room works using PeerJS WebRTC, allowing the Host's browser to run the authoritative game room directly on their device without a dedicated game backend:
-  - When the Host creates a 4-letter room code (e.g., `ABCD`), their browser registers a deterministic Peer ID (`plot-eng-room-ABCD`) with the PeerJS signaling broker.
-  - Joining devices look up that Peer ID and establish a direct WebRTC DataChannel using configured Google, Cloudflare, and Twilio STUN servers for direct P2P NAT traversal across compatible Wi-Fi and mobile networks.
-  - Once connected, the client sends a `JOIN_REQUEST` over the DataChannel and the Host broadcasts sanitized `STATE_UPDATE` snapshots to all connected peers.
-- **Procedural Audio System**: Sounds are generated using the Web Audio API, meaning no external audio assets need to be loaded.
+- **AI Storytelling & Dynamic Model Discovery**:
+  - The storytelling engine uses the Google Gemini API to analyze player inputs, compose the multi-act narrative, determine round success, and award individual contribution scores.
+  - **Live Model Discovery**: Upon entering an API key, the client queries Gemini's models endpoint to discover all active models available for that key (supporting newer variants like `gemini-2.5-flash`, `gemini-2.0-flash`, etc.).
+  - **Graceful Cascade & Exponential Backoff**: If rate limits (HTTP 429) or service errors occur, the client backs off with jitter and cascades automatically to alternative models.
+  - **Offline Heuristic Fallback Judge**: If API quota is exhausted or network access is disrupted, an offline deterministic judge seamlessly evaluates the round, keeping the party moving without game-breaking errors.
+- **Peer-to-Peer Multiplayer & Room Hosting**:
+  - Creating and joining rooms runs entirely over **PeerJS WebRTC DataChannels**, letting the Host's browser operate as an authoritative game server with zero backend hosting costs:
+    - When the Host creates a 4-letter room code (e.g., `ABCD`), their browser registers a deterministic Peer ID (`plot-eng-room-ABCD`) with the signaling broker.
+    - Joining devices resolve the Peer ID and establish a direct WebRTC DataChannel via configured Google, Cloudflare, and Twilio STUN servers for direct P2P NAT traversal across Wi-Fi and mobile networks.
+    - During the silent planning phase, player moves are masked (`__LOCKED_IN__`) over the wire to prevent network inspection peeking until the round reveal.
+    - Active room codes, player identities, and room snapshots are synchronized with `sessionStorage` for seamless recovery on accidental tab refresh.
+- **AI Teammates & Strategic Bot Simulation**:
+  - Hosts can populate lobbies with AI bots (`+ Add bot`). Bots generate coherent names, archetypes, and procedural portraits, and produce in-character plans during scenario rounds.
+  - Bots feature meta-aware strategic logic: depending on leaderboard standings and individual traits, bots can either cooperatively assist the team or orchestrate subtle, self-serving sabotage against rival players.
+- **HTML5 Portrait Studio & Lightweight Avatar Protocol**:
+  - In-browser drawing canvas with pointer/touch normalization, customizable brush widths, color palettes, and full undo history stacks.
+  - Sizing is managed via a `ResizeObserver` and dynamic layout scaling, maximizing drawing area across desktop monitors and mobile touchscreens without aspect distortion.
+  - Drawings are automatically downsampled and compressed to lightweight JPEG payloads (< 20 KB), allowing instantaneous peer broadcasting across WebRTC DataChannels without image servers or cloud storage buckets.
+  - Players who skip drawing receive unique, procedurally generated geometric silhouette avatars.
+- **Procedural Web Audio Synthesizer**:
+  - Game sounds (buzzers, round passes, lock-in chimes, countdown ticks, and victory stings) are synthesized entirely in real time using the native **Web Audio API** (oscillators and gain nodes), requiring zero external audio assets or downloads.
+- **Zero-Build Native Web Architecture**:
+  - Built with 100% vanilla JavaScript using modern ES modules (`type="module"`) and native W3C Import Maps—no bundler, compiler, or npm dependencies needed.
+  - Fully responsive, mobile-first design using fluid typography (`clamp()`), dynamic viewport units (`dvh`), and tactile neomorphic-cartoon CSS design tokens.
 
 ---
 
